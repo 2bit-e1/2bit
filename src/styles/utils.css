@@ -1,0 +1,47 @@
+.hide-scrollbar, body, html {
+  scrollbar-width: none;
+}
+
+:is(.hide-scrollbar, body, html)::-webkit-scrollbar {
+  width: 0px;
+}
+
+:is(.hide-scrollbar, body, html)::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.main {
+  view-transition-name: main;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes slide-from-right {
+  from { transform: translateX(30px); }
+}
+
+@keyframes slide-to-left {
+  to { transform: translateX(-30px); }
+}
+
+::view-transition-old(main) {
+  animation: 90ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
+}
+
+::view-transition-new(main) {
+  animation: 90ms cubic-bezier(0, 0, 0.2, 1) both fade-in;
+}
+
+::view-transition-old(root) {
+  animation: none;
+}
+
+::view-transition-new(root) {
+  animation: none;
+}

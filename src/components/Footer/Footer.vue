@@ -1,0 +1,110 @@
+<script setup>
+import ProjectFooterItem from './ProjectFooterItem.vue';
+import HomeFooterItem from './HomeFooterItem.vue';
+import MeFooterItem from './MeFooterItem.vue';
+import { PAGE_NAMES } from '@/utils/constants';
+import { useProjectStore } from '@/stores/project';
+
+const props = defineProps({
+  pageName: String
+})
+
+const projectStore = useProjectStore();
+
+</script>
+
+<template>
+  <div class="footer" >
+    <HomeFooterItem :isActive="props.pageName == PAGE_NAMES.home" :pageName="pageName" />
+    <ProjectFooterItem
+      :isActive="props.pageName == PAGE_NAMES.project && projectStore.isFooterDataVisible"
+      :pageName="pageName"
+    />
+    <MeFooterItem :isActive="props.pageName == PAGE_NAMES.me" :pageName="pageName" /> 
+  </div>
+</template>
+
+<style scoped>
+.footer {
+  
+}
+
+.footer-item {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+  width: calc(100% - var(--page-padding-x) * 2);
+  height: var(--footer-height);
+  z-index: var(--header-z-index);
+  display: grid;
+  grid-template-columns: repeat(5, var(--column-width));
+  justify-content: center;
+  max-width: 100%;
+}
+
+.footer-item:not(.footer-item_active) {
+  pointer-events: none;
+}
+
+.footer-item_project, .footer-item_me {
+  grid-template-columns: repeat(10, calc(var(--column-width) / 2));
+}
+
+.footer-item_me {
+  height: var(--me-footer-height);
+  row-gap: 7px;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  padding-bottom: 10px;
+}
+
+@media (max-width: 1024px) {
+  .footer-item {
+    height: auto;
+    top: auto;
+    bottom: 0;
+    grid-template-columns: repeat(12, var(--column-width));
+    row-gap: 3px;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+
+  .footer-item_home {
+    height: auto;
+    padding-bottom: 62px;
+  }
+
+  .footer-item_project {
+    top: 120px;
+    bottom: auto;
+  }
+
+  .footer-item_me {
+    display: block;
+    height: auto;
+    left: 0;
+    position: static;
+    translate: initial;
+  }
+}
+
+@media (max-width: 820px) {
+  .footer-item_project {
+    top: 77px;
+  }
+  
+  .footer-item_home {
+    padding-bottom: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .footer-item_project {
+    top: 90px;
+  }
+  
+  .footer-item_home {
+    padding-bottom: 62px;
+  }
+}
+</style>
