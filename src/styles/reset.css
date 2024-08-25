@@ -48,10 +48,16 @@ p {
 button,
 a {
   border: none;
+  border-width: 0px;
   text-align: start;
   background-color: transparent;
   cursor: pointer;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+}
+
+:is(a.link, button):not(:hover) {
+  /*Без important chrome сначала рендерит border-color с currentColor и только потом с transparent */
+  border-color: transparent !important;
 }

@@ -229,12 +229,17 @@ const headerExtraClass = computed(() => ({
   left: 50%;
   top: 0;
   translate: -50% 0;
+  color: #776e62;
 }
 
 .item_left .item-btn-text_home {
   /* text-indent: var(--text-indent);
   translate: calc(-50% - (var(--text-indent) / 2)) 0; */
   
+}
+
+.item_left .item-btn-text_home:deep(.appear-words) {
+  flex-wrap: nowrap;
 }
 
 .item_left .item-btn-text {

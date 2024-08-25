@@ -11,10 +11,9 @@
 }
 
 .main {
-  view-transition-name: main;
 }
 
-@keyframes fade-in {
+/*@keyframes fade-in {
   from { opacity: 0; }
 }
 
@@ -44,4 +43,4 @@
 
 ::view-transition-new(root) {
   animation: none;
-}
+}*/

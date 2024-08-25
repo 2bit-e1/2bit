@@ -34,3 +34,5 @@ watchEffect(() => {
   </footer>
 </template>
 
+<style>
+</style>

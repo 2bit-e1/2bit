@@ -35,7 +35,7 @@ const mouseleave = () => {
 <template>
   <li class="project-item">
     <RouterLink
-      class="project-item-link"
+      class="link project-item-link"
       :to="`/projects/${slug}`"
       @mouseenter="mouseenter"
       @mouseleave="mouseleave"
@@ -64,7 +64,7 @@ const mouseleave = () => {
 </template>
 
 <style scoped>
-.project-item-link {
+a.project-item-link {
   border: 1px solid transparent;
   display: block;
   width: 100%;

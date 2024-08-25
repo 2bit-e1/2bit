@@ -23,9 +23,11 @@ const clickHandler = (event) => {
 
 watchEffect(() => {
   if (props.isOpen) {
+    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', keydownHandler)
     window.addEventListener('click', clickHandler)
   } else {
+    document.body.style.overflow = '';
     window.removeEventListener('keydown', keydownHandler)
     window.removeEventListener('click', clickHandler)
   }
@@ -50,7 +52,7 @@ watchEffect(() => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
   background-color: rgba(var(--bg-clr-white-rgb), 0.85);
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;

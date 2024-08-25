@@ -1,10 +1,15 @@
 <script setup>
+import { useProjectStore } from '@/stores/project';
 import AppearWord from '../Appear/AppearWord.vue';
 import AppearWords from '../Appear/AppearWords.vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   isActive: Boolean,
 });
+
+const projectStore = useProjectStore();
+const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
 </script>
 
 <template>
@@ -23,9 +28,9 @@ const props = defineProps({
     </h3>
     <div class="project-item project-item_counter">
       <div class="project-item-inner">
-        <AppearWord word="01" :isAppear="isActive" class="project-counter-current" />
+        <AppearWord word="01" :isAppear="isImagesCountVisible && isActive" class="project-counter-current" />
         &nbsp;
-        <AppearWord word="/ 21" :isAppear="isActive" class="project-counter-total" />
+        <AppearWord word="/ 21" :isAppear="isImagesCountVisible && isActive" class="project-counter-total" />
       </div>
     </div>
     <h3 class="project-item project-item_year">
@@ -151,6 +156,12 @@ const props = defineProps({
     min-height: 32px;
     max-height: 32px;
     overflow: hidden;
+  }
+}
+
+@media (max-width: 820px) {
+  .project-item_role {
+    grid-column: 8 / 12;
   }
 }
 

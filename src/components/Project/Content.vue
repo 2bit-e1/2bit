@@ -19,7 +19,7 @@
 
 .content {
   width: 100%;
-  height: calc(100% - 130px);
+  height: 50%;
   background-color: #e3e3e3;
 }
 </style>

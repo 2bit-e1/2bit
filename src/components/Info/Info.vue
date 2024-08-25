@@ -70,6 +70,7 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   justify-content: center;
   --content-width: calc(100% - var(--page-padding-x) * 2);
 }
+
 .info_open {
   display: flex;
 }
@@ -87,6 +88,9 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   grid-template-columns: repeat(5, var(--column-width));
   display: grid;
   justify-content: center;
+}
+.info_me .info-inner {
+  padding-bottom: 80px;
 }
 .text-container {
   grid-column: 2 / 4;

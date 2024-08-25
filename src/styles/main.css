@@ -32,7 +32,7 @@ body {
   margin: 0;
   background-color: var(--bg-clr-white);
   font-family: Hauora;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--clr-black);
 }
 
@@ -43,7 +43,7 @@ body {
 * {
   box-sizing: border-box;
   font-family: Hauora;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 12px;
   line-height: 15.6px;
 }
