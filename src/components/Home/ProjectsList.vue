@@ -1,7 +1,7 @@
 <script setup>
 import allProjects from "@/data/projects/index.js";
 import ProjectItem from "@/components/Home/ProjectItem.vue";
-import { onUnmounted } from "vue";
+import { onBeforeMount, onUnmounted } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 
@@ -11,7 +11,7 @@ const setActiveProjectData = useDebounce(homeStore.setActiveProjectData, 200);
 const clearActiveProjectData = useDebounce(homeStore.clearActiveProjectData, 200);
 
 onUnmounted(() => {
-  homeStore.clearActiveProjectData();
+  clearActiveProjectData();
 })
 </script>
 

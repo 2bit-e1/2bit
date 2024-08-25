@@ -16,15 +16,19 @@ const images = [
   "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
   "https://images.unsplash.com/photo-1589009602376-95356e671add?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
 ];
+
+const handleImageClick = (src) => {
+  emits("openPopup", src, 'A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.');
+}
 </script>
 
 <template>
   <div class="images-list">
     <div class="list-container">
       <ul class="list">
-        <li class="list-item" v-for="image in images">
-          <button class="item-image" @click.stop="$emit('openPopup')">
-            <img :src="image" alt="" />
+        <li class="list-item" v-for="src in images">
+          <button class="item-image" @click.stop="() => handleImageClick(src)">
+            <img :src="src" alt="" />
           </button>
         </li>
       </ul>

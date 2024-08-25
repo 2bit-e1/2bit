@@ -11,7 +11,7 @@ import ProjectsList from "@/components/Home/ProjectsList.vue";
 
 <style scoped>
 .home-view {
-  height: 100vh;
+  height: 100%;
   padding: var(--header-height) 0 var(--footer-height);
 }
 </style>

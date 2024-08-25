@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, watchEffect } from 'vue';
+import { watchEffect } from 'vue';
 
 const props = defineProps({
   imageSrc: String,
@@ -16,7 +16,7 @@ const keydownHandler = (event) => {
 }
 
 const clickHandler = (event) => {
-  if (!(event.target.closest('.image') || event.target.closest('.description'))) {
+  if (!event.target.closest('.description')) {
     emits('closePopup');
   }
 }
@@ -72,9 +72,11 @@ watchEffect(() => {
   overflow: hidden;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .image {
+  width: 100%;
   height: 100%;
   object-fit: contain;
 }

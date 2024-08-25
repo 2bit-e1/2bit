@@ -302,6 +302,22 @@ const headerExtraClass = computed(() => ({
 }
 
 @media (max-width: 768px) {
+  /*.header {
+    mix-blend-mode: difference;
+    padding-top: 40px;
+  }
+  .item_left .item-btn-text {
+    color: var(--clr-gray);
+  }
+  
+  .item_right .item-btn-text {
+    color: var(--clr-black);
+  }
+  
+  .item_right .item-btn-text_home {
+    color: var(--clr-gray);
+  }*/
+
   .header {
     padding-top: 40px;
   }
