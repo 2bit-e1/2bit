@@ -1,5 +1,5 @@
 <script setup>
-import { watchEffect } from 'vue';
+import { onUnmounted, watchEffect } from 'vue';
 
 const props = defineProps({
   imageSrc: String,
@@ -31,6 +31,10 @@ watchEffect(() => {
     window.removeEventListener('keydown', keydownHandler)
     window.removeEventListener('click', clickHandler)
   }
+})
+
+onUnmounted(() => {
+  document.body.style.overflow = '';
 })
 </script>
 

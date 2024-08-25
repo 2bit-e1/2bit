@@ -182,6 +182,10 @@ const isPressVisible = computed(() => isDesktopPressVisible.value || window.inne
   flex-direction: column;
 }
 
+:is(.me-copyright-title, .me-copyright-text) {
+  flex-wrap: nowrap;
+}
+
 .me-copyright-title {
 }
 

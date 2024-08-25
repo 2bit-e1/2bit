@@ -1,44 +1,23 @@
 <script setup>
-import { reactive, ref, watchEffect } from 'vue';
 import ImagePopup from '@/components/Process/ImagePopup.vue';
 import ImagesList from '@/components/Process/ImagesList.vue';
+import { useProcessStore } from '@/stores/process';
 
 const props = defineProps({
   pageName: String,
 })
 
-const isPopupOpen = ref(false);
-const popupData = reactive({
-  isOpen: false,
-  imageInfo: null
-});
-
-const openPopup = (src, description) => {
-  popupData.imageInfo = { src, description };
-  popupData.isOpen = true;
-}
-
-const closePopup = () => {
-  popupData.isOpen = false;
-}
-
-watchEffect(() => {
-  if (isPopupOpen.value) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = 'auto';
-  }
-})
+const processStore = useProcessStore();
 
 </script>
 
 <template>
-  <ImagesList @openPopup="openPopup" />
+  <ImagesList @openPopup="processStore.openPopup" />
   <ImagePopup
-    :imageSrc="popupData.imageInfo?.src"
-    :imageDescription="popupData.imageInfo?.description"
-    :isOpen="popupData.isOpen"
-    @closePopup="closePopup"
+    :imageSrc="processStore.popupData.imageInfo?.src"
+    :imageDescription="processStore.popupData.imageInfo?.description"
+    :isOpen="processStore.popupData.isOpen"
+    @closePopup="processStore.closePopup"
   />
 </template>
 

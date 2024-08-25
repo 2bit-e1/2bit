@@ -8,6 +8,7 @@ import { useRouter } from "vue-router";
 import allProjects from "@/data/projects/index.js";
 import AppearWord from "./Appear/AppearWord.vue";
 import AppearWords from "./Appear/AppearWords.vue";
+import { useProcessStore } from "@/stores/process";
 
 const props = defineProps({
   pageName: String,
@@ -16,6 +17,7 @@ const props = defineProps({
 const router = useRouter();
 const homeStore = useHomeStore();
 const projectStore = useProjectStore();
+const processStore = useProcessStore();
 
 const homeProjectYears = allProjects.map((project) => project.year);
 const homeProjectNames = allProjects.map((project) => project.name);
@@ -35,11 +37,14 @@ const rightBtnClick = (event) => {
     } else {
       handleRoute(router, ROUTES.home);
     }
-  } else if (
-    props.pageName == PAGE_NAMES.me ||
-    props.pageName == PAGE_NAMES.process
-  ) {
+  } else if (props.pageName == PAGE_NAMES.me) {
     handleRoute(router, ROUTES.home);
+  } else if (props.pageName == PAGE_NAMES.process) {
+    if (processStore.popupData.isOpen) {
+      processStore.closePopup();
+    } else {
+      handleRoute(router, ROUTES.home);
+    }
   } else {
     event.preventDefault();
   }
@@ -54,16 +59,11 @@ const leftBtnRole = computed(() => {
 const isRightBtnDisabled = computed(() => props.pageName == PAGE_NAMES.home);
 const rightBtnRole = computed(() => {
   if (props.pageName == PAGE_NAMES.project) {
-    if (projectStore.isInfoOpen) {
-      return "button";
-    } else {
-      return "link";
-    }
-  } else if (
-    props.pageName == PAGE_NAMES.me ||
-    props.pageName == PAGE_NAMES.process
-  ) {
+    return projectStore.isInfoOpen ? "button" : "link";
+  } else if (props.pageName == PAGE_NAMES.me) {
     return "link";
+  } else if (props.pageName == PAGE_NAMES.process) {
+    return processStore.popupData.isOpen ? "button" : "link";
   } else {
     return "presentation";
   }
@@ -153,7 +153,14 @@ const headerExtraClass = computed(() => ({
           <span class="item-btn-text item-btn-text_process">
             <AppearWord
               word="Закрыть"
-              :isAppear="pageName == PAGE_NAMES.process"
+              :isAppear="pageName == PAGE_NAMES.process && !processStore.popupData.isOpen"
+            />
+          </span>
+
+          <span class="item-btn-text item-btn-text_process">
+            <AppearWord
+              word="Назад"
+              :isAppear="pageName == PAGE_NAMES.process && processStore.popupData.isOpen"
             />
           </span>
 
