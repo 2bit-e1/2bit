@@ -48,7 +48,8 @@ const projectStore = useProjectStore();
 }
 
 .footer-item_project, .footer-item_me {
-  grid-template-columns: repeat(10, calc(var(--column-width) / 2));
+  --column-width-inner: min(calc(var(--column-width) / 2), 10vw);
+  grid-template-columns: repeat(10, var(--column-width-inner));
 }
 
 .footer-item_me {
@@ -113,7 +114,7 @@ const projectStore = useProjectStore();
   }
 }
 
-@media (max-height: 720px) {
+@media (max-height: 720px) and (max-width: 768px) {
   .footer-item_me {
     margin-top: 30px;
   }

@@ -273,7 +273,7 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   }
 }
 
-@media (max-height: 720px) {
+@media (max-height: 720px) and (max-width: 768px) {
   .info_me {
     position: relative;
   }

@@ -22,6 +22,8 @@
   --me-footer-height: 74px;
   --footer-z-index: var(--header-z-index);
   
+  /* --column-width: min(calc((100vh - var(--header-height) - var(--footer-height)) / 3), 33vmin); */
+  /* --column-width: min(min(calc((100vh - var(--header-height) - var(--footer-height)) / 3), 33vmin), 20vw); */
   --column-width: min(calc((100vh - var(--header-height) - var(--footer-height)) / 3), 33vmin);
   --page-padding-x: calc((100vw - var(--column-width) * 5) / 2);
 }
