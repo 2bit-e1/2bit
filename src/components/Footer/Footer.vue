@@ -106,5 +106,16 @@ const projectStore = useProjectStore();
   .footer-item_home {
     padding-bottom: 62px;
   }
+
+  .footer-item_me {
+    position: initial;
+    height: auto;
+  }
+}
+
+@media (max-height: 720px) {
+  .footer-item_me {
+    margin-top: 30px;
+  }
 }
 </style>

@@ -36,7 +36,7 @@ body {
   color: var(--clr-black);
 }
 
-#app, .main {
+.main:not(.main_me), #app:not(:has(.main_me))  {
   height: 100%;
 }
 

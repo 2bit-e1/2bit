@@ -4,6 +4,7 @@ import { RouterView, useRoute, useRouter } from "vue-router"
 import { getPageNameByPath } from "./utils/getPageNameByPath";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer/Footer.vue";
+import { PAGE_NAMES } from "./utils/constants";
 
 const router = useRouter();
 const route = useRoute()
@@ -26,7 +27,7 @@ watchEffect(() => {
   <header>
     <Header :pageName="pageName" />
   </header>
-  <main class="main">
+  <main class="main" :class="{ 'main_me': pageName == PAGE_NAMES.me }">
     <RouterView :pageName="pageName" />
   </main>
   <footer>

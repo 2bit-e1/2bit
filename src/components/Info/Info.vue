@@ -71,9 +71,14 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   --content-width: calc(100% - var(--page-padding-x) * 2);
 }
 
+.info_me {
+  height: auto;
+}
+
 .info_open {
   display: flex;
 }
+
 .info-inner {
   width: 100%;
   height: 100%;
@@ -89,9 +94,13 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   display: grid;
   justify-content: center;
 }
+
 .info_me .info-inner {
+  overflow: initial;
   padding-bottom: 80px;
+  height: auto;
 }
+
 .text-container {
   grid-column: 2 / 4;
   display: grid;
@@ -261,6 +270,16 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 
   .info-image_me {
     margin: 0 0 60px 0;
+  }
+}
+
+@media (max-height: 720px) {
+  .info_me {
+    position: relative;
+  }
+  
+  .info_me .info-inner {
+    padding-bottom: 0px;
   }
 }
 </style>

@@ -303,4 +303,11 @@ const isPressVisible = computed(() => isDesktopPressVisible.value || window.inne
     padding-left: 36px;
   }
 }
+
+@media (max-height: 720px) {
+  .me-list-area_contacts, .me-list-area_services {
+    margin-left: var(--column-width);
+    position: initial;
+  }
+}
 </style>
