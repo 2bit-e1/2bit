@@ -92,6 +92,7 @@ const headerExtraClass = computed(() => ({
             <AppearWords
               :text="name"
               :isAppear="pageName == PAGE_NAMES.home && homeStore.activeProjectName == name"
+              :delayOrder="1"
             />
           </span>
 
@@ -99,6 +100,7 @@ const headerExtraClass = computed(() => ({
               <AppearWord
                 word="Инфо"
                 :isAppear="pageName == PAGE_NAMES.project"
+                :delayOrder="1"
               />
           </span>
 
@@ -106,6 +108,7 @@ const headerExtraClass = computed(() => ({
               <AppearWord
                 word="Био"
                 :isAppear="pageName == PAGE_NAMES.me"
+                :delayOrder="1"
               />
           </span>
 
@@ -113,6 +116,7 @@ const headerExtraClass = computed(() => ({
               <AppearWord
                 word="Процесс"
                 :isAppear="pageName == PAGE_NAMES.process"
+                :delayOrder="1"
               />
           </span>
         </div>
@@ -127,25 +131,28 @@ const headerExtraClass = computed(() => ({
         @click="rightBtnClick"
       >
         <div class="item-btn-inner">
-          <span v-for="year in homeProjectYears" class="item-btn-text item-btn-text_home">
+          <span v-for="(year, ind) in homeProjectYears" class="item-btn-text item-btn-text_home">
             <AppearWord
               :word="'‘' + year"
               :isAppear="pageName == PAGE_NAMES.home && homeStore.activeProjectYear == year"
+              :delayOrder="1 + homeProjectNames[ind].split(' ').length"
             />
           </span>
 
           
           <span class="item-btn-text item-btn-text_project">
             <AppearWord
-              :word="'Назад'"
-              :isAppear="pageName == PAGE_NAMES.project && projectStore.isInfoOpen"
-            />
-          </span>
-
-          <span class="item-btn-text item-btn-text_project">
-            <AppearWord
               :word="'Закрыть'"
               :isAppear="pageName == PAGE_NAMES.project && !projectStore.isInfoOpen"
+              :delayOrder="2"
+            />
+          </span>
+          
+          <span class="item-btn-text item-btn-text_project">
+            <AppearWord
+              :word="'Назад'"
+              :isAppear="pageName == PAGE_NAMES.project && projectStore.isInfoOpen"
+              :delayOrder="1"
             />
           </span>
           
@@ -154,6 +161,7 @@ const headerExtraClass = computed(() => ({
             <AppearWord
               word="Закрыть"
               :isAppear="pageName == PAGE_NAMES.process && !processStore.popupData.isOpen"
+              :delayOrder="2"
             />
           </span>
 
@@ -161,6 +169,7 @@ const headerExtraClass = computed(() => ({
             <AppearWord
               word="Назад"
               :isAppear="pageName == PAGE_NAMES.process && processStore.popupData.isOpen"
+              :delayOrder="1"
             />
           </span>
 
@@ -168,6 +177,7 @@ const headerExtraClass = computed(() => ({
             <AppearWord
               word="Закрыть"
               :isAppear="pageName == PAGE_NAMES.me"
+              :delayOrder="2"
             />
           </span>
         </div>

@@ -1,4 +1,6 @@
 <script setup>
+import ImagesListItem from "./ImageListItem.vue"
+
 const emits = defineEmits(['openPopup']);
 
 const images = [
@@ -15,6 +17,17 @@ const images = [
   "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
   "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
   "https://images.unsplash.com/photo-1589009602376-95356e671add?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1587622129703-8029c13afe51?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjl8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1541261759512-c8295bae066e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1646569278930-8ef36259643d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1615663058598-ff4c0cc0f387?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDN8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1566794385556-233fc43d02a1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1615663058598-ff4c0cc0f387?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDN8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1566794385556-233fc43d02a1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
+  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
 ];
 
 const handleImageClick = (src) => {
@@ -26,10 +39,8 @@ const handleImageClick = (src) => {
   <div class="images-list">
     <div class="list-container">
       <ul class="list">
-        <li class="list-item" v-for="src in images">
-          <button class="item-image" @click.stop="() => handleImageClick(src)">
-            <img :src="src" alt="" />
-          </button>
+        <li class="list-item" v-for="(src, ind) in images">
+          <ImagesListItem :src="src" :imagesInRow="imagesInRow" :ind="ind" @click.stop="handleImageClick(src)" />
         </li>
       </ul>
     </div>
@@ -58,20 +69,22 @@ const handleImageClick = (src) => {
 .list-item {
   display: flex;
   flex-direction: column;
+
+  --appear-delay-default: 0ms;
+  --appear-delay-step: 100ms;
+  --appear-delay: var(--appear-delay-default);
 }
 
-.item-image {
-  flex: 1 1 auto;
-  height: auto;
-  overflow: hidden;
+.list-item:nth-child(4n + 2) {
+  --appear-delay: calc(1 * var(--appear-delay-step) + var(--appear-delay-default));
 }
 
-.item-image img {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+.list-item:nth-child(4n + 3) {
+  --appear-delay: calc(2 * var(--appear-delay-step) + var(--appear-delay-default));
+}
+
+.list-item:nth-child(4n + 4) {
+  --appear-delay: calc(3 * var(--appear-delay-step) + var(--appear-delay-default));
 }
 
 @media (max-width: 1024px) {

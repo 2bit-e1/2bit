@@ -1,8 +1,8 @@
 <script setup>
-import { useProjectStore } from '@/stores/project';
-import AppearWord from '../Appear/AppearWord.vue';
-import AppearWords from '../Appear/AppearWords.vue';
-import { computed } from 'vue';
+import { useProjectStore } from "@/stores/project";
+import AppearWord from "../Appear/AppearWord.vue";
+import AppearWords from "../Appear/AppearWords.vue";
+import { computed } from "vue";
 
 const props = defineProps({
   isActive: Boolean,
@@ -10,6 +10,7 @@ const props = defineProps({
 
 const projectStore = useProjectStore();
 const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
+const projectName = computed(() => projectStore.name || "");
 </script>
 
 <template>
@@ -22,36 +23,60 @@ const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
   >
     <h3 class="project-item project-item_client">
       <div class="project-item-inner">
-        <AppearWord word="Клиент: " :isAppear="isActive" class="project-label" />
-        <AppearWords text="Kronstadt Asset Management" :isAppear="isActive" class="project-value" />
+        <AppearWord
+          word="Клиент: "
+          :isAppear="isActive"
+          :delayOrder="3"
+          class="project-label"
+        />
+        <AppearWords
+          :text="projectName"
+          :isAppear="isActive"
+          :delayOrder="4"
+          class="project-value"
+        />
       </div>
     </h3>
     <div class="project-item project-item_counter">
       <div class="project-item-inner">
-        <AppearWord word="01" :isAppear="isImagesCountVisible && isActive" class="project-counter-current" />
+        <AppearWord
+          word="01"
+          :isAppear="isImagesCountVisible && isActive"
+          :delayOrder="4 + projectName.split(' ').length"
+          class="project-counter-current"
+        />
         &nbsp;
-        <AppearWord word="/ 21" :isAppear="isImagesCountVisible && isActive" class="project-counter-total" />
+        <AppearWord
+          word="/ 21"
+          :isAppear="isImagesCountVisible && isActive"
+          :delayOrder="5 + projectName.split(' ').length"
+          class="project-counter-total"
+        />
       </div>
     </div>
     <h3 class="project-item project-item_year">
       <div class="project-item-inner">
-        <AppearWord word="Год: " :isAppear="isActive" class="project-label" />
-        <AppearWords text="‘23" :isAppear="isActive" class="project-value" />
+        <AppearWord
+          word="Год: "
+          :isAppear="isActive"
+          class="project-label"
+          :delayOrder="6 + projectName.split(' ').length"
+        />
+        <AppearWords
+          text="‘23"
+          :isAppear="isActive"
+          class="project-value"
+          :delayOrder="7 + projectName.split(' ').length"
+        />
       </div>
     </h3>
     <div class="project-item project-item_role">
       <div class="project-item-inner">
-        <AppearWord word="Роль:" :isAppear="isActive" class="project-label" />
+        <AppearWord word="Роль:" :isAppear="isActive" class="project-label" :delayOrder="8 + projectName.split(' ').length" />
 
         <ul class="project-list">
-          <li class="project-list-item">
-            <AppearWords text="Дизайн" :isAppear="isActive" />
-          </li>
-          <li class="project-list-item">
-            <AppearWords text="Визуальная идентификация" :isAppear="isActive" />
-          </li>
-          <li class="project-list-item">
-            <AppearWords text="Гайдлайн" :isAppear="isActive" />
+          <li class="project-list-item" v-for="(role, ind) in projectStore.roles">
+            <AppearWords :text="role" :isAppear="isActive" :delayOrder="9 + ind" />
           </li>
         </ul>
       </div>
@@ -95,7 +120,7 @@ const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
   flex-wrap: wrap;
 }
 
-.project-value:deep(.appear-word:first-child)  {
+.project-value:deep(.appear-word:first-child) {
   padding-left: 20px;
 }
 
@@ -142,7 +167,7 @@ const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
   .project-item_role .project-list-item:first-child {
     padding-left: 34px;
   }
-  
+
   .project-item_year {
     grid-column: 6 / 7;
   }
@@ -169,7 +194,7 @@ const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
   .project-item_role {
     grid-column: 2 / 12;
   }
-  
+
   .project-item_year {
     grid-column: 10 / 12;
   }

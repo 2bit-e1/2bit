@@ -1,17 +1,19 @@
 <script setup>
+import { computed } from "vue";
 import AppearWord from "./AppearWord.vue";
 
 const props = defineProps({
   text: String,
-  isAppear: Boolean
+  isAppear: Boolean,
+  delayOrder: Number
 })
 
-const words = props.text.split(" ");
+const words = computed(() => props.text.split(" "));
 </script>
 
 <template>
   <span class="appear-words">
-    <AppearWord v-for="word in words" :word="word + ' '" :isAppear="isAppear" :key="word" />
+    <AppearWord v-for="(word, ind) in words" :word="word + ' '" :delayOrder="ind + delayOrder" :isAppear="isAppear" :key="word" />
   </span>
 </template>
 

@@ -3,6 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Kronstadt Asset Management",
   slug: "icy 1",
+  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
   year: 23,
   number: 1,
   content: [
@@ -47,4 +48,4 @@ export default {
       `,
     },
   ],
-}
+};

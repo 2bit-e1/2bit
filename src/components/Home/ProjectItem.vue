@@ -3,8 +3,6 @@ import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
 import { RouterLink } from "vue-router";
 import { getDelayByNumber } from "./utils";
-import { onMounted, ref } from "vue";
-import { useDebounce } from "@/utils/useDebounce";
 // import * as svgNumbers from '@/assets/svgs/project-numbers';
 
 const props = defineProps({

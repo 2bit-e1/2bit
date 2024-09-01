@@ -28,6 +28,7 @@ const homeStore = useHomeStore();
           <AppearWord
             word="Процесс"
             :isAppear="pageName == PAGE_NAMES.home"
+            :delayOrder="1"
           />
         </span>
       </div>
@@ -38,6 +39,7 @@ const homeStore = useHomeStore();
           <AppearWord
             word="Био"
             :isAppear="pageName == PAGE_NAMES.home"
+            :delayOrder="2"
           />
         </span>
       </div>

@@ -19,3 +19,6 @@ export const CONTENT_TYPES = {
   image: "image",
   video: "video"
 };
+
+// 100ms задержка в появлинии слов
+export const wordAppearDelayStep = 25

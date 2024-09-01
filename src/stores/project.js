@@ -3,9 +3,10 @@ import { defineStore } from "pinia"
 
 export const useProjectStore = defineStore('project', {
   state: () => ({
-    projectName: null,
-    projectShrink: null,
-    projectContent: null,
+    name: null,
+    shrink: null,
+    content: null,
+    roles: [],
     isInfoOpen: false,
     isFooterDataVisible: true
   }),
@@ -21,15 +22,17 @@ export const useProjectStore = defineStore('project', {
 
     /** @type {name: string, shrink: boolean, content: string} */
     setProjectData(projectData) {
-      this.projectName = projectData.name
-      this.projectShrink = projectData.shrink
-      this.projectContent = projectData.content
+      this.name = projectData.name
+      this.shrink = projectData.shrink
+      this.content = projectData.content
+      this.roles = projectData.roles
     },
 
     clearProjectData() {
-      this.projectName = null
-      this.projectShrink = null
-      this.projectContent = null
+      this.name = null
+      this.shrink = null
+      this.content = null
+      this.roles = []
       this.isInfoOpen = false
     },
     showFooterData() {

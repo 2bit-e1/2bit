@@ -16,6 +16,8 @@ const route = useRoute();
 
 const slug = route.params.slug;
 const project = allProjects.find((project) => project.slug == slug);
+console.log('projectStore.setProjectData(project)', project);
+
 projectStore.setProjectData(project);
 
 const isError = !project;

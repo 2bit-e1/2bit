@@ -1,9 +1,10 @@
 <script setup>
 import ProjectFooterItem from './ProjectFooterItem.vue';
 import HomeFooterItem from './HomeFooterItem.vue';
-import MeFooterItem from './MeFooterItem.vue';
+import MeFooterItem from './MeFooterItem/MeFooterItem.vue';
 import { PAGE_NAMES } from '@/utils/constants';
 import { useProjectStore } from '@/stores/project';
+import { onMounted } from 'vue';
 
 const props = defineProps({
   pageName: String
