@@ -1,7 +1,9 @@
 <script setup>
+import { onMounted, ref } from "vue";
 import ImagesListItem from "./ImageListItem.vue"
 
 const emits = defineEmits(['openPopup']);
+const imagesRefs = ref([]);
 
 const images = [
   "https://images.unsplash.com/photo-1602850152657-3bd1351c7f15?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
@@ -30,9 +32,16 @@ const images = [
   "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
 ];
 
+const itemRefs = ref([]);
+
 const handleImageClick = (src) => {
   emits("openPopup", src, 'A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.');
 }
+
+onMounted(() => {
+  console.log();
+  
+})
 </script>
 
 <template>
