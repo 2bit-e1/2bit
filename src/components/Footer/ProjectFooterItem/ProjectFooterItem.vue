@@ -1,8 +1,9 @@
 <script setup>
-import { useProjectStore } from "@/stores/project";
-import AppearWord from "../Appear/AppearWord.vue";
-import AppearWords from "../Appear/AppearWords.vue";
 import { computed } from "vue";
+import { useProjectStore } from "@/stores/project";
+import AppearWord from "@/components/Appear/AppearWord.vue";
+import AppearWords from "@/components/Appear/AppearWords.vue";
+import CounterItem from "./CounterItem.vue";
 
 const props = defineProps({
   isActive: Boolean,
@@ -37,23 +38,14 @@ const projectName = computed(() => projectStore.name || "");
         />
       </div>
     </h3>
-    <div class="project-item project-item_counter">
-      <div class="project-item-inner">
-        <AppearWord
-          word="01"
-          :isAppear="isImagesCountVisible && isActive"
-          :delayOrder="4 + projectName.split(' ').length"
-          class="project-counter-current"
-        />
-        &nbsp;
-        <AppearWord
-          word="/ 21"
-          :isAppear="isImagesCountVisible && isActive"
-          :delayOrder="5 + projectName.split(' ').length"
-          class="project-counter-total"
-        />
-      </div>
-    </div>
+    
+    <CounterItem
+      :pagesCount="projectStore.images.length"
+      :currentPage="projectStore.footerData.currentImageInd + 1"
+      :delayOrder="4 + projectName.split(' ').length"
+      :isActive="isImagesCountVisible && isActive"
+    />
+
     <h3 class="project-item project-item_year">
       <div class="project-item-inner">
         <AppearWord
@@ -72,11 +64,23 @@ const projectName = computed(() => projectStore.name || "");
     </h3>
     <div class="project-item project-item_role">
       <div class="project-item-inner">
-        <AppearWord word="Роль:" :isAppear="isActive" class="project-label" :delayOrder="8 + projectName.split(' ').length" />
+        <AppearWord
+          word="Роль:"
+          :isAppear="isActive"
+          class="project-label"
+          :delayOrder="8 + projectName.split(' ').length"
+        />
 
         <ul class="project-list">
-          <li class="project-list-item" v-for="(role, ind) in projectStore.roles">
-            <AppearWords :text="role" :isAppear="isActive" :delayOrder="9 + ind" />
+          <li
+            class="project-list-item"
+            v-for="(role, ind) in projectStore.roles"
+          >
+            <AppearWords
+              :text="role"
+              :isAppear="isActive"
+              :delayOrder="9 + ind"
+            />
           </li>
         </ul>
       </div>
@@ -97,7 +101,7 @@ const projectName = computed(() => projectStore.name || "");
   overflow: hidden;
 }
 
-.project-item-inner {
+.project-item .project-item-inner, .project-item:deep(.project-item-inner) {
   display: flex;
   align-items: start;
   color: var(--clr-black);
@@ -128,7 +132,7 @@ const projectName = computed(() => projectStore.name || "");
   justify-content: center;
 }
 
-.project-counter-current {
+.project-item:deep(.project-counter-current) {
   color: var(--clr-gray);
 }
 

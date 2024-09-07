@@ -1,6 +1,6 @@
 export default {
-  name: "ICY5",
-  slug: "icy 5",
+  name: "Sasha Slepchuk",
+  slug: "sasha-slepchuk",
   roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
   year: 27,
   number: 5,

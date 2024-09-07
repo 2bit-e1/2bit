@@ -1,0 +1,1 @@
+export const timeForLoadAllImages = 1500

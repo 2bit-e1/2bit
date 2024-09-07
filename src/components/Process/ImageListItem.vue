@@ -1,20 +1,19 @@
 <script setup>
 import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
 import { computed, onMounted, ref } from "vue";
+import { timeForLoadAllImages } from "./utils";
 
 const props = defineProps({
   ind: Number,
-  imagesInRow: Number,
   src: String,
   alt: String,
+  isHide: Boolean,
 });
 
 const elemRef = ref(null);
 const isIntersected = ref(false);
-
-const isImageAppearOnPageLoad = ref(true);
 const appearDelayStep = 50;
-const appearDelay = ref((props.ind * appearDelayStep) + "ms");
+const appearDelay = ref(props.ind * appearDelayStep + "ms");
 
 const handleIntersect = (entries) => {
   if (entries[0].isIntersecting) isIntersected.value = true;
@@ -24,34 +23,47 @@ useIntersectionObserver(elemRef, handleIntersect);
 
 onMounted(() => {
   setTimeout(() => {
-    appearDelay.value = ((props.ind % 4) * appearDelayStep) + "ms"
-  }, 1000);
+    appearDelay.value = ((props.ind % 4) - 1) * appearDelayStep + "ms";
+  }, timeForLoadAllImages);
 });
 </script>
 
 <template>
-  <button
-    class="item-image"
-    :class="{ 'item-image_intersected': isIntersected }"
-    ref="elemRef"
-  >
-    <img :src="src" :alt="alt || ''" />
-  </button>
+  <div class="item-image-container">
+    <button
+      class="item-image"
+      :class="{
+        'item-image_intersected': isIntersected,
+        'item-image_hide': isHide,
+      }"
+      ref="elemRef"
+    >
+      <img
+        :src="src"
+        :alt="alt || ''"
+        :ref="(ref) => $emit('setImageRef', ref)"
+      />
+    </button>
+  </div>
 </template>
 
 <style>
-.item-image {
-  flex: 1 1 auto;
-  height: auto;
+.item-image-container {
   overflow: hidden;
-  opacity: 0;
-  translate: 0 10px;
-  transition: opacity 200ms v-bind(appearDelay), translate 400ms calc(100ms + v-bind(appearDelay)) cubic-bezier(.16,1,.3,1);
+  height: auto;
 }
 
-.item-image_intersected {
-  translate: 0 0;
-  opacity: 1;
+.item-image {
+  flex: 1 1 auto;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  transition: clip-path 500ms v-bind(appearDelay) ease;
+}
+
+.item-image_intersected:not(.item-image_hide) {
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
 .item-image img {

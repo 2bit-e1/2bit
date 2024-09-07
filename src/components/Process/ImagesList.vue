@@ -1,9 +1,12 @@
 <script setup>
-import { onMounted, ref } from "vue";
-import ImagesListItem from "./ImageListItem.vue"
+import { onMounted, onUnmounted, ref } from "vue";
+import ImagesListItem from "./ImageListItem.vue";
+import { promiseTimeLimit } from "@/utils/promiseTimeLimit";
+import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
+import { timeForLoadAllImages } from "./utils";
+import LocomotiveScroll from 'locomotive-scroll';
 
-const emits = defineEmits(['openPopup']);
-const imagesRefs = ref([]);
+const emits = defineEmits(["openPopup"]);
 
 const images = [
   "https://images.unsplash.com/photo-1602850152657-3bd1351c7f15?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
@@ -32,24 +35,50 @@ const images = [
   "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
 ];
 
-const itemRefs = ref([]);
-
-const handleImageClick = (src) => {
-  emits("openPopup", src, 'A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.');
-}
+const imagesRefs = ref([]);
+const isImagesLoaded = ref(false);
+const scrollContainer = ref(null); 
+const scrollInstance = ref(null);
 
 onMounted(() => {
-  console.log();
-  
+  if (window.innerWidth > 1024) {
+    scrollInstance.value = new LocomotiveScroll({
+      el: scrollContainer.value,
+      smooth: true
+    });
+  }
 })
+
+onUnmounted(() => {
+  if (scrollInstance.value) scrollInstance.value.destroy();
+})
+
+const handleImageClick = (src) => {
+  emits(
+    "openPopup",
+    src,
+    "A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations."
+  );
+};
+
+useWaitingImagesToLoad(imagesRefs, () => {
+  isImagesLoaded.value = true;
+}, timeForLoadAllImages)
 </script>
 
 <template>
-  <div class="images-list">
+  <div class="images-list" ref="scrollContainer" data-scroll-container>
     <div class="list-container">
       <ul class="list">
         <li class="list-item" v-for="(src, ind) in images">
-          <ImagesListItem :src="src" :imagesInRow="imagesInRow" :ind="ind" @click.stop="handleImageClick(src)" />
+          <ImagesListItem
+            :src="src"
+            :isHide="!isImagesLoaded"
+            :ind="ind"
+            :timeForLoadAllImages="timeForLoadAllImages"
+            @setImageRef="(ref) => imagesRefs[ind] = ref"
+            @click.stop="handleImageClick(src)"
+          />
         </li>
       </ul>
     </div>
@@ -85,22 +114,28 @@ onMounted(() => {
 }
 
 .list-item:nth-child(4n + 2) {
-  --appear-delay: calc(1 * var(--appear-delay-step) + var(--appear-delay-default));
+  --appear-delay: calc(
+    1 * var(--appear-delay-step) + var(--appear-delay-default)
+  );
 }
 
 .list-item:nth-child(4n + 3) {
-  --appear-delay: calc(2 * var(--appear-delay-step) + var(--appear-delay-default));
+  --appear-delay: calc(
+    2 * var(--appear-delay-step) + var(--appear-delay-default)
+  );
 }
 
 .list-item:nth-child(4n + 4) {
-  --appear-delay: calc(3 * var(--appear-delay-step) + var(--appear-delay-default));
+  --appear-delay: calc(
+    3 * var(--appear-delay-step) + var(--appear-delay-default)
+  );
 }
 
 @media (max-width: 1024px) {
   .images-list {
     padding: 130px 0 40px;
   }
-  
+
   .list {
     grid-template-columns: repeat(3, 1fr);
     --row-gap: 50px;

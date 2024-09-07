@@ -1,7 +1,8 @@
 <script setup>
+import { RouterLink } from "vue-router";
+import Video from "../Video.vue";
 import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
-import { RouterLink } from "vue-router";
 import { getDelayByNumber } from "./utils";
 // import * as svgNumbers from '@/assets/svgs/project-numbers';
 
@@ -55,6 +56,9 @@ const mouseleave = () => {
         </h2>
         <div class="preview-image">
           <img src="/images/image.png" alt="" />
+          
+          <!-- <Video v-if="name == 'Refmodel'" :videoSrc="`/video.webm`" :isPlaying="homeStore.activeProjectName == name" />
+          <img v-else src="/images/image.png" alt="" /> -->
         </div>
       </div>
     </RouterLink>
@@ -200,6 +204,11 @@ a.project-item-link {
 .project-item:hover .preview-image img {
   scale: 1;
   --scale-delay: 260ms;
+}
+
+.preview-image video {
+  object-fit: contain;
+  width: 100%;
 }
 
 @media (max-width: 768px) {

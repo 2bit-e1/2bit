@@ -1,53 +1,143 @@
 <script setup>
 import { useProjectStore } from "@/stores/project";
 import { CONTENT_TYPES, PAGE_NAMES } from "@/utils/constants";
-import { computed, onMounted, ref } from "vue";
-import { useToggleFooterDataOnScroll } from "./utils";
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
+import { appearDelayStep, useToggleFooterDataOnScroll } from "./utils";
+import AppearBlocks from "./AppearBlocks.vue";
+import LocomotiveScroll from 'locomotive-scroll';
 
 const props = defineProps({
   pageName: String,
-  content: Array
+  content: Array,
 });
+
+const contentBlocksDelay = ref({});
+const isAppearReady = ref(false)
+const scrollContainer = ref(null);
+const scrollInstance = ref(null);
 
 const projectStore = useProjectStore();
 
 const infoAreaRef = ref(null);
-const isSkipToggleFooterData = 
-  computed(() => props.pageName != PAGE_NAMES.project || window.innerWidth > 1024);
+
+const isSkipToggleFooterData = computed(
+  () => props.pageName != PAGE_NAMES.project || window.innerWidth > 1024
+);
+
+props.content.forEach((contentItem, contentInd) => {
+  if (contentItem.type == CONTENT_TYPES.image) contentBlocksDelay.value[contentInd] = 1 * appearDelayStep;
+})
 
 useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 
+watchEffect(() => {
+  if (Object.values(contentBlocksDelay.value).length == props.content.length) {
+    isAppearReady.value = true;
+  }
+});
+
+const isInfoOpen = computed(() => {
+  return projectStore.isInfoOpen || props.pageName == PAGE_NAMES.me;
+});
+
+
+
+watch(isInfoOpen, (isOpen) => {
+  if (window.innerWidth <= 1024) return
+  
+  if (isOpen) {
+    scrollInstance.value = new LocomotiveScroll({
+      el: scrollContainer.value,
+      smooth: true
+    });  
+  } else {
+    scrollInstance.value.destroy();
+  }
+}, { flush: 'post' })
+
+onUnmounted(() => {
+  if (scrollInstance.value) scrollInstance.value.destroy();
+})
 </script>
 
 <template>
   <div
     class="info"
+    :aria-hidden="!(projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
     :class="{
-      info_open: projectStore.isInfoOpen || pageName == PAGE_NAMES.me,
+      info_open: isInfoOpen,
       info_me: pageName == PAGE_NAMES.me,
       info_project: pageName == PAGE_NAMES.project,
     }"
+    
   >
     <!-- <span class="scroll-mask scroll-mask_top"></span> -->
 
-    <div class="info-inner hide-scrollbar" ref="infoAreaRef">
-      <div class="text-container">
-        <template v-for="item in content">
-          <h3 class="info-text info-text_title" v-if="item.type == CONTENT_TYPES.title">{{ item.text }}</h3>
-          
-          <p class="info-text" v-if="item.type == CONTENT_TYPES.paragraph">{{ item.text }}</p>
+    <div class="info-inner hide-scrollbar" ref="infoAreaRef" data-scroll-container>
+      <div class="text-container" ref="scrollContainer">
+        <template v-for="(item, ind) in content">
+            <h3
+              class="info-text info-text_title"
+              v-if="item.type == CONTENT_TYPES.title"
+            >
+              {{ item.text }}
+              <AppearBlocks
+                @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+                :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
+                } , 0)"
+                :isAppearReady="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
+              />
+            </h3>
 
-          <p class="info-text info-text_extra" v-if="item.type == CONTENT_TYPES.extraParagraph">{{ item.text }}</p>
-          
-          <template v-if="item.type == CONTENT_TYPES.image">
-            <div class="info-image info-image_me" v-if="pageName == PAGE_NAMES.me">
-              <img :src="item.link" alt="" />
-            </div>
+            <p class="info-text" v-if="item.type == CONTENT_TYPES.paragraph">
+              {{ item.text }}
+              <AppearBlocks
+                @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+                :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
+                } , 0)"
+                :isAppearReady="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
+              />
+            </p>
 
-            <div class="info-image" v-else>
-              <img :src="item.link" alt="" />
-            </div>
-          </template>
+            <p
+              class="info-text info-text_extra"
+              v-if="item.type == CONTENT_TYPES.extraParagraph"
+            >
+              {{ item.text }}
+              <AppearBlocks
+                @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+                :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
+                } , 0)"
+                :isAppearReady="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
+              />
+            </p>
+
+            <template v-if="item.type == CONTENT_TYPES.image">
+              <div
+                v-if="pageName == PAGE_NAMES.me"
+                class="info-image info-image_me"
+                :class="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me) ? 'info-image_appear' : ''"
+                :style="{ 'animation-delay': Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
+                } , 0) + 'ms' }"
+              >
+                <img :src="item.link" alt="" />
+              </div>
+
+              <div
+                v-else
+                :style="{ 'animation-delay': Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
+                } , 0) + 'ms' }"
+                class="info-image"
+                :class="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me) ? 'info-image_appear' : ''"
+              >
+                <img :src="item.link" alt="" />
+              </div>
+            </template>
         </template>
       </div>
     </div>
@@ -59,9 +149,11 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 
 <style scoped>
 .info {
-  display: none;
-
-  position: absolute;
+  opacity: 0;
+  transition: opacity 150ms;
+  pointer-events: none;
+  display: flex;
+  position: fixed;
   width: 100%;
   height: 100%;
   z-index: calc(var(--footer-z-index) - 1);
@@ -76,23 +168,20 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 }
 
 .info_open {
-  display: flex;
+  opacity: 1;
+  pointer-events: initial;
 }
 
 .info-inner {
   width: 100%;
   height: 100%;
   max-height: 100%;
-  overflow: auto;
-  padding-top: calc(
-    (100vh - var(--footer-height) - var(--header-height)) / 6 +
-      var(--header-height)
-  );
-  padding-bottom: calc(var(--footer-height) - 7px);
+  /*overflow: auto;*/
   width: calc(100% - var(--page-padding-x) * 2);
   grid-template-columns: repeat(5, var(--column-width));
   display: grid;
   justify-content: center;
+  overscroll-behavior: contain;
 }
 
 .info_me .info-inner {
@@ -102,6 +191,11 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 }
 
 .text-container {
+  padding-top: calc(
+    (100vh - var(--footer-height) - var(--header-height)) / 6 +
+      var(--header-height)
+  );
+  padding-bottom: calc(var(--footer-height) - 7px);
   grid-column: 2 / 4;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -144,9 +238,13 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   text-indent: var(--text-indent);
   color: var(--clr-gray);
   grid-column: 1 / 2;
+  position: relative;
 }
 
 .info-image {
+  opacity: 0;
+  
+  position: relative;
   margin: 25px 0;
   width: 100%;
   max-width: 100%;
@@ -156,6 +254,20 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   align-items: center;
   justify-content: center;
   padding-right: 10px;
+}
+
+.info-image_appear {
+  animation: appear-image 300ms forwards;
+}
+
+@keyframes appear-image {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 .info-image img {
@@ -201,11 +313,12 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 
 @media (max-width: 1024px) {
   .info-inner {
-    padding-top: 230px;
     display: block;
+    overflow: auto;
   }
-  
+
   .text-container {
+    padding-top: 230px;
     grid-template-columns: repeat(12, var(--column-width));
   }
 
@@ -220,7 +333,7 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   .info-image {
     grid-column: 2 / 8;
   }
-  
+
   .info-image_me {
     grid-column: 2 / 6;
     margin: 0 0 120px 0;
@@ -228,10 +341,7 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 }
 
 @media (max-width: 820px) {
-  .info-inner {
-    padding-top: 180px;
-  }
-  
+
   .info-text {
     grid-column: 2 / 7;
   }
@@ -243,10 +353,14 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   .info-image {
     grid-column: 2 / 9;
   }
-  
+
   .info-image_me {
     grid-column: 2 / 7;
     margin: 0 0 80px 0;
+  }
+
+  .text-container {
+    padding-top: 180px;
   }
 }
 
@@ -262,7 +376,7 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   .info-image {
     grid-column: 2 / 12;
   }
-  
+
   .info-image_me {
     grid-column: 2 / 9;
     margin: 0 0 60px 0;
@@ -277,7 +391,7 @@ useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
   .info_me {
     position: relative;
   }
-  
+
   .info_me .info-inner {
     padding-bottom: 0px;
   }

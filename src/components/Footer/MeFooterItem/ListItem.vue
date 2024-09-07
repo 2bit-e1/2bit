@@ -1,9 +1,9 @@
 <script setup>
-import AppearWord from '@/components/Appear/AppearWord.vue';
-import AppearWords from '@/components/Appear/AppearWords.vue';
-import { computed } from 'vue';
+import AppearWord from "@/components/Appear/AppearWord.vue";
+import AppearWords from "@/components/Appear/AppearWords.vue";
+import { computed } from "vue";
 
-defineEmits(['itemMouseEnter', 'itemMouseLeave']);
+defineEmits(["listMouseEnter", "listMouseLeave"]);
 
 const props = defineProps({
   isActive: Boolean,
@@ -13,11 +13,12 @@ const props = defineProps({
   list: Array,
   isListLinks: Boolean,
   isPressList: Boolean,
-  isItemsActive: Boolean
-})
+  isItemsActive: Boolean,
+});
 
-const itemsDelayOrder = computed(() => props.itemsDelayOrder || props.labelDelayOrder + 1);
-
+const itemsDelayOrder = computed(
+  () => props.itemsDelayOrder || props.labelDelayOrder + 1
+);
 </script>
 
 <template>
@@ -29,15 +30,19 @@ const itemsDelayOrder = computed(() => props.itemsDelayOrder || props.labelDelay
     v-bind="$attrs"
   />
 
-  <ul class="me-list">
-    <li
-      v-for="(item, ind) in list"
-      class="me-list-item"
-      @mouseenter="$emit('itemMouseEnter')"
-      @mouseleave="$emit('itemMouseLeave')"
-      :key="ind"
-    >
-      <a v-if="isListLinks" class="me-list-item-link" :href="item.link">
+  <ul
+    class="me-list"
+    @mouseenter="$emit('listMouseEnter')"
+    @mouseleave="$emit('listMouseLeave')"
+  >
+    <li v-for="(item, ind) in list" class="me-list-item" :key="ind">
+      <a
+        v-if="isListLinks"
+        class="me-list-item-link"
+        :href="item.link"
+        :tabindex="isItemsActive ? 0 : -1"
+        :style="{ pointerEvents: isItemsActive ? '' : 'none' }"
+      >
         <AppearWords
           :text="item.text"
           :isAppear="isItemsActive"
@@ -76,6 +81,5 @@ const itemsDelayOrder = computed(() => props.itemsDelayOrder || props.labelDelay
 }
 
 @media (max-width: 820px) {
-
 }
 </style>

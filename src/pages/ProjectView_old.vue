@@ -16,41 +16,51 @@ const lastScrollTop = ref(null);
 
 const scrollImagesRAFLoop = (timestamp, scrollImagesData, scrollRatioStep) => {
   const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
-  
+
   if (scrollTop == lastScrollTop.value) {
     isScrollingRAFActive.value = false;
     return;
-  } 
+  }
 
   lastScrollTop.value = scrollTop;
   const scrollTopRatio = (scrollTop + clientHeight) / scrollHeight;
 
-  scrollImagesData.forEach(
-    ({ imageRef, startComeRatio, startLeaveRatio }) => {
-      let imageHeight = 0;
-      let imageBottom = "";
-      const maxLeavePercent = 15;
+  scrollImagesData.forEach(({ imageRef, startComeRatio, startLeaveRatio }) => {
+    let imageBottom = 0;
+    let imageScale = 1;
+    const maxScalePercent = 10;
 
-      if (scrollTopRatio >= startLeaveRatio) {
-        imageBottom = maxLeavePercent * min(((scrollTopRatio - startLeaveRatio) / scrollRatioStep), 1);
-      }
-
-      imageHeight = round(min(max(((scrollTopRatio - startComeRatio) / scrollRatioStep) * 100, 0), 100));
-      imageRef.style.height = imageHeight + "vh";
-
-      if (imageBottom) imageRef.style.bottom = imageBottom + "vh"
-      else imageRef.style.bottom = "";
+    if (scrollTopRatio >= startLeaveRatio) {
+      //если картинка должна уходить наверх
+      imageBottom =
+        (100 * (scrollTopRatio - startLeaveRatio)) / scrollRatioStep;
+      imageScale =
+        maxScalePercent *
+        min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
+    } else {
+      //если картинка должна приходить снизу
+      imageBottom =
+        (-100 * (startLeaveRatio - scrollTopRatio)) / scrollRatioStep;
+      imageScale =
+        -maxScalePercent *
+        min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
     }
-  );
 
-  const nearestImage = scrollImagesData.find(({ startLeaveRatio }) => abs(scrollTopRatio - startLeaveRatio) < 0.05);
+    imageRef.style.scale = 1 - 0.01 * imageScale;
+    imageRef.style.bottom = imageBottom + "%";
+  });
+
+  const nearestImage = scrollImagesData.find(
+    ({ startLeaveRatio }) => abs(scrollTopRatio - startLeaveRatio) < 0.05
+  );
   const autoScrollDelay = 250;
   if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
 
-  if (nearestImage) {  
+  if (nearestImage) {
     autoScrollTimeoutId.value = setTimeout(() => {
       const { scrollHeight, clientHeight } = document.documentElement;
-      const curImageTopValue =  scrollHeight * nearestImage.startLeaveRatio - clientHeight;
+      const curImageTopValue =
+        scrollHeight * nearestImage.startLeaveRatio - clientHeight;
 
       window.scrollTo({
         top: curImageTopValue,
@@ -58,15 +68,15 @@ const scrollImagesRAFLoop = (timestamp, scrollImagesData, scrollRatioStep) => {
       });
     }, autoScrollDelay);
   }
-  
+
   requestAnimationFrame((timestamp) => {
     scrollImagesRAFLoop(timestamp, scrollImagesData, scrollRatioStep);
   });
-}
+};
 
 const handleScrollImagesRAF = () => {
-  isScrollingRAFActive.value = true
-  
+  isScrollingRAFActive.value = true;
+
   const imagesCount = imagesRefs.value.length;
   const scrollRatioStep = 1 / imagesCount;
   const scrollImagesData = imagesRefs.value.map((imageRef, ind) => {
@@ -82,50 +92,18 @@ const handleScrollImagesRAF = () => {
   requestAnimationFrame((timestamp) => {
     scrollImagesRAFLoop(timestamp, scrollImagesData, scrollRatioStep);
   });
-}
+};
 
 const changeImagesByScroll = () => {
   window.addEventListener("scroll", () => {
-    if (!isScrollingRAFActive.value) handleScrollImagesRAF()
+    if (!isScrollingRAFActive.value) handleScrollImagesRAF();
   });
 };
 
 const activeImageInd = ref(0);
-const changeImagesBySlide = () => {
-  window.addEventListener("scroll", () => {
-    const scrollTop = document.documentElement.scrollTop;
-    let nextActiveImgInd;
-    let animatedImg;
-
-    if (scrollTop > lastScrollTop.value) {
-      nextActiveImgInd = activeImageInd.value + 1;
-      const nextImg = imagesRefs.value[nextActiveImgInd];
-      // const activeImg = imagesRefs.value[activeImageInd.value]
-      nextImg.style.top = "0";
-      animatedImg = nextImg;
-    } else {
-      nextActiveImgInd = activeImageInd.value - 1;
-      const activeImg = imagesRefs.value[activeImageInd.value];
-      activeImg.style.top = "100vh";
-      animatedImg = activeImg;
-    }
-
-    animatedImg.addEventListener(
-      "transitionend",
-      () => {
-        activeImageInd.value = nextActiveImgInd;
-      },
-      { once: true }
-    );
-
-    lastScrollTop.value = scrollTop;
-  });
-};
 
 onMounted(() => {
   changeImagesByScroll();
-
-  // changeImagesBySlide()
 });
 </script>
 
@@ -136,11 +114,13 @@ onMounted(() => {
     ref="wrapperRef"
   >
     <div class="images-container">
-      <img
+      <div
         v-for="imageSrc in imagesSrc"
-        :src="imageSrc"
-        :ref="(el) => imagesRefs.push(el)"
-      />
+        class="image-box"
+        :ref="(el) => imagesRefs.unshift(el)"
+      >
+        <img :src="imageSrc" />
+      </div>
     </div>
   </div>
 </template>
@@ -156,16 +136,22 @@ onMounted(() => {
   bottom: 0;
 }
 
-.images-container img {
+.image-box {
   position: absolute;
   width: 100vw;
-  height: 0;
-  object-fit: cover;
+  height: 100vh;
   left: 0;
-  bottom: 0;
+  bottom: -100%;
+  display: flex;
+  justify-content: center;
 }
 
-.images-container img:first-child {
-  height: 100vh;
+.image-box img {
+  height: 100%;
+  object-fit: contain;
+}
+
+.image-box:first-child {
+  bottom: 0;
 }
 </style>

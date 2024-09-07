@@ -51,7 +51,8 @@ onUnmounted(() => {
 
 <style scoped>
 .image-popup {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -60,10 +61,12 @@ onUnmounted(() => {
   background-color: rgba(var(--bg-clr-white-rgb), 0.85);
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;
+  transition: opacity 0.3s var(--timing-func-2);
 }
 
 .image-popup_open {
-  display: block;
+  opacity: 1;
+  pointer-events: initial;
 }
 
 .image-popup-inner {
@@ -79,6 +82,12 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  transition: clip-path 400ms ease;
+}
+
+.image-popup_open .image-container {
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
 .image {

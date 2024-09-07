@@ -16,7 +16,7 @@ const handlePressShow = () => {
   isDesktopPressVisible.value = true;
 };
 
-const handlePressHide = (hidePressDelay) => {
+const handlePressHide = (hidePressDelay = 0) => {
   if (hidePressTimer.value) clearTimeout(hidePressTimer.value);
 
   hidePressTimer.value = setTimeout(() => {
@@ -24,20 +24,20 @@ const handlePressHide = (hidePressDelay) => {
   }, hidePressDelay);
 };
 
-const handlePressTitleMouseEnter = () => {
+const handleTitleMouseEnter = () => {
   handlePressShow();
 };
 
-const handlePressTitleMouseLeave = () => {
-  handlePressHide(1000);
+const handleTitleMouseLeave = () => {
+  handlePressHide(10);
 };
 
-const handlePressItemMouseEnter = () => {
+const handleListMouseEnter = () => {
   if (isDesktopPressVisible.value) handlePressShow();
 };
 
-const handlePressItemMouseLeave = () => {
-  if (isDesktopPressVisible.value) handlePressHide(500);
+const handleListMouseLeave = () => {
+  if (isDesktopPressVisible.value) handlePressHide();
 };
 
 const isPressVisible = computed(
@@ -54,13 +54,13 @@ const isPressVisible = computed(
     :label="'Пресса'"
     :isListLinks="true"
     :itemsDelayOrder="pressItemsDelayOrder"
-    @itemMouseEnter="handlePressItemMouseEnter"
-    @itemMouseLeave="handlePressItemMouseLeave"
+    @listMouseEnter="handleListMouseEnter"
+    @listMouseLeave="handleListMouseLeave"
 
     tabindex="0"
-    @mouseenter="handlePressTitleMouseEnter"
-    @mouseleave="handlePressTitleMouseLeave"
-    @focus="handlePressTitleMouseEnter"
+    @mouseenter="handleTitleMouseEnter"
+    @mouseleave="handleTitleMouseLeave"
+    @focus="handleTitleMouseEnter"
   />
 </template>
 

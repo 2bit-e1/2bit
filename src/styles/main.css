@@ -15,7 +15,7 @@
   --timing-func-2: cubic-bezier(0.85, 0, 0.15, 1);
 
   /* --header-height: max(calc((100vh - min(100vw, 231px * 3)) / 2), 62px); */
-  --header-height: 65px;
+  --header-height: 60px;
   --header-z-index: 10;
   
   --footer-height: var(--header-height);
@@ -47,7 +47,7 @@ body {
   font-family: Hauora;
   font-weight: 500;
   font-size: 12px;
-  line-height: 15.6px;
+  line-height: 16px;
 }
 
 @media (max-width: 1024px) {

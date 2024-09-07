@@ -1,5 +1,5 @@
 <script setup>
-import ProjectFooterItem from './ProjectFooterItem.vue';
+import ProjectFooterItem from './ProjectFooterItem/ProjectFooterItem.vue';
 import HomeFooterItem from './HomeFooterItem.vue';
 import MeFooterItem from './MeFooterItem/MeFooterItem.vue';
 import { PAGE_NAMES } from '@/utils/constants';
@@ -18,7 +18,7 @@ const projectStore = useProjectStore();
   <div class="footer" >
     <HomeFooterItem :isActive="props.pageName == PAGE_NAMES.home" :pageName="pageName" />
     <ProjectFooterItem
-      :isActive="props.pageName == PAGE_NAMES.project && projectStore.isFooterDataVisible"
+      :isActive="props.pageName == PAGE_NAMES.project && projectStore.footerData.isVisible"
       :pageName="pageName"
     />
     <MeFooterItem :isActive="props.pageName == PAGE_NAMES.me" :pageName="pageName" /> 
@@ -46,6 +46,10 @@ const projectStore = useProjectStore();
 
 .footer-item:not(.footer-item_active) {
   pointer-events: none;
+}
+
+.footer-item_project {
+  padding-top: 24px;
 }
 
 .footer-item_project, .footer-item_me {
@@ -77,6 +81,7 @@ const projectStore = useProjectStore();
   }
 
   .footer-item_project {
+    padding-top: 0;
     top: 120px;
     bottom: auto;
   }

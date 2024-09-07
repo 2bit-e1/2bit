@@ -6,9 +6,14 @@ export const useProjectStore = defineStore('project', {
     name: null,
     shrink: null,
     content: null,
+    images: [],
     roles: [],
     isInfoOpen: false,
-    isFooterDataVisible: true
+    footerData: {
+      isVisible: true,
+      currentImageInd: 0
+    }
+    // isFooterDataVisible: true
   }),
   getters: {
   },
@@ -25,6 +30,7 @@ export const useProjectStore = defineStore('project', {
       this.name = projectData.name
       this.shrink = projectData.shrink
       this.content = projectData.content
+      this.images = projectData.images
       this.roles = projectData.roles
     },
 
@@ -32,14 +38,18 @@ export const useProjectStore = defineStore('project', {
       this.name = null
       this.shrink = null
       this.content = null
+      this.images = []
       this.roles = []
       this.isInfoOpen = false
     },
     showFooterData() {
-      this.isFooterDataVisible = true
+      this.footerData.isVisible = true
     },
     hideFooterData() {
-      this.isFooterDataVisible = false
+      this.footerData.isVisible = false
+    },
+    setCurrentImage(ind) {
+      this.footerData.currentImageInd = ind
     }
   },
 })

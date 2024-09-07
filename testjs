@@ -1,0 +1,21 @@
+import fs from 'fs';
+import https from 'https';
+
+const downloadImage = (url, destination) => {
+    https.get(url, (response) => {
+        response.pipe(fs.createWriteStream(destination));
+    });
+};
+
+// Пример использования
+const images = [ "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/646e3a2d49d70fa6983d4cc9_New_Coin-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/64294ebf5288623b2dc7627f_Moodboard-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/6443b28d454f3c759cd59962_KAM_logo-black-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/646bc963b8339065d0cdd0c8_KAM_%D0%A1ard-wall-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/6429cd1cc388ed22617e587e_KAM_Ipad-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/6429ca83e7274178a5428ebe_KAM_Photostyle-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/6429c61926a472ec7cc1fdb2_Untitled-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/6429c7305288620d28d0d24f_KAM_Iphone-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/646bc9b29accef1027347050_KAM_Ipad%20vert%20-transcode.webm", "https://cdn.prod.website-files.com/62e1564e151a99139c3f6b9b/644793d738d5f08912df0915_KAM_tablet-table-transcode.webm" ]
+
+
+
+
+const imageUrl = 'https://example.com/image.jpg'; // Замените URL на нужный
+const destinationPath = './images/'; // Путь для сохранения изображения
+
+images.forEach((image, ind) => {
+  downloadImage(image, destinationPath + image.split('/')[image.split('/').length - 1]);
+})

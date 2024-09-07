@@ -21,8 +21,6 @@ export const useIntersectionObserver = (elem, callback, options) => {
           threshold,
         },
       )
-
-      console.log("elem.value", elem.value);
       
       observer.observe(elem.value)
 
@@ -30,7 +28,7 @@ export const useIntersectionObserver = (elem, callback, options) => {
         observer.disconnect()
       }
     },
-    { immediate: true, flush: 'post' },
+    { flush: 'post' },
   )
 
   onBeforeUnmount(() => {

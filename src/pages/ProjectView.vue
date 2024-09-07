@@ -16,7 +16,6 @@ const route = useRoute();
 
 const slug = route.params.slug;
 const project = allProjects.find((project) => project.slug == slug);
-console.log('projectStore.setProjectData(project)', project);
 
 projectStore.setProjectData(project);
 
@@ -43,7 +42,7 @@ onUnmounted(() => {
   <ErrorMessage v-if="isError" />
   <template v-else>
     <Info :pageName="pageName" :content="project.content" />
-    <Content />
+    <Content :imagesSrc="project.images" />
   </template>
 </template>
 
