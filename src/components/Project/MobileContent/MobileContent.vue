@@ -5,6 +5,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import MobileContentImage from "./MobileContentImage.vue";
 import { timeForLoadAllImages } from "@/components/Process/utils";
 import LocomotiveScroll from 'locomotive-scroll';
+import { useProjectStore } from "@/stores/project";
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array,
@@ -21,10 +22,44 @@ useWaitingImagesToLoad(
   timeForLoadAllImages
 );
 
+const scrollContainer = ref(null); 
+const scrollInstance = ref(null);
+
+onMounted(() => {
+  scrollInstance.value = new LocomotiveScroll({
+    el: scrollContainer.value,
+    smooth: true,
+    mobile: {
+      smooth: true,
+      breakpoint: 0,
+    },
+    tablet: {
+      smooth: true,
+      breakpoint: 0,
+    }
+  });
+
+  scrollInstance.value.on('scroll', scrollListener)
+})
+
+const projectStore = useProjectStore();
+const lastScrollTop = ref(0)
+
+const scrollListener = (scrollInfo) => {
+  if (lastScrollTop.value > 1) projectStore.hideFooterData()
+  else projectStore.showFooterData()
+
+  lastScrollTop.value = scrollInfo.scroll.y
+}
+
+onUnmounted(() => {
+  if (scrollInstance.value) scrollInstance.value.destroy();
+})
+
 </script>
 
 <template>
-  <div class="mobile-content">
+  <div class="mobile-content" ref="scrollContainer" data-scroll-container>
     <ul class="images-list">
       <MobileContentImage
         v-for="(src, ind) in imagesSrc"

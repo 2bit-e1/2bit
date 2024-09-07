@@ -5,6 +5,7 @@ import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 import { appearDelayStep, useToggleFooterDataOnScroll } from "./utils";
 import AppearBlocks from "./AppearBlocks.vue";
 import LocomotiveScroll from 'locomotive-scroll';
+import ImageItem from "./ImageItem.vue";
 
 const props = defineProps({
   pageName: String,
@@ -15,6 +16,7 @@ const contentBlocksDelay = ref({});
 const isAppearReady = ref(false)
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
+const lastScrollTop = ref(0);
 
 const projectStore = useProjectStore();
 
@@ -28,6 +30,13 @@ props.content.forEach((contentItem, contentInd) => {
   if (contentItem.type == CONTENT_TYPES.image) contentBlocksDelay.value[contentInd] = 1 * appearDelayStep;
 })
 
+const scrollListener = (scrollInfo) => {
+  if (lastScrollTop.value > 1) projectStore.hideFooterData()
+  else projectStore.showFooterData()
+
+  lastScrollTop.value = scrollInfo.scroll.y
+}
+
 useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 
 watchEffect(() => {
@@ -40,16 +49,23 @@ const isInfoOpen = computed(() => {
   return projectStore.isInfoOpen || props.pageName == PAGE_NAMES.me;
 });
 
-
-
 watch(isInfoOpen, (isOpen) => {
-  if (window.innerWidth <= 1024) return
+  if (props.pageName == PAGE_NAMES.me) return
   
   if (isOpen) {
     scrollInstance.value = new LocomotiveScroll({
       el: scrollContainer.value,
-      smooth: true
+      smooth: true,
+      mobile: {
+        smooth: true,
+        breakpoint: 0,
+      },
+      tablet: {
+        // smooth: true,
+      }
     });  
+
+    if (window.innerWidth <= 1024) scrollInstance.value.on('scroll', scrollListener)
   } else {
     scrollInstance.value.destroy();
   }
@@ -69,13 +85,12 @@ onUnmounted(() => {
       info_me: pageName == PAGE_NAMES.me,
       info_project: pageName == PAGE_NAMES.project,
     }"
-    
   >
     <!-- <span class="scroll-mask scroll-mask_top"></span> -->
 
-    <div class="info-inner hide-scrollbar" ref="infoAreaRef" data-scroll-container>
+    <div class="info-inner hide-scrollbar" ref="infoAreaRef">
       <div class="text-container" ref="scrollContainer">
-        <template v-for="(item, ind) in content">
+        <template v-if="isInfoOpen" v-for="(item, ind) in content">
             <h3
               class="info-text info-text_title"
               v-if="item.type == CONTENT_TYPES.title"
@@ -115,7 +130,17 @@ onUnmounted(() => {
               />
             </p>
 
-            <template v-if="item.type == CONTENT_TYPES.image">
+            <ImageItem 
+              v-if="item.type == CONTENT_TYPES.image"
+              :pageName="pageName"
+              :src="item.link"
+              :isAppear="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
+              :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                return  +key < ind ? acc + contentBlocksDelay[key] : acc
+              } , 0) + 'ms'"
+            />
+            
+            <!-- <template v-if="item.type == CONTENT_TYPES.image">
               <div
                 v-if="pageName == PAGE_NAMES.me"
                 class="info-image info-image_me"
@@ -137,7 +162,7 @@ onUnmounted(() => {
               >
                 <img :src="item.link" alt="" />
               </div>
-            </template>
+            </template> -->
         </template>
       </div>
     </div>
@@ -270,7 +295,7 @@ onUnmounted(() => {
   }
 }
 
-.info-image img {
+.info-image:deep(img) {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -314,7 +339,6 @@ onUnmounted(() => {
 @media (max-width: 1024px) {
   .info-inner {
     display: block;
-    overflow: auto;
   }
 
   .text-container {

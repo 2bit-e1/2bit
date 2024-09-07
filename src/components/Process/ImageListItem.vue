@@ -59,7 +59,7 @@ onMounted(() => {
   height: 100%;
   width: 100%;
   clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  transition: clip-path 500ms v-bind(appearDelay) ease;
+  transition: clip-path 850ms v-bind(appearDelay) ease;
 }
 
 .item-image_intersected:not(.item-image_hide) {

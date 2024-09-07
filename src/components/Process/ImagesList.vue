@@ -41,12 +41,18 @@ const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
-  if (window.innerWidth > 1024) {
-    scrollInstance.value = new LocomotiveScroll({
-      el: scrollContainer.value,
-      smooth: true
-    });
-  }
+  scrollInstance.value = new LocomotiveScroll({
+    el: scrollContainer.value,
+    smooth: true,
+    mobile: {
+      smooth: true,
+      breakpoint: 0,
+    },
+    tablet: {
+      smooth: true,
+      breakpoint: 0,
+    }
+  });
 })
 
 onUnmounted(() => {
@@ -107,6 +113,8 @@ useWaitingImagesToLoad(imagesRefs, () => {
 .list-item {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   --appear-delay-default: 0ms;
   --appear-delay-step: 100ms;

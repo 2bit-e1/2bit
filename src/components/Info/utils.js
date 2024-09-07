@@ -3,7 +3,6 @@ import { onBeforeUnmount, ref, watchEffect } from "vue"
 
 export const useToggleFooterDataOnScroll = (infoAreaRef, isSkip) => {
   const projectStore = useProjectStore();
-
   const lastScrollTop = ref(0)
 
   const documentScrollListener = () => {
@@ -31,4 +30,4 @@ export const useToggleFooterDataOnScroll = (infoAreaRef, isSkip) => {
   })
 }
 
-export const appearDelayStep = 15
+export const appearDelayStep = 25

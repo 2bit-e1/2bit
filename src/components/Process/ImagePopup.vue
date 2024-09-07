@@ -1,5 +1,6 @@
 <script setup>
 import { onUnmounted, watchEffect } from 'vue';
+import AppearBlocks from '../Info/AppearBlocks.vue';
 
 const props = defineProps({
   imageSrc: String,
@@ -44,7 +45,14 @@ onUnmounted(() => {
       <div class="image-container">
         <img class="image" :src="imageSrc" alt="">
       </div>
-      <p class="description">{{ imageDescription }}</p>
+      <p class="description">
+        <AppearBlocks
+          @setDelay="() => {}"
+          :initialDelay="100"
+          :isAppearReady="isOpen"
+        />
+        {{ imageDescription }}
+      </p>
     </div>
   </div>
 </template>
@@ -58,7 +66,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100dvh;
-  background-color: rgba(var(--bg-clr-white-rgb), 0.85);
+  background-color: var(--bg-clr-white);
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;
   transition: opacity 0.3s var(--timing-func-2);
@@ -98,6 +106,7 @@ onUnmounted(() => {
 
 .description {
   display: block;
+  position: relative;
   flex: 0 0 65px;
   padding: 25px 0 5px;
   margin-left: calc(-1 * var(--popup-x-padding) + var(--page-padding-x) + var(--column-width));
