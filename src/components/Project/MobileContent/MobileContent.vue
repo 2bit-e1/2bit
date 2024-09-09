@@ -1,7 +1,7 @@
 <script setup>
 import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
 import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
-import { onMounted, onUnmounted, ref } from "vue";
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import MobileContentImage from "./MobileContentImage.vue";
 import { timeForLoadAllImages } from "@/components/Process/utils";
 import LocomotiveScroll from 'locomotive-scroll';
@@ -26,20 +26,23 @@ const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
-  scrollInstance.value = new LocomotiveScroll({
-    el: scrollContainer.value,
-    smooth: true,
-    mobile: {
+  setTimeout(() => {
+    scrollInstance.value = new LocomotiveScroll({
+      el: scrollContainer.value,
       smooth: true,
       breakpoint: 0,
-    },
-    tablet: {
-      smooth: true,
-      breakpoint: 0,
-    }
-  });
-
-  scrollInstance.value.on('scroll', scrollListener)
+      mobile: {
+        smooth: true,
+        breakpoint: 0,
+      },
+      tablet: {
+        smooth: true,
+        breakpoint: 0,
+      }
+    });
+    
+    scrollInstance.value.on('scroll', scrollListener)
+  }, 1000)
 })
 
 const projectStore = useProjectStore();
@@ -59,7 +62,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="mobile-content" ref="scrollContainer" data-scroll-container>
+  <div class="mobile-content" ref="scrollContainer">
     <ul class="images-list">
       <MobileContentImage
         v-for="(src, ind) in imagesSrc"
