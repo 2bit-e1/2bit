@@ -26,23 +26,21 @@ const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
-  setTimeout(() => {
-    scrollInstance.value = new LocomotiveScroll({
-      el: scrollContainer.value,
+  scrollInstance.value = new LocomotiveScroll({
+    el: scrollContainer.value,
+    smooth: true,
+    breakpoint: 0,
+    mobile: {
       smooth: true,
       breakpoint: 0,
-      mobile: {
-        smooth: true,
-        breakpoint: 0,
-      },
-      tablet: {
-        smooth: true,
-        breakpoint: 0,
-      }
-    });
-    
-    scrollInstance.value.on('scroll', scrollListener)
-  }, 1000)
+    },
+    tablet: {
+      smooth: true,
+      breakpoint: 0,
+    }
+  });
+  
+  scrollInstance.value.on('scroll', scrollListener)
 })
 
 const projectStore = useProjectStore();
