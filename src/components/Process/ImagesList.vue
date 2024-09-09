@@ -73,7 +73,7 @@ useWaitingImagesToLoad(imagesRefs, () => {
 </script>
 
 <template>
-  <div class="images-list" ref="scrollContainer" data-scroll-container>
+  <div class="images-list" ref="scrollContainer" data-scroll-container data-scroll-speed="2">
     <div class="list-container">
       <ul class="list">
         <li class="list-item" v-for="(src, ind) in images">

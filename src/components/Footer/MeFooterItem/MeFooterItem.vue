@@ -241,9 +241,12 @@ const pressItemsDelayOrder =
     left: var(--column-width);
   }
 
-  .me-list-area_contacts,
   .me-list-area_services {
     width: calc(var(--column-width) * 10);
+  }
+
+  .me-list-area_contacts {
+    width: calc(var(--column-width) * 11);
   }
 
   .me-list-area_press {

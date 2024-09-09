@@ -267,7 +267,7 @@ onUnmounted(() => {
 }
 
 .info-image {
-  opacity: 0;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
   
   position: relative;
   margin: 25px 0;
@@ -282,16 +282,16 @@ onUnmounted(() => {
 }
 
 .info-image_appear {
-  animation: appear-image 300ms forwards;
+  animation: appear-image 300ms forwards ease;
 }
 
 @keyframes appear-image {
   0% {
-    opacity: 0;
+    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
   }
 
   100% {
-    opacity: 1;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
 }
 

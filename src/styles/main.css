@@ -55,4 +55,10 @@ body {
     --column-width: calc(100vw / 12);
     --page-padding-x: 0;
   }
+
+  html,
+  body,
+  * {
+    font-weight: 600;
+  }
 }

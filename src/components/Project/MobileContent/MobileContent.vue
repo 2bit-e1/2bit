@@ -105,12 +105,10 @@ onUnmounted(() => {
   }
 
   .images-list {
-    grid-column: 12 span;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: 100px;
-    row-gap: 54px;
-    column-gap: 38px;
+    grid-column: 2 / 12;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
     padding-bottom: 40px;
   }
 }

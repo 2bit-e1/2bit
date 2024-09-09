@@ -1,5 +1,4 @@
 <script setup>
-import { timeForLoadAllImages } from "@/components/Process/utils";
 import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
 import { onMounted, ref } from "vue";
 
@@ -21,6 +20,8 @@ const handleIntersect = (entries) => {
 useIntersectionObserver(elemRef, handleIntersect);
 
 onMounted(() => {
+  const timeForLoadAllImages = 500
+  
   setTimeout(() => {
     if (window.innerWidth < 768) {
       appearDelay.value = ((ind % 2) - 1) * appearDelayStep + "ms";
