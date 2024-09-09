@@ -40,6 +40,7 @@ const projectName = computed(() => projectStore.name || "");
     </h3>
     
     <CounterItem
+      v-if="projectStore.images.length > 0"
       :pagesCount="projectStore.images.length"
       :currentPage="projectStore.footerData.currentImageInd + 1"
       :delayOrder="4 + projectName.split(' ').length"
