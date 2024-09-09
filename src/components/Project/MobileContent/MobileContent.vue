@@ -29,7 +29,6 @@ onMounted(() => {
   scrollInstance.value = new LocomotiveScroll({
     el: scrollContainer.value,
     smooth: true,
-    breakpoint: 0,
     mobile: {
       smooth: true,
       breakpoint: 0,
