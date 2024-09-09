@@ -4,7 +4,7 @@ import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
 import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import MobileContentImage from "./MobileContentImage.vue";
 import { timeForLoadAllImages } from "@/components/Process/utils";
-import LocomotiveScroll from 'locomotive-scroll';
+import LocomotiveScroll from "locomotive-scroll";
 import { useProjectStore } from "@/stores/project";
 
 const { imagesSrc } = defineProps({
@@ -22,7 +22,7 @@ useWaitingImagesToLoad(
   timeForLoadAllImages
 );
 
-const scrollContainer = ref(null); 
+const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
@@ -30,32 +30,31 @@ onMounted(() => {
     el: scrollContainer.value,
     smooth: true,
     mobile: {
-      smooth: true,
+      smooth: false,
       breakpoint: 0,
     },
     tablet: {
-      smooth: true,
+      smooth: false,
       breakpoint: 0,
-    }
+    },
   });
-  
-  scrollInstance.value.on('scroll', scrollListener)
-})
+
+  scrollInstance.value.on("scroll", scrollListener);
+});
 
 const projectStore = useProjectStore();
-const lastScrollTop = ref(0)
+const lastScrollTop = ref(0);
 
 const scrollListener = (scrollInfo) => {
-  if (lastScrollTop.value > 1) projectStore.hideFooterData()
-  else projectStore.showFooterData()
+  if (lastScrollTop.value > 1) projectStore.hideFooterData();
+  else projectStore.showFooterData();
 
-  lastScrollTop.value = scrollInfo.scroll.y
-}
+  lastScrollTop.value = scrollInfo.scroll.y;
+};
 
 onUnmounted(() => {
   if (scrollInstance.value) scrollInstance.value.destroy();
-})
-
+});
 </script>
 
 <template>
@@ -67,7 +66,7 @@ onUnmounted(() => {
         :ind="ind"
         :key="src"
         :isImageHide="isImagesHide"
-        @setImageRef="(ref) => imagesRefs[ind] = ref"
+        @setImageRef="(ref) => (imagesRefs[ind] = ref)"
       />
     </ul>
   </div>

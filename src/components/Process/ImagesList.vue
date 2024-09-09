@@ -4,7 +4,7 @@ import ImagesListItem from "./ImageListItem.vue";
 import { promiseTimeLimit } from "@/utils/promiseTimeLimit";
 import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
 import { timeForLoadAllImages } from "./utils";
-import LocomotiveScroll from 'locomotive-scroll';
+import LocomotiveScroll from "locomotive-scroll";
 
 const emits = defineEmits(["openPopup"]);
 
@@ -37,7 +37,7 @@ const images = [
 
 const imagesRefs = ref([]);
 const isImagesLoaded = ref(false);
-const scrollContainer = ref(null); 
+const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
@@ -45,19 +45,19 @@ onMounted(() => {
     el: scrollContainer.value,
     smooth: true,
     mobile: {
-      smooth: true,
+      smooth: false,
       breakpoint: 0,
     },
     tablet: {
-      smooth: true,
+      smooth: false,
       breakpoint: 0,
-    }
+    },
   });
-})
+});
 
 onUnmounted(() => {
   if (scrollInstance.value) scrollInstance.value.destroy();
-})
+});
 
 const handleImageClick = (src) => {
   emits(
@@ -67,13 +67,22 @@ const handleImageClick = (src) => {
   );
 };
 
-useWaitingImagesToLoad(imagesRefs, () => {
-  isImagesLoaded.value = true;
-}, timeForLoadAllImages)
+useWaitingImagesToLoad(
+  imagesRefs,
+  () => {
+    isImagesLoaded.value = true;
+  },
+  timeForLoadAllImages
+);
 </script>
 
 <template>
-  <div class="images-list" ref="scrollContainer" data-scroll-container data-scroll-speed="2">
+  <div
+    class="images-list"
+    ref="scrollContainer"
+    data-scroll-container
+    data-scroll-speed="2"
+  >
     <div class="list-container">
       <ul class="list">
         <li class="list-item" v-for="(src, ind) in images">
@@ -82,7 +91,7 @@ useWaitingImagesToLoad(imagesRefs, () => {
             :isHide="!isImagesLoaded"
             :ind="ind"
             :timeForLoadAllImages="timeForLoadAllImages"
-            @setImageRef="(ref) => imagesRefs[ind] = ref"
+            @setImageRef="(ref) => (imagesRefs[ind] = ref)"
             @click.stop="handleImageClick(src)"
           />
         </li>
