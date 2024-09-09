@@ -339,6 +339,7 @@ onUnmounted(() => {
 @media (max-width: 1024px) {
   .info-inner {
     display: block;
+    overflow: auto;
   }
 
   .text-container {
