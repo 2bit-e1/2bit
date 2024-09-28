@@ -29,8 +29,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="item-image-container">
-    <button
+  <button class="item-image-container">
+    <div
       class="item-image"
       :class="{
         'item-image_intersected': isIntersected,
@@ -43,8 +43,8 @@ onMounted(() => {
         :alt="alt || ''"
         :ref="(ref) => $emit('setImageRef', ref)"
       />
-    </button>
-  </div>
+    </div>
+  </button>
 </template>
 
 <style>

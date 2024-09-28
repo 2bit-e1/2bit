@@ -17,7 +17,6 @@ const emit = defineEmits(["setActiveProjectData", "clearActiveProjectData"]);
 
 const homeStore = useHomeStore();
 
-const Number_0 = AllNumbers.Number_0;
 const Number_comp = AllNumbers[`Number_${props.number}`];
 
 const appearDelay = getDelayByNumber(props.number) + "ms";

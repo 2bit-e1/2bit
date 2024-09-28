@@ -1,44 +1,25 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from "vue";
 import ImagesListItem from "./ImageListItem.vue";
-import { promiseTimeLimit } from "@/utils/promiseTimeLimit";
 import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
-import { timeForLoadAllImages } from "./utils";
+import { getImageSrc, timeForLoadAllImages } from "./utils";
 import LocomotiveScroll from "locomotive-scroll";
+import { processImagesData } from "@/data/process/images";
 
 const emits = defineEmits(["openPopup"]);
-
-const images = [
-  "https://images.unsplash.com/photo-1602850152657-3bd1351c7f15?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1596025234111-57e5998b5035?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1560925562-8f504a92c529?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjV8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1587622129703-8029c13afe51?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjl8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1541261759512-c8295bae066e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1646569278930-8ef36259643d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1615663058598-ff4c0cc0f387?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDN8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1566794385556-233fc43d02a1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1589009602376-95356e671add?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1587622129703-8029c13afe51?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjl8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1541261759512-c8295bae066e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzJ8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1646569278930-8ef36259643d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1615663058598-ff4c0cc0f387?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDN8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1566794385556-233fc43d02a1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1615663058598-ff4c0cc0f387?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mzh8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDN8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1566794385556-233fc43d02a1?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDF8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-  "https://images.unsplash.com/photo-1589009602500-c5137f420e80?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGRpZmZlcmVudCUyMHNpemVzfGVufDB8fDB8fHww",
-];
 
 const imagesRefs = ref([]);
 const isImagesLoaded = ref(false);
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
+
+const handleImageClick = (imageData) => {
+  emits(
+    "openPopup",
+    getImageSrc(imageData.name),
+    imageData.description
+  );
+};
 
 onMounted(() => {
   scrollInstance.value = new LocomotiveScroll({
@@ -59,14 +40,6 @@ onUnmounted(() => {
   if (scrollInstance.value) scrollInstance.value.destroy();
 });
 
-const handleImageClick = (src) => {
-  emits(
-    "openPopup",
-    src,
-    "A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations."
-  );
-};
-
 useWaitingImagesToLoad(
   imagesRefs,
   () => {
@@ -85,14 +58,14 @@ useWaitingImagesToLoad(
   >
     <div class="list-container">
       <ul class="list">
-        <li class="list-item" v-for="(src, ind) in images">
+        <li class="list-item" v-for="(imageData, ind) in processImagesData">
           <ImagesListItem
-            :src="src"
+            :src="getImageSrc(imageData.name)"
             :isHide="!isImagesLoaded"
             :ind="ind"
             :timeForLoadAllImages="timeForLoadAllImages"
             @setImageRef="(ref) => (imagesRefs[ind] = ref)"
-            @click.stop="handleImageClick(src)"
+            @click.stop="handleImageClick(imageData)"
           />
         </li>
       </ul>

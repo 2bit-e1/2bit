@@ -2,79 +2,43 @@
 import { useHomeStore } from "@/stores/home";
 import { useProjectStore } from "@/stores/project";
 import { PAGE_NAMES, ROUTES } from "@/utils/constants";
-import { handleRoute } from "@/utils/handleRoute";
-import { computed, watchEffect } from "vue";
-import { useRouter } from "vue-router";
+import { computed } from "vue";
 import allProjects from "@/data/projects/index.js";
-import AppearWord from "./Appear/AppearWord.vue";
-import AppearWords from "./Appear/AppearWords.vue";
+import AppearWord from "@/components/Appear/AppearWord.vue";
+import AppearWords from "@/components/Appear/AppearWords.vue";
 import { useProcessStore } from "@/stores/process";
+import { getRightBtnRole, getLeftBtnRole, getHeaderExtraClass } from "./utils";
+import { useGetRightBtnClickHandler, useGetLeftBtnClickHandler } from "./hooks";
 
 const props = defineProps({
   pageName: String,
 });
 
-const router = useRouter();
 const homeStore = useHomeStore();
 const projectStore = useProjectStore();
 const processStore = useProcessStore();
 
+const pageNameRef = computed(() => props.pageName);
+
 const homeProjectYears = allProjects.map((project) => project.year);
 const homeProjectNames = allProjects.map((project) => project.name);
 
-const leftBtnClick = (event) => {
-  if (props.pageName == PAGE_NAMES.project) {
-    projectStore.openProjectInfo();
-  } else {
-    event.preventDefault();
-  }
-};
-
-const rightBtnClick = (event) => {
-  if (props.pageName == PAGE_NAMES.project) {
-    if (projectStore.isInfoOpen) {
-      projectStore.closeProjectInfo();
-    } else {
-      handleRoute(router, ROUTES.home);
-    }
-  } else if (props.pageName == PAGE_NAMES.me) {
-    handleRoute(router, ROUTES.home);
-  } else if (props.pageName == PAGE_NAMES.process) {
-    if (processStore.popupData.isOpen) {
-      processStore.closePopup();
-    } else {
-      handleRoute(router, ROUTES.home);
-    }
-  } else {
-    event.preventDefault();
-  }
-};
+const rightBtnClickHandler = useGetRightBtnClickHandler(pageNameRef);
+const leftBtnClickHandler = useGetLeftBtnClickHandler(pageNameRef);
 
 const isLeftBtnDisabled = computed(() => props.pageName != PAGE_NAMES.project);
-const leftBtnRole = computed(() => {
-  if (props.pageName != PAGE_NAMES.project) return "presentation";
-  else return "button";
-});
+const leftBtnRole = computed(() => getLeftBtnRole(props.pageName));
 
 const isRightBtnDisabled = computed(() => props.pageName == PAGE_NAMES.home);
-const rightBtnRole = computed(() => {
-  if (props.pageName == PAGE_NAMES.project) {
-    return projectStore.isInfoOpen ? "button" : "link";
-  } else if (props.pageName == PAGE_NAMES.me) {
-    return "link";
-  } else if (props.pageName == PAGE_NAMES.process) {
-    return processStore.popupData.isOpen ? "button" : "link";
-  } else {
-    return "presentation";
-  }
-});
+const rightBtnRole = computed(() =>
+  getRightBtnRole(
+    props.pageName,
+    projectStore.isInfoOpen,
+    processStore.popupData.isOpen
+  )
+);
 
-const headerExtraClass = computed(() => ({
-  header_home: props.pageName == PAGE_NAMES.home,
-  header_project: props.pageName == PAGE_NAMES.project,
-  header_me: props.pageName == PAGE_NAMES.me,
-  header_info: props.pageName == PAGE_NAMES.info,
-}));
+const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
 </script>
 
 <template>
@@ -85,39 +49,45 @@ const headerExtraClass = computed(() => ({
         :class="{ 'item-btn_disabled': isLeftBtnDisabled }"
         :tabindex="isLeftBtnDisabled ? -1 : 0"
         :role="leftBtnRole"
-        @click="leftBtnClick"
+        @click.prevent="leftBtnClickHandler"
       >
         <div class="item-btn-inner">
-          <span v-for="name in homeProjectNames" class="item-btn-text item-btn-text_home">
+          <span
+            v-for="name in homeProjectNames"
+            class="item-btn-text item-btn-text_home"
+          >
             <AppearWords
               :text="name"
-              :isAppear="pageName == PAGE_NAMES.home && homeStore.activeProjectName == name"
+              :isAppear="
+                pageName == PAGE_NAMES.home &&
+                homeStore.activeProjectName == name
+              "
               :delayOrder="1"
             />
           </span>
 
           <span class="item-btn-text item-btn-text_project">
-              <AppearWord
-                word="Инфо"
-                :isAppear="pageName == PAGE_NAMES.project"
-                :delayOrder="1"
-              />
+            <AppearWord
+              word="Инфо"
+              :isAppear="pageName == PAGE_NAMES.project"
+              :delayOrder="1"
+            />
           </span>
 
           <span class="item-btn-text item-btn-text_me">
-              <AppearWord
-                word="Био"
-                :isAppear="pageName == PAGE_NAMES.me"
-                :delayOrder="1"
-              />
+            <AppearWord
+              word="Био"
+              :isAppear="pageName == PAGE_NAMES.me"
+              :delayOrder="1"
+            />
           </span>
 
           <span class="item-btn-text item-btn-text_process">
-              <AppearWord
-                word="Процесс"
-                :isAppear="pageName == PAGE_NAMES.process"
-                :delayOrder="1"
-              />
+            <AppearWord
+              word="Процесс"
+              :isAppear="pageName == PAGE_NAMES.process"
+              :delayOrder="1"
+            />
           </span>
         </div>
       </button>
@@ -128,39 +98,49 @@ const headerExtraClass = computed(() => ({
         :class="{ 'item-btn_disabled': isRightBtnDisabled }"
         :tabindex="isRightBtnDisabled ? -1 : 0"
         :role="rightBtnRole"
-        @click="rightBtnClick"
+        @click.prevent="rightBtnClickHandler"
       >
         <div class="item-btn-inner">
-          <span v-for="(year, ind) in homeProjectYears" class="item-btn-text item-btn-text_home">
+          <span
+            v-for="(year, ind) in homeProjectYears"
+            class="item-btn-text item-btn-text_home"
+          >
             <AppearWord
               :word="'‘' + year"
-              :isAppear="pageName == PAGE_NAMES.home && homeStore.activeProjectYear == year"
+              :isAppear="
+                pageName == PAGE_NAMES.home &&
+                homeStore.activeProjectYear == year
+              "
               :delayOrder="1 + homeProjectNames[ind].split(' ').length"
             />
           </span>
 
-          
           <span class="item-btn-text item-btn-text_project">
             <AppearWord
               :word="'Закрыть'"
-              :isAppear="pageName == PAGE_NAMES.project && !projectStore.isInfoOpen"
+              :isAppear="
+                pageName == PAGE_NAMES.project && !projectStore.isInfoOpen
+              "
               :delayOrder="2"
             />
           </span>
-          
+
           <span class="item-btn-text item-btn-text_project">
             <AppearWord
               :word="'Назад'"
-              :isAppear="pageName == PAGE_NAMES.project && projectStore.isInfoOpen"
+              :isAppear="
+                pageName == PAGE_NAMES.project && projectStore.isInfoOpen
+              "
               :delayOrder="1"
             />
           </span>
-          
 
           <span class="item-btn-text item-btn-text_process">
             <AppearWord
               word="Закрыть"
-              :isAppear="pageName == PAGE_NAMES.process && !processStore.popupData.isOpen"
+              :isAppear="
+                pageName == PAGE_NAMES.process && !processStore.popupData.isOpen
+              "
               :delayOrder="2"
             />
           </span>
@@ -168,7 +148,9 @@ const headerExtraClass = computed(() => ({
           <span class="item-btn-text item-btn-text_process">
             <AppearWord
               word="Назад"
-              :isAppear="pageName == PAGE_NAMES.process && processStore.popupData.isOpen"
+              :isAppear="
+                pageName == PAGE_NAMES.process && processStore.popupData.isOpen
+              "
               :delayOrder="1"
             />
           </span>
@@ -252,7 +234,6 @@ const headerExtraClass = computed(() => ({
 .item_left .item-btn-text_home {
   /* text-indent: var(--text-indent);
   translate: calc(-50% - (var(--text-indent) / 2)) 0; */
-  
 }
 
 .item_left .item-btn-text_home:deep(.appear-words) {
@@ -294,7 +275,7 @@ const headerExtraClass = computed(() => ({
   .item_left {
     grid-column: 2 / 5;
   }
-  
+
   .item_right {
     grid-column: 10 / 12;
   }
@@ -343,7 +324,7 @@ const headerExtraClass = computed(() => ({
   .header {
     padding-top: 40px;
   }
-  
+
   .item_left {
     grid-column: 2 / 4;
   }

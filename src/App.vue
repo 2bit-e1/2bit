@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watchEffect } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router"
 import { getPageNameByPath } from "./utils/getPageNameByPath";
-import Header from "./components/Header.vue";
+import Header from "./components/Header/Header.vue";
 import Footer from "./components/Footer/Footer.vue";
 import { PAGE_NAMES } from "./utils/constants";
 
