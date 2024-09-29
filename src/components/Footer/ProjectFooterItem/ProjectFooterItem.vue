@@ -39,6 +39,16 @@ const projectName = computed(() => projectStore.name || "");
       </div>
     </h3>
     
+    <RouterLink :to="projectStore.link" class="hoverable hoverable-from-gray project-item project-item_to-project">
+      <div class="project-item-inner">
+        <AppearWords
+          text="К проекту"
+          :isAppear="!isImagesCountVisible && isActive"
+          :delayOrder="0"
+        />
+      </div>
+    </RouterLink>
+    
     <CounterItem
       v-if="projectStore.images.length > 0"
       :pagesCount="projectStore.images.length"
@@ -46,7 +56,7 @@ const projectName = computed(() => projectStore.name || "");
       :delayOrder="4 + projectName.split(' ').length"
       :isActive="isImagesCountVisible && isActive"
     />
-
+    
     <h3 class="project-item project-item_year">
       <div class="project-item-inner">
         <AppearWord
@@ -63,6 +73,7 @@ const projectName = computed(() => projectStore.name || "");
         />
       </div>
     </h3>
+
     <div class="project-item project-item_role">
       <div class="project-item-inner">
         <AppearWord
@@ -129,8 +140,16 @@ const projectName = computed(() => projectStore.name || "");
   padding-left: 20px;
 }
 
+.project-item_to-project {
+  grid-column: 3 / 4;
+  justify-content: start;
+  text-align: left;
+}
+
 .project-item_counter {
+  grid-column: 4 / 5;
   justify-content: center;
+  translate: -46px 0;
 }
 
 .project-item:deep(.project-counter-current) {
@@ -175,6 +194,10 @@ const projectName = computed(() => projectStore.name || "");
 
   .project-item_year {
     grid-column: 6 / 7;
+  }
+
+  .project-item_to-project {
+    display: none;
   }
 
   .project-item_counter {

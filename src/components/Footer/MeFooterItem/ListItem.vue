@@ -7,13 +7,13 @@ defineEmits(["listMouseEnter", "listMouseLeave"]);
 
 const props = defineProps({
   isActive: Boolean,
+  isListLinks: Boolean,
+  isPressList: Boolean,
+  isItemsActive: Boolean,
   labelDelayOrder: Number,
   itemsDelayOrder: Number,
   label: String,
   list: Array,
-  isListLinks: Boolean,
-  isPressList: Boolean,
-  isItemsActive: Boolean,
 });
 
 const itemsDelayOrder = computed(
@@ -39,6 +39,7 @@ const itemsDelayOrder = computed(
       <a
         v-if="isListLinks"
         class="me-list-item-link"
+        :class="isItemsActive && 'hoverable hoverable-from-black'"
         :href="item.link"
         :tabindex="isItemsActive ? 0 : -1"
         :style="{ pointerEvents: isItemsActive ? '' : 'none' }"

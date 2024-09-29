@@ -6,6 +6,7 @@ import MobileContentImage from "./MobileContentImage.vue";
 import { timeForLoadAllImages } from "@/components/Process/utils";
 import LocomotiveScroll from "locomotive-scroll";
 import { useProjectStore } from "@/stores/project";
+import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array,
@@ -26,20 +27,10 @@ const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
-  scrollInstance.value = new LocomotiveScroll({
-    el: scrollContainer.value,
-    smooth: true,
-    mobile: {
-      smooth: false,
-      breakpoint: 0,
-    },
-    tablet: {
-      smooth: false,
-      breakpoint: 0,
-    },
-  });
+  scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
 
-  scrollInstance.value.on("scroll", scrollListener);
+  scrollInstance.value?.on("scroll", scrollListener);
+  // window.addEventListener("scroll", scrollListener);
 });
 
 const projectStore = useProjectStore();
@@ -53,7 +44,7 @@ const scrollListener = (scrollInfo) => {
 };
 
 onUnmounted(() => {
-  if (scrollInstance.value) scrollInstance.value.destroy();
+  scrollInstance.value?.destroy();
 });
 </script>
 

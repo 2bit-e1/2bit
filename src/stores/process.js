@@ -17,11 +17,9 @@ export const useProcessStore = defineStore('process', {
     openPopup(src, description) {
       this.popupData.imageInfo = { src, description };
       this.popupData.isOpen = true;
-      document.body.style.overflow = 'hidden';
     },
     closePopup() {
       this.popupData.isOpen = false;
-      document.body.style.overflow = '';
     },
   },
 })

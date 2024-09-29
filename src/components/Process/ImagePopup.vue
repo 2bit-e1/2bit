@@ -1,6 +1,7 @@
 <script setup>
-import { onUnmounted, watchEffect } from 'vue';
+import { computed, onUnmounted, watchEffect } from 'vue';
 import AppearBlocks from '../Info/AppearBlocks.vue';
+import { useDisableScroll } from '@/utils/useDisableScroll';
 
 const props = defineProps({
   imageSrc: String,
@@ -9,6 +10,8 @@ const props = defineProps({
 })
 
 const emits = defineEmits(['closePopup']);
+
+const isPopupOpen = computed(() => props.isOpen);
 
 const keydownHandler = (event) => {
   if (event.key == 'Escape') {
@@ -24,15 +27,15 @@ const clickHandler = (event) => {
 
 watchEffect(() => {
   if (props.isOpen) {
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', keydownHandler)
     window.addEventListener('click', clickHandler)
   } else {
-    document.body.style.overflow = '';
     window.removeEventListener('keydown', keydownHandler)
     window.removeEventListener('click', clickHandler)
   }
-})
+});
+
+useDisableScroll(isPopupOpen);
 
 onUnmounted(() => {
   document.body.style.overflow = '';

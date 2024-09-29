@@ -61,8 +61,10 @@ const isPressVisible = computed(
     @mouseenter="handleTitleMouseEnter"
     @mouseleave="handleTitleMouseLeave"
     @focus="handleTitleMouseEnter"
+
+    class="hoverable hoverable-from-gray"
   />
 </template>
 
-<style scoped>
+<style>
 </style>

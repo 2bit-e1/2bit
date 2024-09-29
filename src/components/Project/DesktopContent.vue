@@ -13,7 +13,7 @@ const isFirstImageAppear = ref(false);
 
 useHandleScrollImages(imagesRefs, isFirstImageAppear, projectStore.setCurrentImage);
 
-// useDisableScrollOnInfoOpen();
+useDisableScrollOnInfoOpen();
 
 // watchEffect(() => {
 //   if (!projectStore.isInfoOpen) {
@@ -63,6 +63,8 @@ useHandleScrollImages(imagesRefs, isFirstImageAppear, projectStore.setCurrentIma
   height: 100%;
   left: 0;
   bottom: -100%;
+  bottom: 0;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
   display: flex;
   justify-content: center;
 }

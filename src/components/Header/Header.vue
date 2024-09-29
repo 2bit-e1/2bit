@@ -26,7 +26,7 @@ const homeProjectNames = allProjects.map((project) => project.name);
 const rightBtnClickHandler = useGetRightBtnClickHandler(pageNameRef);
 const leftBtnClickHandler = useGetLeftBtnClickHandler(pageNameRef);
 
-const isLeftBtnDisabled = computed(() => props.pageName != PAGE_NAMES.project);
+const isLeftBtnDisabled = computed(() => props.pageName != PAGE_NAMES.project || projectStore.isInfoOpen);
 const leftBtnRole = computed(() => getLeftBtnRole(props.pageName));
 
 const isRightBtnDisabled = computed(() => props.pageName == PAGE_NAMES.home);
@@ -45,9 +45,10 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
   <div class="header" :class="headerExtraClass">
     <div class="item item_left">
       <button
-        class="item-btn"
+        class="item-btn hoverable"
         :class="{ 'item-btn_disabled': isLeftBtnDisabled }"
         :tabindex="isLeftBtnDisabled ? -1 : 0"
+        :disabled="isLeftBtnDisabled"
         :role="leftBtnRole"
         @click.prevent="leftBtnClickHandler"
       >
@@ -66,7 +67,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_project">
+          <span class="item-btn-text item-btn-text_project hoverable-from-black">
             <AppearWord
               word="Инфо"
               :isAppear="pageName == PAGE_NAMES.project"
@@ -94,9 +95,10 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
     </div>
     <div class="item item_right">
       <button
-        class="item-btn"
+        class="item-btn hoverable"
         :class="{ 'item-btn_disabled': isRightBtnDisabled }"
         :tabindex="isRightBtnDisabled ? -1 : 0"
+        :disabled="isRightBtnDisabled"
         :role="rightBtnRole"
         @click.prevent="rightBtnClickHandler"
       >
@@ -115,7 +117,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_project">
+          <span class="item-btn-text item-btn-text_project hoverable-from-gray">
             <AppearWord
               :word="'Закрыть'"
               :isAppear="
@@ -125,7 +127,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_project">
+          <span class="item-btn-text item-btn-text_project hoverable-from-gray">
             <AppearWord
               :word="'Назад'"
               :isAppear="
@@ -135,7 +137,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_process">
+          <span class="item-btn-text item-btn-text_process hoverable-from-gray">
             <AppearWord
               word="Закрыть"
               :isAppear="
@@ -145,7 +147,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_process">
+          <span class="item-btn-text item-btn-text_process hoverable-from-gray">
             <AppearWord
               word="Назад"
               :isAppear="
@@ -155,7 +157,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_me">
+          <span class="item-btn-text item-btn-text_me hoverable-from-gray">
             <AppearWord
               word="Закрыть"
               :isAppear="pageName == PAGE_NAMES.me"

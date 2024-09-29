@@ -1,27 +1,31 @@
 <script setup>
-import { wordAppearDelayStep } from '@/utils/constants';
-import { computed, ref, watchEffect } from 'vue';
+import { wordAppearDelayStep } from "@/utils/constants";
+import { computed, ref, watchEffect } from "vue";
 
 const props = defineProps({
   word: String,
   delayOrder: Number,
-  isAppear: Boolean
-})
-
+  isAppear: Boolean,
+});
 
 const isFirstLoad = ref(true);
 
 watchEffect(() => {
-  if (props.isAppear) isFirstLoad.value = false
-})
+  if (props.isAppear) isFirstLoad.value = false;
+});
 
-const appearDelay = computed(() => ((props.delayOrder || 1) - 1) * wordAppearDelayStep + "ms");
+const appearDelay = computed(
+  () => ((props.delayOrder || 1) - 1) * wordAppearDelayStep + "ms"
+);
 </script>
 
 <template>
   <span
     class="appear-word"
-    :class="{ 'appear-word_appear': isAppear, 'appear-word_first-load': isFirstLoad }"
+    :class="{
+      'appear-word_appear': isAppear,
+      'appear-word_first-load': isFirstLoad,
+    }"
   >
     <span class="appear-word-inner">
       {{ word }}
@@ -45,39 +49,61 @@ const appearDelay = computed(() => ((props.delayOrder || 1) - 1) * wordAppearDel
   /*animation:
     disappear-translate 300ms calc(100ms + v-bind(appearDelay)) forwards var(--timing-func-2),
     disappear-scale 300ms calc(0ms + v-bind(appearDelay)) forwards var(--timing-func-1);*/
-    animation:
+  /*animation:
       disappear-translate 300ms 100ms forwards var(--timing-func-2),
-      disappear-scale 300ms 0ms forwards var(--timing-func-1);
+      disappear-scale 300ms 0ms forwards var(--timing-func-1);*/
+  animation: disappear-translate 300ms 100ms forwards var(--timing-func-2),
+    disappear-opacityscale 300ms 50ms forwards var(--timing-func-1);
 }
 
 .appear-word.appear-word_appear .appear-word-inner {
   translate: 0 100%;
-  animation:
+  animation: appear-translate 300ms calc(200ms + v-bind(appearDelay)) forwards
+      var(--timing-func-2),
+    appear-opacity 600ms calc(100ms + v-bind(appearDelay)) forwards
+      var(--timing-func-1);
+  /*animation:
     appear-translate 300ms calc(100ms + v-bind(appearDelay)) forwards var(--timing-func-2),
-    appear-scale 300ms calc(200ms + v-bind(appearDelay)) forwards var(--timing-func-1);
+    appear-scale 300ms calc(200ms + v-bind(appearDelay)) forwards var(--timing-func-1);*/
 }
 
 @keyframes appear-translate {
-  0% { translate: 0 100%; }
+  0% {
+    translate: 0 100%;
+  }
 
-  100% { translate: 0 0; }
+  100% {
+    translate: 0 0;
+  }
 }
 
-@keyframes appear-scale {
-  0% { scale: 0.8; }
+@keyframes appear-opacity {
+  0% {
+    opacity: 0;
+  }
 
-  100% { scale: 1; }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes disappear-translate {
-  0% { translate: 0 0; }
+  0% {
+    translate: 0 0;
+  }
 
-  100% { translate: 0 -100%; }
+  100% {
+    translate: 0 -100%;
+  }
 }
 
-@keyframes disappear-scale {
-  0% { scale: 1; }
+@keyframes disappear-opacity {
+  0% {
+    opacity: 1;
+  }
 
-  100% { scale: 0.8; }
+  100% {
+    opacity: 0;
+  }
 }
 </style>

@@ -1,5 +1,6 @@
 import { useProjectStore } from "@/stores/project";
-import { onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
+import { useDisableScroll } from "@/utils/useDisableScroll";
+import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from "vue";
 
 export const useHandleScrollImages = (
   imagesRefs,
@@ -29,7 +30,9 @@ export const useHandleScrollImages = (
       return;
     }
 
-    const isScrollBottom = scrollTop > lastScrollTop.value
+    const isScrollBottom = scrollTop > lastScrollTop.value;
+    console.log("isScrollBottom", isScrollBottom);
+    
     lastScrollTop.value = scrollTop;
     const scrollTopRatio = (scrollTop + clientHeight) / scrollHeight;
 
@@ -37,60 +40,74 @@ export const useHandleScrollImages = (
       ({ imageRef, startComeRatio, startLeaveRatio }, imageInd) => {
         let imageBottom = 0;
         let imageScale = 1;
+        let imageClipPath = "";
         const maxScalePercent = 10;
         const autoScrollDelay = 150;
 
+        const imageDisaplyPercent =
+            (100 * (startLeaveRatio - scrollTopRatio)) / scrollRatioStep;
+        
         if (scrollTopRatio >= startLeaveRatio) {
+          imageClipPath = "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)";
           //если картинка должна уходить наверх
-          imageBottom =
-            (100 * (scrollTopRatio - startLeaveRatio)) / scrollRatioStep;
-          imageScale =
-            maxScalePercent *
-            min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
+          imageBottom = imageDisaplyPercent;
+          // imageScale =
+          //   maxScalePercent *
+          //   min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
 
-          if ((isScrollBottom && imageBottom > 0 && imageBottom < 25) || (!isScrollBottom && imageBottom > 0 && imageBottom < 75)) {
-            if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
+          // if (
+          //   (isScrollBottom && imageDisaplyPercent > 0 && imageDisaplyPercent < 25) ||
+          //   (!isScrollBottom && imageDisaplyPercent > 0 && imageDisaplyPercent < 75)
+          // ) {
+          // if (imageDisaplyPercent > 0 && imageDisaplyPercent < 50) {
+          //   if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
 
-            autoScrollTimeoutId.value = setTimeout(() => {
-              const { scrollHeight, clientHeight } = document.documentElement;
-              const curImageTopValue =
-                scrollHeight * startLeaveRatio - clientHeight;
+          //   autoScrollTimeoutId.value = setTimeout(() => {
+          //     const { scrollHeight, clientHeight } = document.documentElement;
+          //     const curImageTopValue =
+          //       scrollHeight * startLeaveRatio - clientHeight;
 
-              window.scrollTo({
-                top: curImageTopValue,
-                behavior: "smooth",
-              });
-            }, autoScrollDelay);
-          }
+          //     window.scrollTo({
+          //       top: curImageTopValue,
+          //       behavior: "smooth",
+          //     });
+          //   }, autoScrollDelay);
+          // }
         } else {
+          imageClipPath = "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)";
           //если картинка должна приходить снизу
-          imageBottom =
-            (-100 * (startLeaveRatio - scrollTopRatio)) / scrollRatioStep;
+          imageBottom = -1 * imageDisaplyPercent;
+          imageClipPath = `polygon(0% ${min(imageDisaplyPercent, 100)}%, 100% ${min(imageDisaplyPercent, 100)}%, 100% 100%, 0% 100%)`;
 
-          if (imageBottom > -50 && imageBottom < 1) setCurrentImage(imageInd);
+          if (imageDisaplyPercent < 50 && imageDisaplyPercent > -1) setCurrentImage(imageInd);
 
-          if ((isScrollBottom && imageBottom > -75 && imageBottom < 0) || (!isScrollBottom && imageBottom > -25 && imageBottom < 0)) {
-            if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
+          // if (
+          //   (isScrollBottom && imageDisaplyPercent > 50 && imageDisaplyPercent <= 100) ||
+          //   (!isScrollBottom && imageDisaplyPercent > 0 && imageDisaplyPercent <= 50)
+          // ) {
+          // // if (imageDisaplyPercent > 50 && imageDisaplyPercent < 100) {
+          //   if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
 
-            autoScrollTimeoutId.value = setTimeout(() => {
-              const { scrollHeight, clientHeight } = document.documentElement;
-              const curImageTopValue =
-                scrollHeight * startLeaveRatio - clientHeight;
+          //   autoScrollTimeoutId.value = setTimeout(() => {
+          //     const { scrollHeight, clientHeight } = document.documentElement;
+          //     const curImageTopValue =
+          //       scrollHeight * startLeaveRatio - clientHeight;
 
-              window.scrollTo({
-                top: curImageTopValue,
-                behavior: "smooth",
-              });
-            }, autoScrollDelay);
-          }
+          //     window.scrollTo({
+          //       top: curImageTopValue,
+          //       behavior: "smooth",
+          //     });
+          //   }, autoScrollDelay);
+          // }
 
-          imageScale =
-            -maxScalePercent *
-            min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
+          // imageScale =
+          //   -maxScalePercent *
+          //   min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
         }
 
-        imageRef.style.scale = 1 - 0.01 * imageScale;
-        imageRef.style.bottom = imageBottom + "%";
+        // imageRef.style.scale = 1 - 0.01 * imageScale;
+        // imageRef.style.bottom = imageBottom + "%";
+        imageRef.style.clipPath = imageClipPath;
       }
     );
 
@@ -144,11 +161,6 @@ export const useHandleScrollImages = (
 export const useDisableScrollOnInfoOpen = () => {
   const projectStore = useProjectStore();
 
-  watchEffect(() => {
-    if (projectStore.isInfoOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-  });
+  const disableScrollCondition = computed(() => projectStore.isInfoOpen);
+  useDisableScroll(disableScrollCondition);
 };

@@ -6,6 +6,8 @@ import { appearDelayStep, useToggleFooterDataOnScroll } from "./utils";
 import AppearBlocks from "./AppearBlocks.vue";
 import LocomotiveScroll from 'locomotive-scroll';
 import ImageItem from "./ImageItem.vue";
+import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
+import { useDisableScrollOnInfoOpen } from "../Project/hooks";
 
 const props = defineProps({
   pageName: String,
@@ -51,28 +53,22 @@ const isInfoOpen = computed(() => {
 
 watch(isInfoOpen, (isOpen) => {
   if (props.pageName == PAGE_NAMES.me) return
-  
-  if (isOpen) {
-    scrollInstance.value = new LocomotiveScroll({
-      el: scrollContainer.value,
-      smooth: true,
-      mobile: {
-        smooth: true,
-        breakpoint: 0,
-      },
-      tablet: {
-        // smooth: true,
-      }
-    });  
 
-    if (window.innerWidth <= 1024) scrollInstance.value.on('scroll', scrollListener)
+  if (isOpen) {
+    projectStore.showFooterData()
+    scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value)
+
+    // if (window.innerWidth <= 1024) scrollInstance && scrollInstance.value?.on('scroll', scrollListener)
   } else {
-    scrollInstance.value.destroy();
+    if (window.screenTop == 0) projectStore.hideFooterData()
+    scrollInstance.value?.destroy();
   }
 }, { flush: 'post' })
 
+useDisableScrollOnInfoOpen()
+
 onUnmounted(() => {
-  if (scrollInstance.value) scrollInstance.value.destroy();
+  scrollInstance.value?.destroy();
 })
 </script>
 
@@ -91,56 +87,76 @@ onUnmounted(() => {
     <div class="info-inner hide-scrollbar" ref="infoAreaRef">
       <div class="text-container" ref="scrollContainer">
         <template v-if="isInfoOpen" v-for="(item, ind) in content">
-            <h3
-              class="info-text info-text_title"
-              v-if="item.type == CONTENT_TYPES.title"
-            >
-              {{ item.text }}
-              <AppearBlocks
-                @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-                :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
-                } , 0)"
-                :isAppearReady="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
-              />
-            </h3>
-
-            <p class="info-text" v-if="item.type == CONTENT_TYPES.paragraph">
-              {{ item.text }}
-              <AppearBlocks
-                @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-                :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
-                } , 0)"
-                :isAppearReady="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
-              />
-            </p>
-
-            <p
-              class="info-text info-text_extra"
-              v-if="item.type == CONTENT_TYPES.extraParagraph"
-            >
-              {{ item.text }}
-              <AppearBlocks
-                @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-                :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
-                } , 0)"
-                :isAppearReady="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
-              />
-            </p>
-
-            <ImageItem 
-              v-if="item.type == CONTENT_TYPES.image"
-              :pageName="pageName"
-              :src="item.link"
-              :isAppear="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
-              :initialDelay="Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                return  +key < ind ? acc + contentBlocksDelay[key] : acc
-              } , 0) + 'ms'"
+          <h3
+            class="info-text info-text_title"
+            v-if="item.type == CONTENT_TYPES.title"
+          >
+            {{ item.text }}
+            <AppearBlocks
+              @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+              :initialDelay="
+                Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return +key < ind ? acc + contentBlocksDelay[key] : acc;
+                }, 0)
+              "
+              :isAppearReady="
+                isAppearReady &&
+                (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
+              "
             />
-            
-            <!-- <template v-if="item.type == CONTENT_TYPES.image">
+          </h3>
+
+          <p class="info-text" v-if="item.type == CONTENT_TYPES.paragraph">
+            {{ item.text }}
+            <AppearBlocks
+              @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+              :initialDelay="
+                Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return +key < ind ? acc + contentBlocksDelay[key] : acc;
+                }, 0)
+              "
+              :isAppearReady="
+                isAppearReady &&
+                (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
+              "
+            />
+          </p>
+
+          <p
+            class="info-text info-text_extra"
+            v-if="item.type == CONTENT_TYPES.extraParagraph"
+          >
+            {{ item.text }}
+            <AppearBlocks
+              @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+              :initialDelay="
+                Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                  return +key < ind ? acc + contentBlocksDelay[key] : acc;
+                }, 0)
+              "
+              :isAppearReady="
+                isAppearReady &&
+                (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
+              "
+            />
+          </p>
+
+          <ImageItem
+            v-if="item.type == CONTENT_TYPES.image"
+            :pageName="pageName"
+            :src="item.link"
+            :isAppear="
+              isAppearReady &&
+              (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
+            "
+            :initialDelay="
+              Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                return +key < ind ? acc + contentBlocksDelay[key] : acc;
+              }, 0) + 'ms'
+            "
+          />
+
+          <!-- <template v-if="item.type == CONTENT_TYPES.image">
               <div
                 v-if="pageName == PAGE_NAMES.me"
                 class="info-image info-image_me"
@@ -216,15 +232,16 @@ onUnmounted(() => {
 }
 
 .text-container {
-  padding-top: calc(
-    (100vh - var(--footer-height) - var(--header-height)) / 6 +
-      var(--header-height)
-  );
+  padding-top: 45vh;
   padding-bottom: calc(var(--footer-height) - 7px);
   grid-column: 2 / 4;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-content: start;
+}
+
+.info_me .text-container {
+  padding-top: calc(var(--header-height) + 100vh / 6);
 }
 
 .scroll-info {
@@ -268,7 +285,7 @@ onUnmounted(() => {
 
 .info-image {
   clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  
+
   position: relative;
   margin: 25px 0;
   width: 100%;
@@ -366,7 +383,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 820px) {
-
   .info-text {
     grid-column: 2 / 7;
   }

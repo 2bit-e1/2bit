@@ -5,6 +5,7 @@ import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
 import { getImageSrc, timeForLoadAllImages } from "./utils";
 import LocomotiveScroll from "locomotive-scroll";
 import { processImagesData } from "@/data/process/images";
+import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
 
 const emits = defineEmits(["openPopup"]);
 
@@ -14,30 +15,17 @@ const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 const handleImageClick = (imageData) => {
-  emits(
-    "openPopup",
-    getImageSrc(imageData.name),
-    imageData.description
-  );
+  emits("openPopup", getImageSrc(imageData.name), imageData.description);
 };
 
 onMounted(() => {
-  scrollInstance.value = new LocomotiveScroll({
-    el: scrollContainer.value,
-    smooth: true,
-    mobile: {
-      smooth: false,
-      breakpoint: 0,
-    },
-    tablet: {
-      smooth: false,
-      breakpoint: 0,
-    },
-  });
+  scrollInstance.value = getLocomotiveScrollInstance(
+    scrollContainer.value
+  );
 });
 
 onUnmounted(() => {
-  if (scrollInstance.value) scrollInstance.value.destroy();
+  scrollInstance.value?.destroy();
 });
 
 useWaitingImagesToLoad(

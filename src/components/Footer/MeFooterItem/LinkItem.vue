@@ -15,6 +15,7 @@ defineProps({
 <template>
   <RouterLink
     class="me-title-link"
+    :class="isActive && 'hoverable hoverable-from-black'"
     :to="href"
     :tabIndex="isActive ? 0 : -1"
   >

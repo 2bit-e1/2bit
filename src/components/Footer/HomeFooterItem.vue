@@ -22,9 +22,9 @@ const homeStore = useHomeStore();
     }"
     :aria-hidden="!isActive"
   >
-    <RouterLink class="home-btn" :to="ROUTES.process" :tabindex="isActive ? 0 : -1">
+    <RouterLink class="hoverable home-btn" :to="ROUTES.process" :tabindex="isActive ? 0 : -1">
       <div class="home-btn-inner">
-        <span class="home-btn-text">
+        <span class="home-btn-text hoverable-from-black">
           <AppearWord
             word="Процесс"
             :isAppear="pageName == PAGE_NAMES.home"
@@ -33,9 +33,9 @@ const homeStore = useHomeStore();
         </span>
       </div>
     </RouterLink>
-    <RouterLink class="home-btn" :to="ROUTES.me" :tabindex="isActive ? 0 : -1">
+    <RouterLink class="hoverable home-btn" :to="ROUTES.me" :tabindex="isActive ? 0 : -1">
       <div class="home-btn-inner">
-        <span class="home-btn-text">
+        <span class="home-btn-text hoverable-from-black">
           <AppearWord
             word="Био"
             :isAppear="pageName == PAGE_NAMES.home"

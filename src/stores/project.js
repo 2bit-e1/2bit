@@ -6,6 +6,7 @@ export const useProjectStore = defineStore('project', {
     name: null,
     shrink: null,
     content: null,
+    link: null,
     images: [],
     roles: [],
     isInfoOpen: false,
@@ -32,11 +33,13 @@ export const useProjectStore = defineStore('project', {
       this.content = projectData.content
       this.images = projectData.images
       this.roles = projectData.roles
+      this.link = projectData.link
     },
 
     clearProjectData() {
       this.name = null
       this.shrink = null
+      this.link = null
       this.content = null
       this.images = []
       this.roles = []
