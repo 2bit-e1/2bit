@@ -8,13 +8,6 @@ export const useHandleScrollImages = (
   setCurrentImage
 ) => {
   const { max, min, round, abs } = Math;
-  const imagesSrc = [
-    "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-    "https://plus.unsplash.com/premium_photo-1673597080829-89755cc852d4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-    "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-    "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-  ];
-  const wrapperRef = ref(null);
 
   const autoScrollTimeoutId = ref(null);
   const isScrollingRAFActive = ref(false);
@@ -36,9 +29,13 @@ export const useHandleScrollImages = (
     const scrollTopRatio = (scrollTop + clientHeight) / scrollHeight;
 
     scrollImagesData.forEach(
-      ({ imageRef, startComeRatio, startLeaveRatio }) => {
+      (
+        { imageRef: imageBoxRef, startComeRatio, startLeaveRatio },
+        imageInd
+      ) => {
         let imageHeight = 0;
         let imageBottom = "";
+        let imageOpacity = "";
         const maxLeavePercent = 15;
 
         if (scrollTopRatio >= startLeaveRatio) {
@@ -47,37 +44,85 @@ export const useHandleScrollImages = (
             min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
         }
 
+        if (scrollTopRatio >= startLeaveRatio) {
+          imageOpacity =
+            1 - min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
+        }
+
+        if (imageInd == 0) {
+          console.log(scrollTopRatio, startLeaveRatio, imageOpacity);
+        }
+
         imageHeight = round(
           min(
             max(((scrollTopRatio - startComeRatio) / scrollRatioStep) * 100, 0),
             100
           )
         );
-        imageRef.style.height = imageHeight + "vh";
 
-        if (imageBottom) imageRef.style.bottom = imageBottom + "vh";
-        else imageRef.style.bottom = "";
+        if (imageInd == 0) {
+          console.log(
+            +scrollTopRatio.toFixed(2),
+            +startComeRatio.toFixed(2),
+            +startLeaveRatio.toFixed(2),
+            +scrollTopRatio.toFixed(2) >= +startComeRatio.toFixed(2) &&
+              +scrollTopRatio.toFixed(2) <= +startLeaveRatio.toFixed(2)
+          );
+        }
+
+        if (
+          +scrollTopRatio.toFixed(2) > +startComeRatio.toFixed(2) &&
+          +scrollTopRatio.toFixed(2) <= +startLeaveRatio.toFixed(2)
+        ) {
+          setCurrentImage(imageInd);
+          setCurrentImage(imageInd);
+        }
+
+        // imageBoxRef.querySelector("img").style.height = imageHeight + "vh";
+        imageBoxRef.querySelector("img").style.clipPath = `polygon(0% ${
+          100 - imageHeight
+        }%, 100% ${100 - imageHeight}%, 100% 100%, 0% 100%)`;
+
+        if (!isNaN(imageOpacity))
+          imageBoxRef.querySelector("img").style.opacity = imageOpacity;
+        else imageBoxRef.querySelector("img").style.opacity = "";
+
+        // if (imageBottom) imageBoxRef.querySelector("img").style.bottom = imageBottom + "vh";
+        // else imageBoxRef.querySelector("img").style.bottom = "";
       }
     );
 
-    const nearestImage = scrollImagesData.find(
-      ({ startLeaveRatio }) => abs(scrollTopRatio - startLeaveRatio) < 0.05
-    );
-    const autoScrollDelay = 250;
-    if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
+    // const nearestImage =
+    //   scrollImagesData.find(
+    //     ({ startLeaveRatio, startComeRatio }) =>
+    //       scrollTopRatio > startComeRatio &&
+    //       scrollTopRatio < startLeaveRatio &&
+    //       abs(scrollTopRatio - startLeaveRatio) < scrollRatioStep * 0.25
+    //   ) ||
+    //   scrollImagesData.find(
+    //     ({ startLeaveRatio }) =>
+    //       abs(scrollTopRatio - startLeaveRatio) > scrollRatioStep * 0.25
+    //   );
+    // const nearestImage = scrollImagesData.find(
+    //   ({ startLeaveRatio }) => abs(scrollTopRatio - startLeaveRatio) < (scrollRatioStep * 0.25)
+    // ) || scrollImagesData.find(
+    //   ({ startLeaveRatio }) => abs(scrollTopRatio - startLeaveRatio) > (scrollRatioStep * 0.25)
+    // );
+    // const autoScrollDelay = 150;
+    // if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
 
-    if (nearestImage) {
-      autoScrollTimeoutId.value = setTimeout(() => {
-        const { scrollHeight, clientHeight } = document.documentElement;
-        const curImageTopValue =
-          scrollHeight * nearestImage.startLeaveRatio - clientHeight;
+    // if (nearestImage) {
+    //   autoScrollTimeoutId.value = setTimeout(() => {
+    //     const { scrollHeight, clientHeight } = document.documentElement;
+    //     const curImageTopValue =
+    //       scrollHeight * nearestImage.startLeaveRatio - clientHeight;
 
-        window.scrollTo({
-          top: curImageTopValue,
-          behavior: "smooth",
-        });
-      }, autoScrollDelay);
-    }
+    //     window.scrollTo({
+    //       top: curImageTopValue,
+    //       behavior: "smooth",
+    //     });
+    //   }, autoScrollDelay);
+    // }
 
     requestAnimationFrame((timestamp) => {
       scrollImagesRAFLoop(timestamp, scrollImagesData, scrollRatioStep);

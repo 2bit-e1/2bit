@@ -7,11 +7,11 @@ const { imagesSrc } = defineProps({
   imagesSrc: Array
 })
 
-const imagesRefs = useTemplateRef('imagesBoxes');
+const imagesBoxesRefs = useTemplateRef('imagesBoxes');
 const projectStore = useProjectStore();
-const isFirstImageAppear = ref(false);
+const isFirstImageAppear = ref(true);
 
-useHandleScrollImages(imagesRefs, isFirstImageAppear, projectStore.setCurrentImage);
+useHandleScrollImages(imagesBoxesRefs, isFirstImageAppear, projectStore.setCurrentImage);
 
 useDisableScrollOnInfoOpen();
 
@@ -62,33 +62,37 @@ useDisableScrollOnInfoOpen();
   width: 100vw;
   height: 100%;
   left: 0;
-  bottom: -100%;
   bottom: 0;
-  height: 0;
   display: flex;
   justify-content: center;
 }
 
 .image-box img {
-  height: 100vh;
+  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  height: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: auto;
+  max-width: calc(100% - 214px);
+  left: 50%;
+  translate: -50% 0;
+  max-height: calc(100vh - var(--header-height) - var(--footer-height));
   object-fit: cover;
   object-position: bottom;
 }
 
-.image-box_appear {
-  animation: appear 300ms;
-  bottom: 0;
+.image-box_appear img {
+  animation: appear 300ms forwards;
 }
 
 @keyframes appear {
   0% {
-    scale: 0.8;
-    bottom: -100%;
+    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
   }
 
   100% {
-    scale: 1;
-    bottom: 0;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
 }
 </style>
