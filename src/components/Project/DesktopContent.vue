@@ -64,14 +64,15 @@ useDisableScrollOnInfoOpen();
   left: 0;
   bottom: -100%;
   bottom: 0;
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  height: 0;
   display: flex;
   justify-content: center;
 }
 
 .image-box img {
-  height: 100%;
-  object-fit: contain;
+  height: 100vh;
+  object-fit: cover;
+  object-position: bottom;
 }
 
 .image-box_appear {

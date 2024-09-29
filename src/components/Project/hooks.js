@@ -7,16 +7,18 @@ export const useHandleScrollImages = (
   isFirstImageAppear,
   setCurrentImage
 ) => {
-  const { min, abs } = Math;
+  const { max, min, round, abs } = Math;
+  const imagesSrc = [
+    "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
+    "https://plus.unsplash.com/premium_photo-1673597080829-89755cc852d4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
+    "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
+    "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
+  ];
+  const wrapperRef = ref(null);
+
   const autoScrollTimeoutId = ref(null);
   const isScrollingRAFActive = ref(false);
   const lastScrollTop = ref(null);
-  const lastImageBottom = ref({
-    0: 0,
-    0.25: -100,
-    0.5: -100,
-    0.75: -100,
-  });
 
   const scrollImagesRAFLoop = (
     timestamp,
@@ -30,86 +32,52 @@ export const useHandleScrollImages = (
       return;
     }
 
-    const isScrollBottom = scrollTop > lastScrollTop.value;
-    console.log("isScrollBottom", isScrollBottom);
-    
     lastScrollTop.value = scrollTop;
     const scrollTopRatio = (scrollTop + clientHeight) / scrollHeight;
 
     scrollImagesData.forEach(
-      ({ imageRef, startComeRatio, startLeaveRatio }, imageInd) => {
-        let imageBottom = 0;
-        let imageScale = 1;
-        let imageClipPath = "";
-        const maxScalePercent = 10;
-        const autoScrollDelay = 150;
+      ({ imageRef, startComeRatio, startLeaveRatio }) => {
+        let imageHeight = 0;
+        let imageBottom = "";
+        const maxLeavePercent = 15;
 
-        const imageDisaplyPercent =
-            (100 * (startLeaveRatio - scrollTopRatio)) / scrollRatioStep;
-        
         if (scrollTopRatio >= startLeaveRatio) {
-          imageClipPath = "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)";
-          //если картинка должна уходить наверх
-          imageBottom = imageDisaplyPercent;
-          // imageScale =
-          //   maxScalePercent *
-          //   min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
-
-          // if (
-          //   (isScrollBottom && imageDisaplyPercent > 0 && imageDisaplyPercent < 25) ||
-          //   (!isScrollBottom && imageDisaplyPercent > 0 && imageDisaplyPercent < 75)
-          // ) {
-          // if (imageDisaplyPercent > 0 && imageDisaplyPercent < 50) {
-          //   if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
-
-          //   autoScrollTimeoutId.value = setTimeout(() => {
-          //     const { scrollHeight, clientHeight } = document.documentElement;
-          //     const curImageTopValue =
-          //       scrollHeight * startLeaveRatio - clientHeight;
-
-          //     window.scrollTo({
-          //       top: curImageTopValue,
-          //       behavior: "smooth",
-          //     });
-          //   }, autoScrollDelay);
-          // }
-        } else {
-          imageClipPath = "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)";
-          //если картинка должна приходить снизу
-          imageBottom = -1 * imageDisaplyPercent;
-          imageClipPath = `polygon(0% ${min(imageDisaplyPercent, 100)}%, 100% ${min(imageDisaplyPercent, 100)}%, 100% 100%, 0% 100%)`;
-
-          if (imageDisaplyPercent < 50 && imageDisaplyPercent > -1) setCurrentImage(imageInd);
-
-          // if (
-          //   (isScrollBottom && imageDisaplyPercent > 50 && imageDisaplyPercent <= 100) ||
-          //   (!isScrollBottom && imageDisaplyPercent > 0 && imageDisaplyPercent <= 50)
-          // ) {
-          // // if (imageDisaplyPercent > 50 && imageDisaplyPercent < 100) {
-          //   if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
-
-          //   autoScrollTimeoutId.value = setTimeout(() => {
-          //     const { scrollHeight, clientHeight } = document.documentElement;
-          //     const curImageTopValue =
-          //       scrollHeight * startLeaveRatio - clientHeight;
-
-          //     window.scrollTo({
-          //       top: curImageTopValue,
-          //       behavior: "smooth",
-          //     });
-          //   }, autoScrollDelay);
-          // }
-
-          // imageScale =
-          //   -maxScalePercent *
-          //   min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
+          imageBottom =
+            maxLeavePercent *
+            min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
         }
 
-        // imageRef.style.scale = 1 - 0.01 * imageScale;
-        // imageRef.style.bottom = imageBottom + "%";
-        imageRef.style.clipPath = imageClipPath;
+        imageHeight = round(
+          min(
+            max(((scrollTopRatio - startComeRatio) / scrollRatioStep) * 100, 0),
+            100
+          )
+        );
+        imageRef.style.height = imageHeight + "vh";
+
+        if (imageBottom) imageRef.style.bottom = imageBottom + "vh";
+        else imageRef.style.bottom = "";
       }
     );
+
+    const nearestImage = scrollImagesData.find(
+      ({ startLeaveRatio }) => abs(scrollTopRatio - startLeaveRatio) < 0.05
+    );
+    const autoScrollDelay = 250;
+    if (autoScrollTimeoutId) clearTimeout(autoScrollTimeoutId.value);
+
+    if (nearestImage) {
+      autoScrollTimeoutId.value = setTimeout(() => {
+        const { scrollHeight, clientHeight } = document.documentElement;
+        const curImageTopValue =
+          scrollHeight * nearestImage.startLeaveRatio - clientHeight;
+
+        window.scrollTo({
+          top: curImageTopValue,
+          behavior: "smooth",
+        });
+      }, autoScrollDelay);
+    }
 
     requestAnimationFrame((timestamp) => {
       scrollImagesRAFLoop(timestamp, scrollImagesData, scrollRatioStep);
@@ -136,25 +104,16 @@ export const useHandleScrollImages = (
     });
   };
 
-  const handleLoadFirstImg = () => {
-    const firstImage =
-      imagesRefs.value[imagesRefs.value.length - 1].querySelector("img");
-    firstImage.onload = () => {
-      isFirstImageAppear.value = true;
-    };
+  const changeImagesByScroll = () => {
+    window.addEventListener("scroll", () => {
+      if (!isScrollingRAFActive.value) handleScrollImagesRAF();
+    });
   };
 
-  const windowScrollHandler = () => {
-    if (!isScrollingRAFActive.value) handleScrollImagesRAF();
-  };
+  const activeImageInd = ref(0);
 
   onMounted(() => {
-    document.addEventListener("scroll", windowScrollHandler);
-    handleLoadFirstImg();
-  });
-
-  onBeforeUnmount(() => {
-    document.removeEventListener("scroll", windowScrollHandler);
+    changeImagesByScroll();
   });
 };
 
