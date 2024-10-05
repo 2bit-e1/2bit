@@ -12,4 +12,5 @@ export default defineConfig({
       '@': root
     },
   },
+  base: '/2bit/',
 })
