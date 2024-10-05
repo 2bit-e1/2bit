@@ -4,6 +4,8 @@ import Video from "../Video.vue";
 import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
 import { getDelayByNumber } from "./utils";
+import { useMobileProjectItemListeners } from "./hooks";
+import { computed, ref } from "vue";
 // import * as svgNumbers from '@/assets/svgs/project-numbers';
 
 const props = defineProps({
@@ -16,34 +18,55 @@ const props = defineProps({
 const emit = defineEmits(["setActiveProjectData", "clearActiveProjectData"]);
 
 const homeStore = useHomeStore();
-
+const projectItemElRef = ref(null);
+const Number_0 = AllNumbers[`Number_0`];
 const Number_comp = AllNumbers[`Number_${props.number}`];
-
+const isMobile = window.innerWidth <= 1024;
 const appearDelay = getDelayByNumber(props.number) + "ms";
 
-const mouseenter = () => {
-  emit("setActiveProjectData", props.name, props.year);
+const projectLink = computed(() => `/projects/${props.slug}`)
+
+const handleSetActiveProjectData = () => {
+  emit("setActiveProjectData", props.name, props.year, projectLink.value);
 };
 
-const mouseleave = () => {
+const handleClearActiveProjectData = () => {
   emit("clearActiveProjectData");
 };
+
+const handleMouseenter = () => {
+  handleSetActiveProjectData();
+};
+
+const handleMouseleave = () => {
+  handleClearActiveProjectData();
+};
+
+const { handleClick } = useMobileProjectItemListeners(
+  projectItemElRef,
+  handleSetActiveProjectData,
+  handleClearActiveProjectData
+);
 </script>
 
 <template>
   <li class="project-item">
-    <RouterLink
+    <component
+      :is="!isMobile ? 'router-link' : 'a'"
       class="link project-item-link"
-      :to="`/projects/${slug}`"
-      @mouseenter="mouseenter"
-      @mouseleave="mouseleave"
+      :to="projectLink"
+      @mouseenter="handleMouseenter"
+      @mouseleave="handleMouseleave"
+      @click.native.prevent="handleClick"
+      ref="projectItemElRef"
     >
       <div class="item-inner">
         <h2
           class="number"
           :class="{
             number_dim:
-              homeStore.activeProjectName && homeStore.activeProjectName != name
+              homeStore.activeProjectName &&
+              homeStore.activeProjectName != name,
           }"
         >
           <span class="number-svg-container">
@@ -55,12 +78,12 @@ const mouseleave = () => {
         </h2>
         <div class="preview-image">
           <img src="/images/image.png" alt="" />
-          
+
           <!-- <Video v-if="name == 'Refmodel'" :videoSrc="`/video.webm`" :isPlaying="homeStore.activeProjectName == name" />
           <img v-else src="/images/image.png" alt="" /> -->
         </div>
       </div>
-    </RouterLink>
+    </component>
   </li>
 </template>
 
@@ -77,7 +100,7 @@ a.project-item-link {
 
 .project-item-link:hover {
   --border-delay: 0ms;
-  border: 1px solid #E0E0E0;
+  border: 1px solid #e0e0e0;
 }
 
 .item-inner {
@@ -115,7 +138,9 @@ a.project-item-link {
   --appear-duration: 300ms;
   translate: 0 15px;
   scale: 0.5;
-  animation: number-appear var(--appear-duration) calc(var(--appear-default-delay) + var(--appear-delay)) var(--timing-func-1) forwards;
+  animation: number-appear var(--appear-duration)
+    calc(var(--appear-default-delay) + var(--appear-delay)) var(--timing-func-1)
+    forwards;
 }
 
 .number-svg-container:nth-child(1) {

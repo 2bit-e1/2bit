@@ -113,7 +113,7 @@ onUnmounted(() => {
   flex: 0 0 65px;
   padding: 25px 0 5px;
   margin-left: calc(-1 * var(--popup-x-padding) + var(--page-padding-x) + var(--column-width));
-  width: calc(var(--column-width) * 2);
+  width: calc(var(--column-width) * 3);
   color: var(--clr-black);
   text-indent: var(--text-indent);
 }
@@ -130,7 +130,7 @@ onUnmounted(() => {
     padding-top: 55px;
     padding: 55px 0 0;
     margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 6);
+    width: calc(var(--column-width) * 10);
   }
 }
 
@@ -143,7 +143,7 @@ onUnmounted(() => {
     flex: 0 0 86px;
     padding: 35px 0 0;
     margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 7);
+    width: calc(var(--column-width) * 10);
   }
 }
 

@@ -26,7 +26,7 @@ const homeStore = useHomeStore();
       <div class="home-btn-inner">
         <span class="home-btn-text hoverable-from-black">
           <AppearWord
-            word="Процесс"
+            word="Обзор"
             :isAppear="pageName == PAGE_NAMES.home"
             :delayOrder="1"
           />

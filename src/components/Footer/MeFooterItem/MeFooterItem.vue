@@ -30,7 +30,7 @@ const pressItemsDelayOrder =
         :isActive="isActive"
         :isItemsActive="isActive"
         :delayOrder="1"
-        text="Процесс"
+        text="Обзор"
         :href="ROUTES.process"
       />
     </div>
@@ -181,9 +181,12 @@ const pressItemsDelayOrder =
   }
 
   .me-list-area_press,
-  .me-title_projects,
   .me-copyright {
     top: 120px;
+  }
+
+  .me-title_projects {
+    display: none;
   }
 
   .me-list-area_contacts,

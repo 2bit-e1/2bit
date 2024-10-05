@@ -1,10 +1,13 @@
 <script setup>
 import ProjectsList from "@/components/Home/ProjectsList.vue";
-
+import MobileOpenPropjectButton from "@/components/MobileOpenPropjectButton.vue";
+import { useHomeStore } from "@/stores/home";
+import { computed, ref, watchEffect } from "vue";
 </script>
 
 <template>
   <div class="home-view">
+    <MobileOpenPropjectButton />
     <ProjectsList />
   </div>
 </template>

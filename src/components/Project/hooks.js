@@ -25,6 +25,7 @@ export const useHandleScrollImages = (
       return;
     }
 
+    const isScrollBottom = lastScrollTop.value <= scrollTop;
     lastScrollTop.value = scrollTop;
     const scrollTopRatio = (scrollTop + clientHeight) / scrollHeight;
 
@@ -33,6 +34,7 @@ export const useHandleScrollImages = (
         { imageRef: imageBoxRef, startComeRatio, startLeaveRatio },
         imageInd
       ) => {
+        let imageDisplayPercent = 0;
         let imageHeight = 0;
         let imageBottom = "";
         let imageOpacity = "";
@@ -49,9 +51,10 @@ export const useHandleScrollImages = (
             1 - min((scrollTopRatio - startLeaveRatio) / scrollRatioStep, 1);
         }
 
-        if (imageInd == 0) {
-          console.log(scrollTopRatio, startLeaveRatio, imageOpacity);
-        }
+        imageDisplayPercent = max(
+          ((scrollTopRatio - startComeRatio) / scrollRatioStep) * 100,
+          0
+        );
 
         imageHeight = round(
           min(
@@ -59,16 +62,6 @@ export const useHandleScrollImages = (
             100
           )
         );
-
-        if (imageInd == 0) {
-          console.log(
-            +scrollTopRatio.toFixed(2),
-            +startComeRatio.toFixed(2),
-            +startLeaveRatio.toFixed(2),
-            +scrollTopRatio.toFixed(2) >= +startComeRatio.toFixed(2) &&
-              +scrollTopRatio.toFixed(2) <= +startLeaveRatio.toFixed(2)
-          );
-        }
 
         if (
           +scrollTopRatio.toFixed(2) > +startComeRatio.toFixed(2) &&
@@ -86,6 +79,60 @@ export const useHandleScrollImages = (
         if (!isNaN(imageOpacity))
           imageBoxRef.querySelector("img").style.opacity = imageOpacity;
         else imageBoxRef.querySelector("img").style.opacity = "";
+
+        const autoScrollDelay = 150;
+
+        if (scrollTopRatio >= startLeaveRatio) {
+          if (imageInd < 2) console.log(imageInd, imageDisplayPercent);
+          //если картинка должна уходить/приходить сверху
+          if (
+            (imageDisplayPercent >= 100 && imageDisplayPercent <= 150)
+            // (!isScrollBottom && imageDisplayPercent >= 100 && imageDisplayPercent <= 125) ||
+            // (isScrollBottom && imageDisplayPercent > 175 && imageDisplayPercent <= 200)
+          ) {
+            if (autoScrollTimeoutId.value)
+              clearTimeout(autoScrollTimeoutId.value);
+
+            autoScrollTimeoutId.value = setTimeout(() => {
+              const { scrollHeight, clientHeight } = document.documentElement;
+              const curImageTopValue =
+                scrollHeight * startLeaveRatio - clientHeight;
+
+              window.scrollTo({
+                top: curImageTopValue,
+                behavior: "smooth",
+              });
+            }, autoScrollDelay);
+          }
+        } else {
+          if (imageInd < 2)
+            console.log(imageInd, imageDisplayPercent, isScrollBottom);
+
+          if (
+              imageDisplayPercent > 50 &&
+              imageDisplayPercent < 100
+            // (isScrollBottom &&
+            //   imageDisplayPercent > 25 &&
+            //   imageDisplayPercent < 100) ||
+            // (!isScrollBottom &&
+            //   imageDisplayPercent > 1 &&
+            //   imageDisplayPercent < 75)
+          ) {
+            if (autoScrollTimeoutId.value)
+              clearTimeout(autoScrollTimeoutId.value);
+
+            autoScrollTimeoutId.value = setTimeout(() => {
+              const { scrollHeight, clientHeight } = document.documentElement;
+              const curImageTopValue =
+                scrollHeight * startLeaveRatio - clientHeight;
+
+              window.scrollTo({
+                top: curImageTopValue,
+                behavior: "smooth",
+              });
+            }, autoScrollDelay);
+          }
+        }
 
         // if (imageBottom) imageBoxRef.querySelector("img").style.bottom = imageBottom + "vh";
         // else imageBoxRef.querySelector("img").style.bottom = "";

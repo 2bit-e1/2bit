@@ -4,10 +4,13 @@ import { useProjectStore } from "@/stores/project";
 import AppearWord from "@/components/Appear/AppearWord.vue";
 import AppearWords from "@/components/Appear/AppearWords.vue";
 import CounterItem from "./CounterItem.vue";
+import LinkArrowIcon from "@/assets/svgs/link-arrow.svg";
 
 const props = defineProps({
   isActive: Boolean,
 });
+
+const isMobile = window.innerWidth <= 1024;
 
 const projectStore = useProjectStore();
 const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
@@ -38,17 +41,22 @@ const projectName = computed(() => projectStore.name || "");
         />
       </div>
     </h3>
-    
-    <RouterLink :to="projectStore.link" class="hoverable hoverable-from-gray project-item project-item_to-project">
+
+    <RouterLink
+      :to="projectStore.link"
+      class="hoverable project-item project-item_to-project"
+      :class="isMobile ? 'hoverable-from-black' : 'hoverable-from-gray'"
+    >
       <div class="project-item-inner">
         <AppearWords
-          text="К проекту"
+          text="Полный проект"
           :isAppear="!isImagesCountVisible && isActive"
           :delayOrder="0"
         />
+        <LinkArrowIcon />
       </div>
     </RouterLink>
-    
+
     <CounterItem
       v-if="projectStore.images.length > 0"
       :pagesCount="projectStore.images.length"
@@ -56,7 +64,7 @@ const projectName = computed(() => projectStore.name || "");
       :delayOrder="4 + projectName.split(' ').length"
       :isActive="isImagesCountVisible && isActive"
     />
-    
+
     <h3 class="project-item project-item_year">
       <div class="project-item-inner">
         <AppearWord
@@ -113,7 +121,8 @@ const projectName = computed(() => projectStore.name || "");
   overflow: hidden;
 }
 
-.project-item .project-item-inner, .project-item:deep(.project-item-inner) {
+.project-item .project-item-inner,
+.project-item:deep(.project-item-inner) {
   display: flex;
   align-items: start;
   color: var(--clr-black);
@@ -144,6 +153,24 @@ const projectName = computed(() => projectStore.name || "");
   grid-column: 3 / 4;
   justify-content: start;
   text-align: left;
+}
+
+.project-item_to-project .project-item-inner {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.project-item_to-project svg {
+  scale: 0.8;
+  overflow: hidden;
+  transition: clip-path 150ms 100ms;
+  clip-path: circle(0% at 0% 100%);
+}
+
+.project-item_to-project:hover svg {
+  clip-path: circle(130% at 0% 100%);
 }
 
 .project-item_counter {
@@ -193,11 +220,17 @@ const projectName = computed(() => projectStore.name || "");
   }
 
   .project-item_year {
-    grid-column: 6 / 7;
+    grid-column: 5 / 6;
   }
 
   .project-item_to-project {
-    display: none;
+    position: absolute;
+    left: calc(var(--column-width) * 1);
+    bottom: 90px;
+  }
+
+  .project-item_to-project svg {
+    clip-path: circle(130% at 0% 100%);
   }
 
   .project-item_counter {
@@ -205,7 +238,7 @@ const projectName = computed(() => projectStore.name || "");
   }
 
   .project-item_client {
-    grid-column: 2 / 6;
+    grid-column: 2 / 5;
     min-height: 32px;
     max-height: 32px;
     overflow: hidden;
@@ -215,6 +248,10 @@ const projectName = computed(() => projectStore.name || "");
 @media (max-width: 820px) {
   .project-item_role {
     grid-column: 8 / 12;
+  }
+
+  .project-item_to-project {
+    bottom: 80px;
   }
 }
 
@@ -229,6 +266,10 @@ const projectName = computed(() => projectStore.name || "");
 
   .project-item_client {
     grid-column: 2 / 10;
+  }
+
+  .project-item_to-project {
+    bottom: 170px;
   }
 }
 </style>

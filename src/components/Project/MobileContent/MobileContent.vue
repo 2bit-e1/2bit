@@ -27,21 +27,21 @@ const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
 onMounted(() => {
-  scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
+  // scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
 
-  scrollInstance.value?.on("scroll", scrollListener);
+  // scrollInstance.value?.on("scroll", scrollListener);
   // window.addEventListener("scroll", scrollListener);
 });
 
 const projectStore = useProjectStore();
 const lastScrollTop = ref(0);
 
-const scrollListener = (scrollInfo) => {
-  if (lastScrollTop.value > 1) projectStore.hideFooterData();
-  else projectStore.showFooterData();
+// const scrollListener = (scrollInfo) => {
+//   if (lastScrollTop.value > 1) projectStore.hideFooterData();
+//   else projectStore.showFooterData();
 
-  lastScrollTop.value = scrollInfo.scroll.y;
-};
+//   lastScrollTop.value = scrollInfo.scroll.y;
+// };
 
 onUnmounted(() => {
   scrollInstance.value?.destroy();
@@ -67,7 +67,7 @@ onUnmounted(() => {
 .mobile-content {
   display: grid;
   grid-template-columns: repeat(12, var(--column-width));
-  padding-top: 231px;
+  padding-top: 130px;
 }
 
 .images-list {
@@ -80,7 +80,7 @@ onUnmounted(() => {
 
 @media (max-width: 820px) {
   .mobile-content {
-    padding-top: 180px;
+    padding-top: 86px;
   }
 
   .images-list {
@@ -91,7 +91,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .mobile-content {
-    padding-top: 180px;
+    padding-top: 93px;
   }
 
   .images-list {

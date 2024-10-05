@@ -32,14 +32,14 @@ props.content.forEach((contentItem, contentInd) => {
   if (contentItem.type == CONTENT_TYPES.image) contentBlocksDelay.value[contentInd] = 1 * appearDelayStep;
 })
 
-const scrollListener = (scrollInfo) => {
-  if (lastScrollTop.value > 1) projectStore.hideFooterData()
-  else projectStore.showFooterData()
+// const scrollListener = (scrollInfo) => {
+//   if (lastScrollTop.value > 1) projectStore.hideFooterData()
+//   else projectStore.showFooterData()
 
-  lastScrollTop.value = scrollInfo.scroll.y
-}
+//   lastScrollTop.value = scrollInfo.scroll.y
+// }
 
-useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
+// useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
 
 watchEffect(() => {
   if (Object.values(contentBlocksDelay.value).length == props.content.length) {
@@ -60,7 +60,8 @@ watch(isInfoOpen, (isOpen) => {
 
     // if (window.innerWidth <= 1024) scrollInstance && scrollInstance.value?.on('scroll', scrollListener)
   } else {
-    if (window.screenTop == 0) projectStore.hideFooterData()
+    // if (window.screenTop == 0) projectStore.hideFooterData()
+    if (window.innerWidth <= 1024) projectStore.hideFooterData()
     scrollInstance.value?.destroy();
   }
 }, { flush: 'post' })
@@ -232,12 +233,12 @@ onUnmounted(() => {
 }
 
 .text-container {
-  padding-top: 45vh;
-  padding-bottom: calc(var(--footer-height) - 7px);
   grid-column: 2 / 4;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-content: start;
+  align-content: end;
+  height: 100%;
+  padding-bottom: 157px;
 }
 
 .info_me .text-container {
@@ -360,8 +361,12 @@ onUnmounted(() => {
   }
 
   .text-container {
-    padding-top: 230px;
     grid-template-columns: repeat(12, var(--column-width));
+    padding-bottom: 240px;
+  }
+
+  .info_me .text-container {
+    padding-top: calc((100vh - 240px) / 6 + 120px);
   }
 
   .info-text {
@@ -378,11 +383,15 @@ onUnmounted(() => {
 
   .info-image_me {
     grid-column: 2 / 6;
-    margin: 0 0 120px 0;
+    margin: 0 0 calc((100vh - 240px) / 3) 0;
   }
 }
 
 @media (max-width: 820px) {
+  .text-container {
+    padding-bottom: 180px;
+  }
+  
   .info-text {
     grid-column: 2 / 7;
   }
@@ -397,15 +406,15 @@ onUnmounted(() => {
 
   .info-image_me {
     grid-column: 2 / 7;
-    margin: 0 0 80px 0;
-  }
-
-  .text-container {
-    padding-top: 180px;
   }
 }
 
 @media (max-width: 768px) {
+  .text-container {
+    padding-top:  93px;
+    align-content: start;
+  }
+  
   .info-text {
     grid-column: 2 / 10;
   }

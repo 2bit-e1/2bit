@@ -5,19 +5,19 @@ export const useHomeStore = defineStore('home', {
   state: () => ({
     activeProjectName: null,
     activeProjectYear: null,
+    activeProjectLink: null,
   }),
   actions: {
     /** @param {string} projectName @param {number} projectYear */
-    setActiveProjectData(projectName, projectYear) {
-      console.log("setActiveProjectData store");
-      
+    setActiveProjectData(projectName, projectYear, projectLink) {
       this.activeProjectName = projectName
       this.activeProjectYear = projectYear
+      this.activeProjectLink = projectLink
     },
     clearActiveProjectData() {
-      console.log("clearActiveProjectData store");
       this.activeProjectName = null
       this.activeProjectYear = null
+      this.activeProjectLink = null
     },
   },
 })

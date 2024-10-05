@@ -85,7 +85,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
 
           <span class="item-btn-text item-btn-text_process">
             <AppearWord
-              word="Процесс"
+              word="Обзор"
               :isAppear="pageName == PAGE_NAMES.process"
               :delayOrder="1"
             />

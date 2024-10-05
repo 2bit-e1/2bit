@@ -82,8 +82,8 @@ const projectStore = useProjectStore();
 
   .footer-item_project {
     padding-top: 0;
-    top: 120px;
-    bottom: auto;
+    top: auto;
+    bottom: 67px;
   }
 
   .footer-item_me {
@@ -97,7 +97,8 @@ const projectStore = useProjectStore();
 
 @media (max-width: 820px) {
   .footer-item_project {
-    top: 77px;
+    top: auto;
+    bottom: 44px;
   }
   
   .footer-item_home {
@@ -107,7 +108,8 @@ const projectStore = useProjectStore();
 
 @media (max-width: 768px) {
   .footer-item_project {
-    top: 90px;
+    bottom: 30px;
+    top: auto;
   }
   
   .footer-item_home {

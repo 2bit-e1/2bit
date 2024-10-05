@@ -11,7 +11,7 @@ export const useProjectStore = defineStore('project', {
     roles: [],
     isInfoOpen: false,
     footerData: {
-      isVisible: true,
+      isVisible: window.innerWidth > 1024,
       currentImageInd: 0
     }
     // isFooterDataVisible: true
