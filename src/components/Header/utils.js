@@ -3,12 +3,13 @@ import { PAGE_NAMES } from "@/utils/constants";
 export const getRightBtnRole = (
   pageName,
   isProjectInfoOpen,
-  isProcessPopupOpen
+  isProcessPopupOpen,
+  isMediaPopupOpen,
 ) => {
   if (pageName == PAGE_NAMES.project) {
     return isProjectInfoOpen ? "button" : "link";
   } else if (pageName == PAGE_NAMES.me) {
-    return "link";
+    return isMediaPopupOpen ? "button" : "link";
   } else if (pageName == PAGE_NAMES.process) {
     return isProcessPopupOpen ? "button" : "link";
   } else {

@@ -72,7 +72,7 @@ onUnmounted(() => {
   background-color: var(--bg-clr-white);
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;
-  transition: opacity 0.3s var(--timing-func-2);
+  transition: opacity 300ms var(--timing-func-2);
 }
 
 .image-popup_open {

@@ -38,8 +38,8 @@ export default {
   },
   content: [
     {
-      type: CONTENT_TYPES.image,
-      link: "/images/image.png",
+      type: CONTENT_TYPES.video,
+      link: "/video.webm",
     },
     {
       type: CONTENT_TYPES.paragraph,

@@ -7,6 +7,7 @@ import allProjects from "@/data/projects/index.js";
 import AppearWord from "@/components/Appear/AppearWord.vue";
 import AppearWords from "@/components/Appear/AppearWords.vue";
 import { useProcessStore } from "@/stores/process";
+import { useMediaPopupStore } from "@/stores/mediaPopup";
 import { getRightBtnRole, getLeftBtnRole, getHeaderExtraClass } from "./utils";
 import { useGetRightBtnClickHandler, useGetLeftBtnClickHandler } from "./hooks";
 
@@ -17,6 +18,7 @@ const props = defineProps({
 const homeStore = useHomeStore();
 const projectStore = useProjectStore();
 const processStore = useProcessStore();
+const mediaPopupStore = useMediaPopupStore();
 
 const pageNameRef = computed(() => props.pageName);
 
@@ -26,7 +28,9 @@ const homeProjectNames = allProjects.map((project) => project.name);
 const rightBtnClickHandler = useGetRightBtnClickHandler(pageNameRef);
 const leftBtnClickHandler = useGetLeftBtnClickHandler(pageNameRef);
 
-const isLeftBtnDisabled = computed(() => props.pageName != PAGE_NAMES.project || projectStore.isInfoOpen);
+const isLeftBtnDisabled = computed(
+  () => props.pageName != PAGE_NAMES.project || projectStore.isInfoOpen
+);
 const leftBtnRole = computed(() => getLeftBtnRole(props.pageName));
 
 const isRightBtnDisabled = computed(() => props.pageName == PAGE_NAMES.home);
@@ -34,7 +38,8 @@ const rightBtnRole = computed(() =>
   getRightBtnRole(
     props.pageName,
     projectStore.isInfoOpen,
-    processStore.popupData.isOpen
+    processStore.popupData.isOpen,
+    mediaPopupStore.popupData.isOpen
   )
 );
 
@@ -67,7 +72,9 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_project hoverable-from-black">
+          <span
+            class="item-btn-text item-btn-text_project hoverable-from-black"
+          >
             <AppearWord
               word="Инфо"
               :isAppear="pageName == PAGE_NAMES.project"
@@ -75,7 +82,13 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_me">
+          <span
+            class="item-btn-text item-btn-text_me"
+            :class="{
+              'item-btn-text_me-with-media-popup':
+                mediaPopupStore.popupData.isOpen,
+            }"
+          >
             <AppearWord
               word="Био"
               :isAppear="pageName == PAGE_NAMES.me"
@@ -160,7 +173,19 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
           <span class="item-btn-text item-btn-text_me hoverable-from-gray">
             <AppearWord
               word="Закрыть"
-              :isAppear="pageName == PAGE_NAMES.me"
+              :isAppear="
+                pageName == PAGE_NAMES.me && !mediaPopupStore.popupData.isOpen
+              "
+              :delayOrder="2"
+            />
+          </span>
+
+          <span class="item-btn-text item-btn-text_me hoverable-from-gray">
+            <AppearWord
+              word="Назад"
+              :isAppear="
+                pageName == PAGE_NAMES.me && mediaPopupStore.popupData.isOpen
+              "
               :delayOrder="2"
             />
           </span>
@@ -264,7 +289,32 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
 .item-btn-text_process {
 }
 
-.item-btn-text_me {
+.item_left .item-btn-text_me:deep(span.appear-word-inner) {
+  background: unset !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+.item_left .item-btn-text_me:deep(span.appear-word) {
+  color: var(--clr-black) !important;
+  --color-delay: 200ms;
+  transition: color 0ms var(--color-delay);
+}
+
+.item_left .item-btn-text_me-with-media-popup:deep(span.appear-word) {
+  --color-delay: 200ms;
+  color: var(--bg-clr-white) !important;
+}
+
+@keyframes appear2 {
+  0% {
+    background-color: var(--clr-gray);
+  }
+
+  100% {
+    background-color: var(--bg-clr-white);
+  }
 }
 
 @media (max-width: 1024px) {

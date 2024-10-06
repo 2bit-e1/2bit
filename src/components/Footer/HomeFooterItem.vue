@@ -33,6 +33,10 @@ const homeStore = useHomeStore();
         </span>
       </div>
     </RouterLink>
+    <div class="home-eyes home-btn">
+      <span class="home-eye-item"></span>
+      <span class="home-eye-item"></span>
+    </div>
     <RouterLink class="hoverable home-btn" :to="ROUTES.me" :tabindex="isActive ? 0 : -1">
       <div class="home-btn-inner">
         <span class="home-btn-text hoverable-from-black">
@@ -63,6 +67,10 @@ const homeStore = useHomeStore();
 }
 
 .home-btn:nth-child(2) {
+  grid-column: 3 / 4;
+}
+
+.home-btn:nth-child(3) {
   grid-column: 4 / 5;
 }
 
@@ -77,6 +85,21 @@ const homeStore = useHomeStore();
   transition: color 150ms;
 }
 
+.home-eyes {
+  column-gap: 9px;
+  display: none;
+}
+
+.footer-item_active .home-eyes {
+  display: flex;
+}
+
+.home-eye-item {
+  width: 10px;
+  height: 10px;
+  background-color: var(--clr-black);
+}
+
 .footer-item_home-dim .home-btn-text {
   color: var(--clr-gray);
 }
@@ -87,7 +110,15 @@ const homeStore = useHomeStore();
   }
   
   .home-btn:nth-child(2) {
+    grid-column: 6 / 8;
+  }
+
+  .home-btn:nth-child(3) {
     grid-column: 10 / 12;
+  }
+
+  .home-eyes {
+    column-gap: 14px;
   }
 }
 </style>

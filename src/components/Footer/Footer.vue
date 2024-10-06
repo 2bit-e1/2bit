@@ -37,7 +37,7 @@ const projectStore = useProjectStore();
   translate: -50% 0;
   width: calc(100% - var(--page-padding-x) * 2);
   height: var(--footer-height);
-  z-index: var(--header-z-index);
+  z-index: var(--footer-z-index);
   display: grid;
   grid-template-columns: repeat(5, var(--column-width));
   justify-content: center;

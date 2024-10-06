@@ -1,5 +1,6 @@
 import { useProcessStore } from "@/stores/process";
 import { useProjectStore } from "@/stores/project";
+import { useMediaPopupStore } from "@/stores/mediaPopup";
 import { useRouter } from "vue-router";
 import { ROUTES, PAGE_NAMES } from "@/utils/constants";
 import { handleRoute } from "@/utils/handleRoute";
@@ -7,10 +8,11 @@ import { handleRoute } from "@/utils/handleRoute";
 export const useGetRightBtnClickHandler = (pageNameRef) => {
   const projectStore = useProjectStore();
   const processStore = useProcessStore();
+  const mediaPopupStore = useMediaPopupStore();
   const router = useRouter();
 
   const clickHandler = () => {
-    const pageName = pageNameRef.value
+    const pageName = pageNameRef.value;
     if (pageName == PAGE_NAMES.project) {
       if (projectStore.isInfoOpen) {
         projectStore.closeProjectInfo();
@@ -18,7 +20,11 @@ export const useGetRightBtnClickHandler = (pageNameRef) => {
         handleRoute(router, ROUTES.home);
       }
     } else if (pageName == PAGE_NAMES.me) {
-      handleRoute(router, ROUTES.home);
+      if (mediaPopupStore.popupData.isOpen) {
+        mediaPopupStore.closePopup();
+      } else {
+        handleRoute(router, ROUTES.home);
+      }
     } else if (pageName == PAGE_NAMES.process) {
       if (processStore.popupData.isOpen) {
         processStore.closePopup();
@@ -26,21 +32,21 @@ export const useGetRightBtnClickHandler = (pageNameRef) => {
         handleRoute(router, ROUTES.home);
       }
     }
-  }
+  };
 
-  return clickHandler
+  return clickHandler;
 };
 
 export const useGetLeftBtnClickHandler = (pageNameRef) => {
   const projectStore = useProjectStore();
 
   const clickHandler = () => {
-    const pageName = pageNameRef.value
-  
+    const pageName = pageNameRef.value;
+
     if (pageName == PAGE_NAMES.project) {
       projectStore.openProjectInfo();
     }
-  }
+  };
 
-  return clickHandler
+  return clickHandler;
 };

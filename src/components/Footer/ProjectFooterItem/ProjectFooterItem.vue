@@ -43,9 +43,9 @@ const projectName = computed(() => projectStore.name || "");
     </h3>
 
     <RouterLink
-      :to="projectStore.link"
+      :to="projectStore.link || ''"
       class="hoverable project-item project-item_to-project"
-      :class="isMobile ? 'hoverable-from-black' : 'hoverable-from-gray'"
+      :class="`${isMobile ? 'hoverable-from-black' : 'hoverable-from-gray'} ${!isImagesCountVisible && isActive && 'project-item_to-project-active'}`"
     >
       <div class="project-item-inner">
         <AppearWords
@@ -150,9 +150,20 @@ const projectName = computed(() => projectStore.name || "");
 }
 
 .project-item_to-project {
-  grid-column: 3 / 4;
+  position: absolute;
+  left: calc(var(--column-width) * 1);
+  bottom: 20px;
   justify-content: start;
   text-align: left;
+  z-index: 20;
+}
+
+.project-item_to-project:not(.project-item_to-project-active) {
+  pointer-events: none;
+}
+
+.project-item_to-project:deep(.appear-words) {
+  flex-wrap: nowrap;
 }
 
 .project-item_to-project .project-item-inner {
@@ -165,11 +176,12 @@ const projectName = computed(() => projectStore.name || "");
 .project-item_to-project svg {
   scale: 0.8;
   overflow: hidden;
-  transition: clip-path 150ms 100ms;
+  --transition-delay: 100ms;
+  transition: clip-path 150ms var(--transition-delay);
   clip-path: circle(0% at 0% 100%);
 }
 
-.project-item_to-project:hover svg {
+.project-item_to-project-active:hover svg {
   clip-path: circle(130% at 0% 100%);
 }
 
@@ -230,7 +242,12 @@ const projectName = computed(() => projectStore.name || "");
   }
 
   .project-item_to-project svg {
+    --transition-delay: 0ms;
+  }
+
+  .project-item_to-project-active svg {
     clip-path: circle(130% at 0% 100%);
+    --transition-delay: 400ms;
   }
 
   .project-item_counter {

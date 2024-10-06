@@ -6,7 +6,6 @@ import { useHomeStore } from "@/stores/home";
 const homeStore = useHomeStore();
 
 const activeProjectLink = computed(() => {
-  console.log("vhomeStore.activeProjectLink", homeStore.activeProjectLink);
   return homeStore.activeProjectLink;
 });
 

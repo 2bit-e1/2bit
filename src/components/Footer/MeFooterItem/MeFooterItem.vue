@@ -150,7 +150,7 @@ const pressItemsDelayOrder =
   .me-list-area_contacts,
   .me-title_projects {
     position: absolute;
-    z-index: var(--header-z-index);
+    z-index: var(--footer-z-index);
   }
 
   .me-copyright,
@@ -240,7 +240,7 @@ const pressItemsDelayOrder =
   .me-list-area_services,
   .me-list-area_contacts {
     position: absolute;
-    z-index: var(--header-z-index);
+    z-index: var(--footer-z-index);
     left: var(--column-width);
   }
 
@@ -256,6 +256,14 @@ const pressItemsDelayOrder =
     top: 121px;
     width: calc(var(--column-width) * 10);
   }
+
+  /*.me-list-area_services {
+    flex-wrap: wrap;
+  }
+  
+  .me-list-area_services:deep .me-list {
+    min-width: 305px;
+  }*/
 
   .me-copyright {
     top: 90px;
