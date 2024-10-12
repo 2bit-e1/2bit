@@ -319,7 +319,7 @@ onUnmounted(() => {
   padding-right: 10px;
 }
 
-.info-image_appear, .info-video_appear {
+.info-image_appear, .info-video_appear:has(.video_loaded) {
   animation: appear-image 300ms forwards ease;
 }
 
@@ -343,6 +343,7 @@ onUnmounted(() => {
   object-fit: contain;
   object-position: center;
 }
+
 .info-image_me, .info-video {
   grid-column: 1 / 2;
   aspect-ratio: 2.3 / 1.3;
@@ -441,6 +442,10 @@ onUnmounted(() => {
   .text-container {
     padding-top: 93px;
     align-content: start;
+  }
+
+  .info_me .text-container {
+    padding-top: 170px;
   }
 
   .info-text {

@@ -27,7 +27,7 @@ const router = useRouter();
 const projectLink = computed(() => `/projects/${props.slug}`)
 
 const handleSetActiveProjectData = () => {
-  if (homeStore.activeProjectName) {
+  if (homeStore.activeProjectLink == projectLink.value) {
     router.push(projectLink.value);
   } else {
     emit("setActiveProjectData", props.name, props.year, projectLink.value);

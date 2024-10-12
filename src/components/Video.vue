@@ -9,6 +9,7 @@ const props = defineProps({
 
 const videoElem = ref(null);
 const stopVideoTimer = ref(null);
+const isVideoLoaded = ref(false);
 
 // watchEffect(
 //   () => {
@@ -25,23 +26,44 @@ const stopVideoTimer = ref(null);
 //   },
 //   { immediate: true, flush: "post" }
 // );
+
+onMounted(() => {
+  videoElem.value.addEventListener("loadeddata", () => {
+    if(videoElem.value.readyState >= 3){
+      isVideoLoaded.value = true;
+   }
+  })
+})
+const isMobile = window.innerWidth <= 1024;
 </script>
 
 <template>
   <video
+    v-if="isMobile"
+    ref="videoElem"
+    
+    autoplay
+    class="video"
+    :class="{ 'video_loaded': isVideoLoaded }"
+    :controls="false"
+  >
+    <source :src="videoSrc" type="video/webm" />
+  </video>
+  <video
+    v-else
+    :src="videoSrc"
     ref="videoElem"
     muted
     playsInline
     autoplay
     class="video"
+    :class="{ 'video_loaded': isVideoLoaded }"
     :controls="false"
-    :src="videoSrc"
   >
-    <!-- <source :src="videoSrc" type="video/webm" /> -->
   </video>
 </template>
 
-<style scoped>
+<style>
 .video {
 }
 </style>

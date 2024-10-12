@@ -9,6 +9,14 @@ import { computed, ref, watchEffect } from "vue";
   <div class="home-view">
     <MobileOpenPropjectButton />
     <ProjectsList />
+    <dotlottie-player
+      src="https://lottie.host/d159ed7d-2be4-47b5-a37c-8a78e02a8432/mJEMxCWENQ.json"
+      background="transparent"
+      speed="1"
+      style="width: 300px; height: 300px"
+      loop
+      autoplay
+    ></dotlottie-player>
   </div>
 </template>
 
