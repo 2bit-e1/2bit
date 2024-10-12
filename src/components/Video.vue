@@ -28,11 +28,9 @@ const isVideoLoaded = ref(false);
 // );
 
 onMounted(() => {
-  videoElem.value.addEventListener("loadeddata", () => {
-    if(videoElem.value.readyState >= 3){
-      isVideoLoaded.value = true;
-   }
-  })
+  videoElem.value.onloadeddata = () => {
+    isVideoLoaded.value = true;
+  }
 })
 const isMobile = window.innerWidth <= 1024;
 </script>
