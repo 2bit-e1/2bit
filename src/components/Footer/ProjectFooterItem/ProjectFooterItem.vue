@@ -116,6 +116,10 @@ const projectName = computed(() => projectStore.name || "");
   overflow: hidden;
 }
 
+.project-item * {
+  line-height: 13px;
+}
+
 .project-item:has(.project-list) {
   max-height: 100%;
   overflow: hidden;

@@ -49,7 +49,7 @@ const projectStore = useProjectStore();
 }
 
 .footer-item_project {
-  padding-top: 21px;
+  padding-top: 22px;
 }
 
 .footer-item_project, .footer-item_me {
@@ -61,7 +61,7 @@ const projectStore = useProjectStore();
   height: var(--me-footer-height);
   row-gap: 7px;
   grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-  padding-bottom: 10px;
+  padding-bottom: 18px;
 }
 
 @media (max-width: 1024px) {
