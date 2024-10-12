@@ -180,7 +180,15 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
             />
           </span>
 
-          <span class="item-btn-text item-btn-text_me hoverable-from-gray">
+          <span
+            class="item-btn-text item-btn-text_me"
+            :class="{
+              'hoverable-from-white':
+              pageName == PAGE_NAMES.me && mediaPopupStore.popupData.isOpen,
+              'background-white':
+              !(pageName == PAGE_NAMES.me && mediaPopupStore.popupData.isOpen),
+            }"
+          >
             <AppearWord
               word="Назад"
               :isAppear="

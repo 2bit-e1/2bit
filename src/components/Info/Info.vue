@@ -416,6 +416,10 @@ onUnmounted(() => {
     padding-bottom: 180px;
   }
 
+  .info_me .text-container {
+    padding-bottom: 0;
+  }
+
   .info-text {
     grid-column: 2 / 7;
   }

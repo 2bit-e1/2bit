@@ -53,7 +53,7 @@ body {
 }
 
 .hoverable .appear-word-inner {
-  transition: background-position 300ms var(--timing-func-1);
+  transition: background-position 400ms ease;
   background-position: 0px 0px;
   background-clip: text !important;
   -webkit-background-clip: text !important;
@@ -70,11 +70,28 @@ body {
   background: url("./hover-text-bg-black.svg");
 }
 
+.hoverable:is(.hoverable-from-white, :has(.hoverable-from-white)) .appear-word-inner {
+  background: url("./hover-text-bg-white.svg");
+}
+
 .hoverable:not(:disabled):hover .appear-word-inner {
-  background-position: 0px -17px;
+  background-position: 0px -22px;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+
+@media (min-width: 1024px) {
+  .background-white .appear-word-inner {
+    background-position: 0px -22px;
+    background: none !important;
+    background-clip: initial !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: initial !important;
+    color: #FFFFFF;
+    font-weight: 300 !important;
+  }
 }
 
 @media (max-width: 1024px) {

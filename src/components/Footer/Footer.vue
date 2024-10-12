@@ -49,7 +49,7 @@ const projectStore = useProjectStore();
 }
 
 .footer-item_project {
-  padding-top: 24px;
+  padding-top: 21px;
 }
 
 .footer-item_project, .footer-item_me {

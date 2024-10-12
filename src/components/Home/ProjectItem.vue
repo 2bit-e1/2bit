@@ -1,5 +1,5 @@
 <script setup>
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import Video from "../Video.vue";
 import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
@@ -23,11 +23,15 @@ const Number_0 = AllNumbers[`Number_0`];
 const Number_comp = AllNumbers[`Number_${props.number}`];
 const isMobile = window.innerWidth <= 1024;
 const appearDelay = getDelayByNumber(props.number) + "ms";
-
+const router = useRouter();
 const projectLink = computed(() => `/projects/${props.slug}`)
 
 const handleSetActiveProjectData = () => {
-  emit("setActiveProjectData", props.name, props.year, projectLink.value);
+  if (homeStore.activeProjectName) {
+    router.push(projectLink.value);
+  } else {
+    emit("setActiveProjectData", props.name, props.year, projectLink.value);
+  }
 };
 
 const handleClearActiveProjectData = () => {
@@ -236,8 +240,8 @@ a.project-item-link {
 }
 
 @media (max-width: 768px) {
-  .project-item-link {
-    padding: 5px;
+  a.project-item-link {
+    padding: 4px;
   }
 }
 </style>
