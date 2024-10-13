@@ -319,7 +319,7 @@ onUnmounted(() => {
   padding-right: 10px;
 }
 
-.info-image_appear, .info-video_appear:has(.video_loaded) {
+.info-image_appear, .info-video_appear {
   animation: appear-image 300ms forwards ease;
 }
 

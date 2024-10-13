@@ -32,23 +32,10 @@ onMounted(() => {
     isVideoLoaded.value = true;
   }
 })
-const isMobile = window.innerWidth <= 1024;
 </script>
 
 <template>
   <video
-    v-if="isMobile"
-    ref="videoElem"
-    
-    autoplay
-    class="video"
-    :class="{ 'video_loaded': isVideoLoaded }"
-    :controls="false"
-  >
-    <source :src="videoSrc" type="video/webm" />
-  </video>
-  <video
-    v-else
     :src="videoSrc"
     ref="videoElem"
     muted
