@@ -20,7 +20,7 @@ const handleIntersect = (entries) => {
 useIntersectionObserver(elemRef, handleIntersect);
 
 onMounted(() => {
-  const timeForLoadAllImages = 500
+  const timeForLoadAllImages = 10
   
   setTimeout(() => {
     if (window.innerWidth < 768) {

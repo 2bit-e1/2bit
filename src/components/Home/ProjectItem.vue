@@ -8,6 +8,7 @@ import { useMobileProjectItemListeners } from "./hooks";
 import { computed, ref } from "vue";
 // import * as svgNumbers from '@/assets/svgs/project-numbers';
 
+
 const props = defineProps({
   number: Number,
   slug: String,
@@ -46,11 +47,19 @@ const handleMouseleave = () => {
   handleClearActiveProjectData();
 };
 
-const { handleClick } = useMobileProjectItemListeners(
-  projectItemElRef,
-  handleSetActiveProjectData,
-  handleClearActiveProjectData
-);
+const showImage = ref(false);
+
+const handleClick = () => {
+  if (isMobile) {
+    showImage.value = true; // Показать картинку с анимацией
+    setTimeout(() => {
+      router.push(projectLink.value); // Переход с задержкой 0,5 секунд
+    }, 500);
+  } else {
+    handleSetActiveProjectData();
+  }
+};
+
 </script>
 
 <template>
@@ -61,7 +70,7 @@ const { handleClick } = useMobileProjectItemListeners(
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click.native.prevent="handleClick"
+      @click.prevent="handleClick"
       ref="projectItemElRef"
     >
       <div class="item-inner">
@@ -80,11 +89,8 @@ const { handleClick } = useMobileProjectItemListeners(
             <component class="number-svg" :is="Number_comp"></component>
           </span>
         </h2>
-        <div class="preview-image">
+        <div :class="['preview-image', { show: showImage }]">
           <img src="/images/image.png" alt="" />
-
-          <!-- <Video v-if="name == 'Refmodel'" :videoSrc="`/video.webm`" :isPlaying="homeStore.activeProjectName == name" />
-          <img v-else src="/images/image.png" alt="" /> -->
         </div>
       </div>
     </component>
@@ -200,14 +206,13 @@ a.project-item-link {
   position: absolute;
   pointer-events: none;
   overflow: hidden;
-  top: 100%;
+  top: 100%; /* Начальное положение ниже видимой области */
   left: 0;
   width: 100%;
   height: 100%;
   padding: 0;
-  --top-duration: 500ms;
-  --top-delay: 0ms;
-  transition: top var(--top-duration) var(--top-delay) var(--timing-func-2);
+  opacity: 0; /* Начальная прозрачность */
+  transition: top 500ms var(--timing-func-2), opacity 500ms;
 }
 
 .preview-image img {
@@ -218,20 +223,21 @@ a.project-item-link {
   object-fit: cover;
   object-position: center;
   scale: 1.2;
-  --scale-duration: 400ms;
-  --scale-delay: 0ms;
-  transition: scale var(--scale-duration) var(--scale-delay)
-    var(--timing-func-1);
+  transition: scale 400ms var(--timing-func-1);
 }
 
-.project-item:hover .preview-image {
-  top: 0;
-  --top-delay: 260ms;
+.project-item:hover .preview-image img {
+  scale: 1; /* Уменьшение масштаба при показе */
 }
 
 .project-item:hover .preview-image img {
   scale: 1;
   --scale-delay: 260ms;
+}
+
+.preview-image.show, .project-item:hover .preview-image {
+  top: 0; /* Положение при показе изображения */
+  opacity: 1; /* Плавное проявление */
 }
 
 .preview-image video {
