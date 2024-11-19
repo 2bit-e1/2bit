@@ -36,7 +36,7 @@ const projectStore = useProjectStore();
   left: 50%;
   translate: -50% 0;
   width: calc(100% - var(--page-padding-x) * 2);
-  height: var(--footer-height);
+  height: 100px;
   z-index: var(--footer-z-index);
   display: grid;
   grid-template-columns: repeat(5, var(--column-width));
@@ -77,7 +77,7 @@ const projectStore = useProjectStore();
 
   .footer-item_home {
     height: auto;
-    padding-bottom: 62px;
+    padding-bottom: 0px;
   }
 
   .footer-item_project {
@@ -102,7 +102,7 @@ const projectStore = useProjectStore();
   }
   
   .footer-item_home {
-    padding-bottom: 40px;
+    padding-bottom: 0px;
   }
 }
 
@@ -113,7 +113,7 @@ const projectStore = useProjectStore();
   }
   
   .footer-item_home {
-    padding-bottom: 62px;
+    padding-bottom: 0px;
   }
 
   .footer-item_me {
