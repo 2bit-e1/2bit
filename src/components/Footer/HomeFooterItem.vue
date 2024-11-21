@@ -13,16 +13,16 @@ const props = defineProps({
 
 const homeStore = useHomeStore();
 
-// Создаем ссылку для управления плеером
-const lottiePlayerRef = ref(null);
+// // Создаем ссылку для управления плеером
+// const lottiePlayerRef = ref(null);
 
-// Функция для проигрывания анимации
-const playAnimation = () => {
-  if (lottiePlayerRef.value) {
-    lottiePlayerRef.value.stop();
-    lottiePlayerRef.value.play();
-  }
-};
+// // Функция для проигрывания анимации
+// const playAnimation = () => {
+//   if (lottiePlayerRef.value) {
+//     lottiePlayerRef.value.stop();
+//     lottiePlayerRef.value.play();
+//   }
+// };
 </script>
 
 <template>
@@ -46,7 +46,7 @@ const playAnimation = () => {
       </div>
     </RouterLink>
     <div class="home-eyes home-btn" @click="playAnimation">
-      <!-- Lottie анимация -->
+      <!-- Lottie анимация
       <dotlottie-player 
         ref="lottiePlayerRef"
         src="https://lottie.host/74f05f9b-4bae-48fb-b68e-97d2f81690ad/mnan8HSNBX.json" 
@@ -57,7 +57,7 @@ const playAnimation = () => {
         playMode="normal" 
         autoplay 
         hover>
-      </dotlottie-player>
+      </dotlottie-player> -->
     </div>
     <RouterLink class="hoverable home-btn" :to="ROUTES.me" :tabindex="isActive ? 0 : -1">
       <div class="home-btn-inner">
