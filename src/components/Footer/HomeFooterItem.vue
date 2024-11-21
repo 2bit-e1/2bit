@@ -4,7 +4,7 @@ import { useHomeStore } from "@/stores/home";
 import { PAGE_NAMES, ROUTES } from "@/utils/constants";
 import { RouterLink } from "vue-router";
 import AppearWord from "../Appear/AppearWord.vue";
-import "@dotlottie/player-component";
+
 
 const props = defineProps({
   isActive: Boolean,
