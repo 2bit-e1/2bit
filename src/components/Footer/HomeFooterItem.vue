@@ -3,7 +3,8 @@ import { useHomeStore } from "@/stores/home";
 import { PAGE_NAMES, ROUTES } from "@/utils/constants";
 import { RouterLink } from "vue-router";
 import AppearWord from "../Appear/AppearWord.vue";
-import { watchEffect } from "vue";
+import { ref } from "vue";
+import '@dotlottie/player-component';
 
 const props = defineProps({
   isActive: Boolean,
@@ -11,6 +12,17 @@ const props = defineProps({
 });
 
 const homeStore = useHomeStore();
+
+// Ссылка на компонент Lottie
+const lottiePlayer = ref(null);
+
+// Метод для запуска анимации
+const playAnimation = () => {
+  if (lottiePlayer.value) {
+    lottiePlayer.value.stop(); // Запускаем анимацию
+    lottiePlayer.value.play(); // Запускаем анимацию
+  }
+};
 </script>
 
 <template>
@@ -34,8 +46,19 @@ const homeStore = useHomeStore();
       </div>
     </RouterLink>
     <div class="home-eyes home-btn">
-      <span class="home-eye-item"></span>
-      <span class="home-eye-item"></span>
+      <!-- <span class="home-eye-item"></span>
+      <span class="home-eye-item"></span> -->
+       <dotlottie-player 
+        ref="lottiePlayer" 
+        src="https://lottie.host/74f05f9b-4bae-48fb-b68e-97d2f81690ad/mnan8HSNBX.json" 
+        background="transparent" 
+        speed="1" 
+        style="width: 300px; height: 300px" 
+        direction="1" 
+        playMode="normal" 
+        @click="playAnimation"
+      >
+      </dotlottie-player>
     </div>
     <RouterLink class="hoverable home-btn" :to="ROUTES.me" :tabindex="isActive ? 0 : -1">
       <div class="home-btn-inner">
@@ -53,6 +76,7 @@ const homeStore = useHomeStore();
 
 <style scoped>
 .footer-item_home {
+  margin-bottom: 100px;
 }
 
 .home-btn {
@@ -89,6 +113,7 @@ const homeStore = useHomeStore();
   column-gap: 9px;
   display: none;
 }
+
 
 .footer-item_active .home-eyes {
   display: flex;
