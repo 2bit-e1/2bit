@@ -103,7 +103,7 @@ a.project-item-link {
   display: block;
   width: 100%;
   height: 100%;
-  padding: 10px;
+  padding: 0px;
   --border-delay: 300ms;
   transition: border 200ms var(--border-delay);
 }
@@ -247,7 +247,7 @@ a.project-item-link {
 
 @media (max-width: 768px) {
   a.project-item-link {
-    padding: 4px;
+    padding: 0px;
   }
 }
 </style>
