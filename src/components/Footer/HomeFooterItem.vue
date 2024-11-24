@@ -46,14 +46,12 @@ const playAnimation = () => {
       </div>
     </RouterLink>
     <div class="home-eyes home-btn">
-      <!-- <span class="home-eye-item"></span>
-      <span class="home-eye-item"></span> -->
        <dotlottie-player 
         ref="lottiePlayer" 
         src="https://lottie.host/74f05f9b-4bae-48fb-b68e-97d2f81690ad/mnan8HSNBX.json" 
         background="transparent" 
         speed="1" 
-        style="width: 300px; height: 300px" 
+        style="width: 80px; height: 80px" 
         direction="1" 
         playMode="normal" 
         @click="playAnimation"
@@ -76,7 +74,7 @@ const playAnimation = () => {
 
 <style scoped>
 .footer-item_home {
-  margin-bottom: 100px;
+  
 }
 
 .home-btn {
