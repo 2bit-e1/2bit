@@ -55,15 +55,21 @@ const handleClick = () => {
     if (numberElement) {
       numberElement.classList.add('number_gray');
     }
-    // Не показывать изображение
+    // Отключаем показ изображения
     showImage.value = false;
-    setTimeout(() => {
-      window.location.href = projectLink.value; // Переход с задержкой
+
+    // Используем Vue Router для перехода
+      setTimeout(() => {
+      router.push(projectLink.value);
+      if (projectItemElRef.value) {
+        projectItemElRef.value.blur();
+      }
     }, 1500);
   } else {
     handleSetActiveProjectData();
   }
 };
+
 
 </script>
 
@@ -75,7 +81,8 @@ const handleClick = () => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click="handleClick"
+      @click.prevent="handleClick"
+      @touchstart.stop="handleClick"
       ref="projectItemElRef"
     >
       <div class="item-inner">
