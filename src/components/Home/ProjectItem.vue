@@ -58,7 +58,7 @@ const handleClick = () => {
     // Не показывать изображение
     showImage.value = false;
     setTimeout(() => {
-      router.push(projectLink.value); // Переход с задержкой
+      window.location.href = projectLink.value; // Переход с задержкой
     }, 1500);
   } else {
     handleSetActiveProjectData();
@@ -75,7 +75,7 @@ const handleClick = () => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click.prevent="handleClick"
+      @click="handleClick"
       ref="projectItemElRef"
     >
       <div class="item-inner">
