@@ -51,9 +51,14 @@ const showImage = ref(false);
 
 const handleClick = () => {
   if (isMobile) {
-    showImage.value = true; // Показать картинку с анимацией
+    const numberElement = projectItemElRef.value.querySelector('.number');
+    if (numberElement) {
+      numberElement.classList.add('number_gray');
+    }
+    // Не показывать изображение
+    showImage.value = false;
     setTimeout(() => {
-      router.push(projectLink.value); // Переход с задержкой 0,5 секунд
+      router.push(projectLink.value); // Переход с задержкой
     }, 500);
   } else {
     handleSetActiveProjectData();
@@ -126,6 +131,11 @@ a.project-item-link {
 .number {
   overflow: hidden;
 }
+
+.number_gray {
+  stroke: var(--clr-gray); /* Или другой цвет заливки */
+}
+
 
 .number-svg {
   stroke: var(--clr-black);
@@ -243,6 +253,12 @@ a.project-item-link {
 .preview-image video {
   object-fit: contain;
   width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .preview-image {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
