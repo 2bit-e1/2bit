@@ -21,7 +21,7 @@ export const CONTENT_TYPES = {
 };
 
 // 100ms задержка в появлинии слов
-export const wordAppearDelayStep = 35
+export const wordAppearDelayStep = -10000
 
 
 
