@@ -49,33 +49,38 @@ const handleMouseleave = () => {
 
 const showImage = ref(false);
 
-const handleClick = () => {
+const handleClick = (event) => {
   if (isMobile) {
-    const numberElement = projectItemElRef.value.querySelector('.number');
-    if (numberElement) {
-      numberElement.classList.add('number_gray');
+    // Удаляем предотвращение перехода
+    if (!showImage.value) {
+      event.preventDefault();
+      const numberElement = projectItemElRef.value.querySelector('.number');
+      if (numberElement) {
+        numberElement.classList.add('number_gray');
+      }
+      showImage.value = false; // Отключаем отображение картинки
+      setTimeout(() => {
+        window.location.href = projectLink.value; // Используем стандартный переход
+      }, 500);
     }
-    // Не показывать изображение
-    showImage.value = false;
-    setTimeout(() => {
-      router.push(projectLink.value); // Переход с задержкой
-    }, 500);
   } else {
     handleSetActiveProjectData();
   }
 };
+
 
 </script>
 
 <template>
   <li class="project-item">
     <component
-      :is="!isMobile ? 'router-link' : 'a'"
+    :is="!isMobile ? 'router-link' : 'a'"
       class="link project-item-link"
-      :to="projectLink"
-      @mouseenter="handleMouseenter"
-      @mouseleave="handleMouseleave"
-      @click.prevent="handleClick"
+      :to="!isMobile ? projectLink : undefined"
+      :href="isMobile ? projectLink : undefined"
+      @mouseenter="!isMobile && handleMouseenter"
+      @mouseleave="!isMobile && handleMouseleave"
+      @click="handleClick"
       ref="projectItemElRef"
     >
       <div class="item-inner">
@@ -258,6 +263,9 @@ a.project-item-link {
 @media (max-width: 1024px) {
   .preview-image {
     display: none;
+  }
+  .number_gray {
+    stroke: var(--clr-gray);
   }
 }
 
