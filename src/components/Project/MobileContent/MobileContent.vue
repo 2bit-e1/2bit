@@ -103,9 +103,4 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 500px) {
-  .images-list {
-    margin-bottom: 75px;
-  }
-}
 </style>
