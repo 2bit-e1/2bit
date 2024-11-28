@@ -183,7 +183,7 @@ a.project-item-link {
 }
 
 .project-item:hover .number-svg {
-  translate: 0 -15px;
+  translate: 0 15px;
   scale: 0.8;
 }
 
@@ -263,6 +263,9 @@ a.project-item-link {
 }
 
 @media (max-width: 1024px) {
+  .project-item-link:hover {    
+    border: none;
+  }
   .preview-image {
     display: none;
   }

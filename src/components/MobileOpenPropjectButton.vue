@@ -19,7 +19,7 @@ const isDesktop = window.innerWidth > 1024;
     :to="activeProjectLink"
   >
     <AppearWord
-      word="Подробнее"
+      
       :isAppear="!!activeProjectLink"
       :delayOrder="0"
     />
