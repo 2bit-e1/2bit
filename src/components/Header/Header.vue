@@ -52,7 +52,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
       <button
         class="item-btn hoverable"
         :class="{ 'item-btn_disabled': isLeftBtnDisabled }"
-        :tabindex="isLeftBtnDisabled ? -1 : 0"
+        :tabindex="isLeftBtnDisabled ? 1 : 0"
         :disabled="isLeftBtnDisabled"
         :role="leftBtnRole"
         @click.prevent="leftBtnClickHandler"
@@ -110,7 +110,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
       <button
         class="item-btn hoverable"
         :class="{ 'item-btn_disabled': isRightBtnDisabled }"
-        :tabindex="isRightBtnDisabled ? -1 : 0"
+        :tabindex="isRightBtnDisabled ? 1 : 0"
         :disabled="isRightBtnDisabled"
         :role="rightBtnRole"
         @click.prevent="rightBtnClickHandler"
@@ -136,7 +136,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
               :isAppear="
                 pageName == PAGE_NAMES.project && !projectStore.isInfoOpen
               "
-              :delayOrder="2"
+              :delayOrder="1"
             />
           </span>
 
@@ -156,7 +156,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
               :isAppear="
                 pageName == PAGE_NAMES.process && !processStore.popupData.isOpen
               "
-              :delayOrder="2"
+              :delayOrder="50"
             />
           </span>
 
@@ -176,7 +176,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
               :isAppear="
                 pageName == PAGE_NAMES.me && !mediaPopupStore.popupData.isOpen
               "
-              :delayOrder="2"
+              :delayOrder="50"
             />
           </span>
 

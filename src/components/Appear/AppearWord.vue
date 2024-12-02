@@ -52,13 +52,13 @@ const appearDelay = computed(
   /*animation:
       disappear-translate 300ms 100ms forwards var(--timing-func-2),
       disappear-scale 300ms 0ms forwards var(--timing-func-1);*/
-  animation: disappear-translate 300ms 100ms forwards var(--timing-func-2),
-    disappear-opacityscale 300ms 50ms forwards var(--timing-func-1);
+  animation: disappear-translate 100ms 100ms forwards var(--timing-func-2),
+    disappear-opacityscale 100ms 50ms forwards var(--timing-func-1);
 }
 
 .appear-word.appear-word_appear .appear-word-inner {
   translate: 0 100%;
-  animation: appear-translate 300ms calc(200ms + v-bind(appearDelay)) forwards
+  animation: appear-translate 600ms calc(200ms + v-bind(appearDelay)) forwards
       var(--timing-func-2),
     appear-opacity 600ms calc(100ms + v-bind(appearDelay)) forwards
       var(--timing-func-1);

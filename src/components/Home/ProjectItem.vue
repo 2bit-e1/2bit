@@ -263,6 +263,14 @@ a.project-item-link {
 }
 
 @media (max-width: 1024px) {
+  .number_dim .number-svg {
+    stroke: var(--clr-black);
+  }
+  .project-item:hover .number-svg {
+    translate: none;
+    scale: 1;
+    stroke: var(--clr-gray);
+  }
   .project-item-link:hover {    
     border: none;
   }
