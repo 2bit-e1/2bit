@@ -54,7 +54,7 @@ const playAnimation = () => {
         style="width: 80px; height: 80px" 
         direction="1" 
         playMode="normal" 
-        @click="playAnimation"
+        @mouseover="playAnimation"
       >
       </dotlottie-player>
     </div>
