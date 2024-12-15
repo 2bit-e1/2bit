@@ -102,5 +102,4 @@ onUnmounted(() => {
     padding-bottom: 40px;
   }
 }
-
 </style>

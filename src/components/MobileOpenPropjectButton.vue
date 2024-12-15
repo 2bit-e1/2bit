@@ -18,11 +18,11 @@ const isDesktop = window.innerWidth > 1024;
     class="mobile-open-propject-button"
     :to="activeProjectLink"
   >
-    <AppearWord
-      
+    <!-- <AppearWord
+      word="Подробнее"
       :isAppear="!!activeProjectLink"
       :delayOrder="0"
-    />
+    /> -->
   </RouterLink>
 </template>
 

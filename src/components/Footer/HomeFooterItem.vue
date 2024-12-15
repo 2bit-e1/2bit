@@ -51,7 +51,7 @@ const playAnimation = () => {
         src="https://lottie.host/74f05f9b-4bae-48fb-b68e-97d2f81690ad/mnan8HSNBX.json" 
         background="transparent" 
         speed="1" 
-        style="width: 80px; height: 80px" 
+        style="width: 80px; height: 60px" 
         direction="1" 
         playMode="normal" 
         @mouseover="playAnimation"
