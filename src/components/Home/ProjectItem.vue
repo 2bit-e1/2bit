@@ -270,13 +270,7 @@ a.project-item-link {
     translate: none;
     scale: 1;
     stroke: var(--clr-gray);
-  }
-  .project-item-link:hover {    
-    border: none;
-  }
-  .preview-image {
-    display: none;
-  }
+  } 
   .number_gray {
     stroke: var(--clr-gray);
   }
@@ -285,6 +279,16 @@ a.project-item-link {
 @media (max-width: 768px) {
   a.project-item-link {
     padding: 0px;
+  }
+}
+
+@media (max-width: 500px) {
+   .preview-image {
+    display: none;
+  }
+  
+  .project-item-link:hover {    
+    border: none;
   }
 }
 </style>
