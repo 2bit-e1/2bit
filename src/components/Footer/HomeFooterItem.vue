@@ -33,6 +33,7 @@ const playAnimation = () => {
       'footer-item_home-dim': !!homeStore.activeProjectName,
     }"
     :aria-hidden="!isActive"
+
   >
     <RouterLink class="hoverable home-btn" :to="ROUTES.process" :tabindex="isActive ? 0 : -1">
       <div class="home-btn-inner">
@@ -51,7 +52,7 @@ const playAnimation = () => {
         src="https://lottie.host/74f05f9b-4bae-48fb-b68e-97d2f81690ad/mnan8HSNBX.json" 
         background="transparent" 
         speed="1" 
-        style="width: 80px; height: 60px" 
+        style="width: 90px; height: 90px" 
         direction="1" 
         playMode="normal" 
         @mouseover="playAnimation"
@@ -73,8 +74,9 @@ const playAnimation = () => {
 </template>
 
 <style scoped>
+
 .footer-item_home {
-  
+  bottom: 25px !important;
 }
 
 .home-btn {
@@ -128,6 +130,15 @@ const playAnimation = () => {
 }
 
 @media (max-width: 1024px) {
+
+  .footer-item_home {
+    bottom: 0px !important;
+  }
+
+  .footer-item_home[data-v-25a69d38] {
+    padding: 0;
+  }
+
   .home-btn:nth-child(1) {
     grid-column: 2 / 4;
   }

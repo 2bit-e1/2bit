@@ -42,6 +42,7 @@ const appearDelay = computed(
 .appear-word-inner {
   display: inline-block;
   translate: 0 -100%;
+  line-height: 15px !important;
 }
 
 .appear-word:not(.appear-word_first-load) .appear-word-inner {
