@@ -156,7 +156,7 @@ const projectName = computed(() => projectStore.name || "");
 .project-item_to-project {
   position: absolute;
   left: calc(var(--column-width) * 1);
-  bottom: 20px;
+  bottom: 23px;
   justify-content: start;
   text-align: left;
   z-index: 20;
