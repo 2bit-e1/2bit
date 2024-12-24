@@ -17,8 +17,8 @@ export default {
     {
       type: CONTENT_TYPES.extraParagraph,
       text: `
-        A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.
-      `,
+        A closed club for experienced investors,  A closed club for experienced investors providing personal solutions with maximum benefit in all market situations.
+        `,
     },
   ],
   images: [
