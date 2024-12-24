@@ -112,6 +112,7 @@ const playAnimation = () => {
 .home-eyes {
   column-gap: 9px;
   display: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 
