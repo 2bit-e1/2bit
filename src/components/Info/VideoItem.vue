@@ -19,7 +19,9 @@ const elemRef = ref(null);
 const isIntersected = ref(false);
 
 const handleIntersect = (entries) => {
-  if (entries[0].isIntersecting) isIntersected.value = true;
+  if (entries[0].isIntersecting || elemRef.value?.getBoundingClientRect().top < window.innerHeight) {
+    isIntersected.value = true;
+  }
 };
 
 useIntersectionObserver(elemRef, handleIntersect);
@@ -47,8 +49,19 @@ watchEffect(() => {
     @click="handleVideoClick"
     v-bind="$attrs"
   >
-    <Video isPlaying :videoSrc="src" />
+    <Video :muted="true" playsinline isPlaying :videoSrc="src"/>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+  .info-video {
+    z-index: 1;
+    position: relative;
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto; /* или фиксированная высота */
+    overflow: hidden;
+  }
+
+</style>
