@@ -158,4 +158,18 @@ const playAnimation = () => {
     column-gap: 14px;
   }
 }
+
+@media (max-width: 500px) {
+  .home-eyes {
+     width: 100px !important;
+     grid-column: 5 / 10 !important;
+  }   
+
+  .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 95vw !important;
+  }
+}
+
 </style>

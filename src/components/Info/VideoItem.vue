@@ -49,7 +49,7 @@ watchEffect(() => {
     @click="handleVideoClick"
     v-bind="$attrs"
   >
-    <Video :muted="true" playsinline isPlaying :videoSrc="src"/>
+    <Video :muted="true" playsinline isPlaying :videoSrc="src" loop/>
   </div>
 </template>
 

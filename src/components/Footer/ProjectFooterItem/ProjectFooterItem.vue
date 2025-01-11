@@ -267,6 +267,16 @@ const projectName = computed(() => projectStore.name || "");
 }
 
 @media (max-width: 820px) {
+
+  .project-item .project-item-inner,
+.project-item:deep(.project-item-inner) {
+  display: flex;
+  align-items: start;
+  color: var(--clr-black);
+  stroke: rgb(161, 161, 161);
+}
+
+  
   .project-item_role {
     grid-column: 8 / 12;
   }
