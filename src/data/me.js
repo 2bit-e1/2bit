@@ -39,7 +39,7 @@ export default {
   content: [
     {
       type: CONTENT_TYPES.video,
-      link: "/video.webm",
+      link: "/video.mp4",
     },
     {
       type: CONTENT_TYPES.paragraph,
