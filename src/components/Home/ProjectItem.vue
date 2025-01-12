@@ -115,7 +115,7 @@ a.project-item-link {
   display: block;
   width: 100%;
   height: 100%;
-  padding: 10px;
+  padding: 5px;
   --border-delay: 300ms;
   transition: border 200ms var(--border-delay);
 }
@@ -263,6 +263,9 @@ a.project-item-link {
 }
 
 @media (max-width: 1024px) {
+   a.project-item-link {
+    padding: 5px;
+  }
   .number_dim .number-svg {
     stroke: var(--clr-black);
   }

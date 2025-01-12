@@ -25,5 +25,6 @@ import { computed, ref, watchEffect } from "vue";
 .home-view {
   height: 100%;
   padding: var(--header-height) 0 var(--footer-height);
+ 
 }
 </style>

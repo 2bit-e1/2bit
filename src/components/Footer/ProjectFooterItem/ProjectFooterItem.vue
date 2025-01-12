@@ -273,7 +273,6 @@ const projectName = computed(() => projectStore.name || "");
   display: flex;
   align-items: start;
   color: var(--clr-black);
-  stroke: rgb(161, 161, 161);
 }
 
   
