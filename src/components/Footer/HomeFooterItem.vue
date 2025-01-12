@@ -159,6 +159,8 @@ const playAnimation = () => {
   }
 }
 
+
+
 @media (max-width: 500px) {
   .home-eyes {
      width: 100px !important;
@@ -169,6 +171,7 @@ const playAnimation = () => {
     display: flex !important;
     justify-content: space-around !important;
     width: 95vw !important;
+    padding-bottom: 0 !important;
   }
 }
 
