@@ -41,13 +41,15 @@ onUnmounted(() => {
   align-content: center;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1024px)  {
   .projects-list {
     --item-size: 27vmin;
   }
+}
 
-  .project-item {
-    
+@media (max-width: 500px)  {
+  .projects-list {
+    --item-size: 33vmin;
   }
 }
 </style>
