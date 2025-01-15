@@ -23,11 +23,9 @@ watchEffect(() => {
     pageName.value = getPageNameByPath(route.path);
 
     if (pageName.value === PAGE_NAMES.home) {
-      // Отключение скролла
-      scrollPosition.value = window.scrollY; // Сохраняем текущую позицию
+      // Отключение скролла      
       document.body.classList.add("no-scroll"); // Для Android
       document.body.style.position = "fixed"; // Для iOS
-      document.body.style.top = `-${scrollPosition.value}px`;
       document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
     } else {
