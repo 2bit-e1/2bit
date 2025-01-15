@@ -11,6 +11,7 @@ const route = useRoute();
 
 const isRouterReady = ref(false);
 const pageName = ref(null);
+const scrollPosition = ref(0); // Храним текущую позицию прокрутки
 
 onMounted(async () => {
   await router.isReady();
@@ -21,11 +22,20 @@ watchEffect(() => {
   if (isRouterReady.value) {
     pageName.value = getPageNameByPath(route.path);
 
-    // Добавляем или убираем класс на body
+    // Отключение скролла на iOS
     if (pageName.value === PAGE_NAMES.home) {
-      document.body.classList.add("no-scroll");
+      scrollPosition.value = window.scrollY; // Запоминаем текущую позицию
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollPosition.value}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.classList.remove("no-scroll");
+      // Возвращаем скролл
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, scrollPosition.value); // Возвращаем пользователя на прежнюю позицию
     }
   }
 });
@@ -49,11 +59,15 @@ watchEffect(() => {
 </template>
 
 <style>
-@media (max-width:500) {
-  /* Отключаем прокрутку при наличии класса no-scroll на body */
+/* Общие стили */
 body.no-scroll {
-  overflow: hidden;
-  height: 100vh; /* Устанавливаем фиксированную высоту */
+  overflow: hidden; /* Отключает прокрутку */
 }
+
+/* iOS-совместимость */
+html,
+body {
+  touch-action: none; /* Отключает жесты прокрутки */
+  overscroll-behavior: none; /* Убирает эффекты прокрутки */
 }
 </style>
