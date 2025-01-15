@@ -32,13 +32,14 @@ onUnmounted(() => {
 
 <style scoped>
 .projects-list {
-  height: 100%;
+  
   display: grid;
   --item-size: var(--column-width);
   grid-template-columns: repeat(3, var(--item-size));
   grid-template-rows: repeat(3, var(--item-size));
   justify-content: center;
   align-content: center;
+ 
 }
 
 @media (max-width: 1024px)  {

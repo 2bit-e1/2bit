@@ -22,9 +22,9 @@ import { computed, ref, watchEffect } from "vue";
 </template>
 
 <style scoped>
-.home-view {
-  height: 100%;
-  padding: var(--header-height) 0 var(--footer-height);
- 
+.home-view {  
+  padding-top: 100px;
+  display: flex;
+  flex-direction: column;
 }
 </style>
