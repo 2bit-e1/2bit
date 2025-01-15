@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { onMounted, ref, watchEffect } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { getPageNameByPath } from "./utils/getPageNameByPath";
 import Header from "./components/Header/Header.vue";
@@ -22,16 +22,18 @@ watchEffect(() => {
   if (isRouterReady.value) {
     pageName.value = getPageNameByPath(route.path);
 
-    // Отключение скролла на iOS
     if (pageName.value === PAGE_NAMES.home) {
-      scrollPosition.value = window.scrollY; // Запоминаем текущую позицию
-      document.body.style.position = "fixed";
+      // Отключение скролла
+      scrollPosition.value = window.scrollY; // Сохраняем текущую позицию
+      document.body.classList.add("no-scroll"); // Для Android
+      document.body.style.position = "fixed"; // Для iOS
       document.body.style.top = `-${scrollPosition.value}px`;
       document.body.style.width = "100%";
       document.body.style.overflow = "hidden";
     } else {
-      // Возвращаем скролл
-      document.body.style.position = "";
+      // Включение скролла для остальных страниц
+      document.body.classList.remove("no-scroll"); // Для Android
+      document.body.style.position = ""; // Для iOS
       document.body.style.top = "";
       document.body.style.width = "";
       document.body.style.overflow = "";
@@ -61,13 +63,15 @@ watchEffect(() => {
 <style>
 /* Общие стили */
 body.no-scroll {
-  overflow: hidden; /* Отключает прокрутку */
+  overflow: hidden; /* Отключение прокрутки для Android */
 }
 
-/* iOS-совместимость */
 html,
 body {
-  touch-action: none; /* Отключает жесты прокрутки */
   overscroll-behavior: none; /* Убирает эффекты прокрутки */
+}
+
+body.no-scroll {
+  touch-action: none; /* Отключение жестов прокрутки для Android/iOS */
 }
 </style>
