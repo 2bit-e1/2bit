@@ -1,5 +1,5 @@
 <script setup>
-import { RouterLink, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
 import { getDelayByNumber } from "./utils";
@@ -23,7 +23,10 @@ const appearDelay = getDelayByNumber(props.number) + "ms";
 const router = useRouter();
 const projectLink = computed(() => `/projects/${props.slug}`);
 
-const isClickBlocked = ref(false); // Флаг для блокировки кликов
+const showImage = ref(false);
+
+// Флаг для предотвращения избыточных переходов
+const isProcessing = ref(false);
 
 const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink == projectLink.value) {
@@ -45,39 +48,27 @@ const handleMouseleave = () => {
   handleClearActiveProjectData();
 };
 
-const showImage = ref(false);
+// Обработка перехода при клике
+const handleClick = () => {
+  if (isProcessing.value) return; // Если обработка уже в процессе, не повторять
 
-// Обработка кликов
-const handleClick = (event) => {
-  if (isClickBlocked.value) {
-    return; // Блокируем клик, если он заблокирован
-  }
-
-  // Устанавливаем блокировку клика для предотвращения повторного срабатывания
-  isClickBlocked.value = true;
-  setTimeout(() => {
-    isClickBlocked.value = false; // Разблокируем клик через 300 мс
-  }, 300);
+  isProcessing.value = true; // Устанавливаем флаг, чтобы предотвратить повторный переход
 
   if (isMobile) {
-    // Если мобильное устройство, блокируем и показываем изображения
-    const numberElement = projectItemElRef.value.querySelector(".number");
-    if (numberElement) {
-      numberElement.classList.add("number_gray");
-    }
-
+    // Если это мобильное устройство, показываем анимацию и блокируем переход на 300ms
     showImage.value = false;
 
-    // Переход через router.push() с небольшой задержкой
     setTimeout(() => {
-      router.push(projectLink.value); // Переход на страницу проекта
-      if (projectItemElRef.value) {
-        projectItemElRef.value.blur();
-      }
-    }, 300); // Плавная задержка для предотвращения конфликтов
+      router.push(projectLink.value);
+    }, 0); // Переход с минимальной задержкой
   } else {
-    handleSetActiveProjectData(); // Для десктопов просто активируем данные
+    handleSetActiveProjectData(); // Для десктопа вызываем сразу
   }
+
+  // Сбрасываем флаг после небольшого времени
+  setTimeout(() => {
+    isProcessing.value = false;
+  }, 500); // Таймаут 500 мс
 };
 </script>
 
@@ -90,6 +81,7 @@ const handleClick = (event) => {
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
       @click="handleClick" 
+      @touchend="handleClick" 
       ref="projectItemElRef"
     >
       <div class="item-inner">
