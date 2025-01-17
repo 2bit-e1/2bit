@@ -23,7 +23,7 @@ const appearDelay = getDelayByNumber(props.number) + "ms";
 const router = useRouter();
 const projectLink = computed(() => `/projects/${props.slug}`);
 
-const isScrollPrevented = ref(false);
+const isClickBlocked = ref(false); // Флаг для блокировки кликов
 
 const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink == projectLink.value) {
@@ -47,39 +47,24 @@ const handleMouseleave = () => {
 
 const showImage = ref(false);
 
-let isTapped = false; // Переменная для отслеживания, был ли клик
-
-const handleTouchStart = (event) => {
-  if (isScrollPrevented.value) {
-    event.preventDefault();
-    event.stopPropagation();
-  } else {
-    isTapped = true; // Устанавливаем флаг, что был клик
-  }
-};
-
 const handleClick = () => {
-  if (isScrollPrevented.value) {
-    return; // Блокируем обработку клика, если скролл был предотвращен
+  if (isClickBlocked.value) {
+    return; // Блокируем обработку клика, если флаг установлен
   }
 
   if (isMobile) {
-    if (!isTapped) {
-      return; // Игнорируем клик, если не был зафиксирован тач
-    }
+    // Устанавливаем флаг блокировки на короткое время
+    isClickBlocked.value = true;
 
-    // Активируем временную блокировку кликов
-    isScrollPrevented.value = true;
     setTimeout(() => {
-      isScrollPrevented.value = false;
-    }, 500); // Снимаем блокировку через 500 мс
+      isClickBlocked.value = false; // Разблокируем клик через 300 мс
+    }, 300);
 
     const numberElement = projectItemElRef.value.querySelector(".number");
     if (numberElement) {
       numberElement.classList.add("number_gray");
     }
 
-    // Отключаем показ изображения
     showImage.value = false;
 
     setTimeout(() => {
@@ -87,7 +72,7 @@ const handleClick = () => {
       if (projectItemElRef.value) {
         projectItemElRef.value.blur();
       }
-    }, 1500);
+    }, 500); // Плавный переход
   } else {
     handleSetActiveProjectData();
   }
@@ -104,7 +89,6 @@ const handleClick = () => {
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
       @click.prevent="handleClick"
-      @touchstart="handleTouchStart"
       ref="projectItemElRef"
     >
       <div class="item-inner">
