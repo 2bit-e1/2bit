@@ -72,7 +72,7 @@ const handleClick = () => {
     // Даем 500 мс для анимации, перед тем как перейти
     setTimeout(() => {
       router.push(projectLink.value);
-    }, 500); // Переход после задержки
+    }, 1000); // Переход после задержки
   } else {
     handleSetActiveProjectData(); // Для десктопа вызываем сразу
   }
