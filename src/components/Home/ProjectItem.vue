@@ -27,6 +27,17 @@ const showImage = ref(false);
 
 // Флаг для предотвращения избыточных переходов
 const isProcessing = ref(false);
+const isScrolling = ref(false); // Флаг для отслеживания скролла
+
+// Обработчик начала прокрутки
+const handleTouchStart = (event) => {
+  isScrolling.value = false; // Сбрасываем флаг при начале тапа
+};
+
+// Обработчик прокрутки
+const handleTouchMove = (event) => {
+  isScrolling.value = true; // Если происходит прокрутка, ставим флаг
+};
 
 const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink == projectLink.value) {
@@ -50,7 +61,7 @@ const handleMouseleave = () => {
 
 // Обработка перехода при клике
 const handleClick = () => {
-  if (isProcessing.value) return; // Если обработка уже в процессе, не повторять
+  if (isProcessing.value || isScrolling.value) return; // Если идет прокрутка, не выполняем переход
 
   isProcessing.value = true; // Устанавливаем флаг, чтобы предотвратить повторный переход
 
@@ -80,7 +91,9 @@ const handleClick = () => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click="handleClick" 
+      @click="handleClick"
+      @touchstart="handleTouchStart" 
+      @touchmove="handleTouchMove" 
       @touchend="handleClick" 
       ref="projectItemElRef"
     >
