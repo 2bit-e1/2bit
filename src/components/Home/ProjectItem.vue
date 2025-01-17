@@ -1,13 +1,9 @@
 <script setup>
 import { RouterLink, useRouter } from "vue-router";
-import Video from "../Video.vue";
 import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
 import { getDelayByNumber } from "./utils";
-import { useMobileProjectItemListeners } from "./hooks";
-import { computed, ref } from "vue";
-// import * as svgNumbers from '@/assets/svgs/project-numbers';
-
+import { ref, computed } from "vue";
 
 const props = defineProps({
   number: Number,
@@ -25,7 +21,9 @@ const Number_comp = AllNumbers[`Number_${props.number}`];
 const isMobile = window.innerWidth <= 1024;
 const appearDelay = getDelayByNumber(props.number) + "ms";
 const router = useRouter();
-const projectLink = computed(() => `/projects/${props.slug}`)
+const projectLink = computed(() => `/projects/${props.slug}`);
+
+const isScrollPrevented = ref(false);
 
 const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink == projectLink.value) {
@@ -49,17 +47,34 @@ const handleMouseleave = () => {
 
 const showImage = ref(false);
 
+const handleTouchStart = (event) => {
+  if (isScrollPrevented.value) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+};
+
 const handleClick = () => {
+  if (isScrollPrevented.value) {
+    return; // Блокируем обработку клика
+  }
+
   if (isMobile) {
-    const numberElement = projectItemElRef.value.querySelector('.number');
+    // Активируем временную блокировку кликов
+    isScrollPrevented.value = true;
+    setTimeout(() => {
+      isScrollPrevented.value = false;
+    }, 500); // Снимаем блокировку через 500 мс
+
+    const numberElement = projectItemElRef.value.querySelector(".number");
     if (numberElement) {
-      numberElement.classList.add('number_gray');
+      numberElement.classList.add("number_gray");
     }
+
     // Отключаем показ изображения
     showImage.value = false;
 
-    // Используем Vue Router для перехода
-      setTimeout(() => {
+    setTimeout(() => {
       router.push(projectLink.value);
       if (projectItemElRef.value) {
         projectItemElRef.value.blur();
@@ -69,8 +84,6 @@ const handleClick = () => {
     handleSetActiveProjectData();
   }
 };
-
-
 </script>
 
 <template>
@@ -82,7 +95,7 @@ const handleClick = () => {
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
       @click.prevent="handleClick"
-      @touchstart.stop="handleClick"
+      @touchstart="handleTouchStart"
       ref="projectItemElRef"
     >
       <div class="item-inner">
@@ -140,42 +153,17 @@ a.project-item-link {
 }
 
 .number_gray {
-  stroke: var(--clr-gray); /* Или другой цвет заливки */
+  stroke: var(--clr-gray);
 }
-
 
 .number-svg {
   stroke: var(--clr-black);
-
-  --stroke-duration: 300ms;
-  --translate-duration: 300ms;
-  --translate-delay: 0ms;
-  --scale-duration: 300ms;
-  --scale-delay: 0ms;
-  transition: stroke var(--stroke-duration),
-    translate var(--translate-duration) var(--translate-delay)
-      var(--timing-func-2),
-    scale var(--scale-duration) var(--scale-delay) var(--timing-func-1);
+  transition: stroke 300ms, transform 300ms;
 }
 
 .number-svg-container {
   display: inline-block;
-  --appear-delay: 0ms;
-  --appear-default-delay: v-bind(appearDelay);
-  --appear-duration: 300ms;
-  translate: 0 15px;
-  scale: 0.5;
-  animation: number-appear var(--appear-duration)
-    calc(var(--appear-default-delay) + var(--appear-delay)) var(--timing-func-1)
-    forwards;
-}
-
-.number-svg-container:nth-child(1) {
-  --appear-delay: 0ms;
-}
-
-.number-svg-container:nth-child(2) {
-  --appear-delay: 100ms;
+  animation: number-appear 300ms forwards;
 }
 
 .number_dim .number-svg {
@@ -183,115 +171,32 @@ a.project-item-link {
 }
 
 .project-item:hover .number-svg {
-  translate: 0 15px;
-  scale: 0.8;
-}
-
-.number-svg-container:nth-child(1) .number-svg {
-  --scale-delay: 330ms;
-  --translate-delay: 230ms;
-}
-
-.project-item:hover .number-svg-container:nth-child(1) .number-svg {
-  --scale-delay: 0ms;
-  --translate-delay: 100ms;
-}
-
-.number-svg-container:nth-child(2) .number-svg {
-  --scale-delay: 230ms;
-  --translate-delay: 130ms;
-}
-
-.project-item:hover .number-svg-container:nth-child(2) .number-svg {
-  --scale-delay: 100ms;
-  --translate-delay: 200ms;
-}
-
-@keyframes number-appear {
-  0% {
-    translate: 0 15px;
-    scale: 0.5;
-  }
-
-  100% {
-    translate: 0 0;
-    scale: 1;
-  }
+  transform: scale(0.8);
 }
 
 .preview-image {
   position: absolute;
   pointer-events: none;
   overflow: hidden;
-  top: 100%; /* Начальное положение ниже видимой области */
+  top: 100%;
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 0;
-  opacity: 0; /* Начальная прозрачность */
-  transition: top 500ms var(--timing-func-2), opacity 500ms;
+  opacity: 0;
+  transition: top 500ms, opacity 500ms;
 }
 
-.preview-image img {
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  max-height: 100%;
-  object-fit: cover;
-  object-position: center;
-  scale: 1.2;
-  transition: scale 400ms var(--timing-func-1);
+.preview-image.show {
+  top: 0;
+  opacity: 1;
 }
 
-.project-item:hover .preview-image img {
-  scale: 1; /* Уменьшение масштаба при показе */
-}
-
-.project-item:hover .preview-image img {
-  scale: 1;
-  --scale-delay: 260ms;
-}
-
-.preview-image.show, .project-item:hover .preview-image {
-  top: 0; /* Положение при показе изображения */
-  opacity: 1; /* Плавное проявление */
-}
-
-.preview-image video {
-  object-fit: contain;
-  width: 100%;
-}
-
-@media (max-width: 1024px) {
-   a.project-item-link {
-    padding: 5px;
+@keyframes number-appear {
+  from {
+    transform: translateY(15px) scale(0.5);
   }
-  .number_dim .number-svg {
-    stroke: var(--clr-black);
-  }
-  .project-item:hover .number-svg {
-    translate: none;
-    scale: 1;
-    stroke: var(--clr-gray);
-  } 
-  .number_gray {
-    stroke: var(--clr-gray);
-  }
-}
-
-@media (max-width: 768px) {
-  a.project-item-link {
-    padding: 5px;
-  }
-}
-
-@media (max-width: 500px) {
-   .preview-image {
-    display: none;
-  }
-  
-  .project-item-link:hover {    
-    border: none;
+  to {
+    transform: translateY(0) scale(1);
   }
 }
 </style>
