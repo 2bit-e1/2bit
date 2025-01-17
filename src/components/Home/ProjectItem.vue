@@ -53,34 +53,32 @@ const handleClick = (event) => {
     return; // Блокируем клик, если он заблокирован
   }
 
-  if (isMobile) {
-    // Добавляем блокировку клика, чтобы избежать двойных тапов
-    isClickBlocked.value = true;
-    setTimeout(() => {
-      isClickBlocked.value = false; // Разблокировка клика через 300 мс
-    }, 300);
+  // Устанавливаем блокировку клика для предотвращения повторного срабатывания
+  isClickBlocked.value = true;
+  setTimeout(() => {
+    isClickBlocked.value = false; // Разблокируем клик через 300 мс
+  }, 300);
 
-    // Обрабатываем клик только если был тап
+  if (isMobile) {
+    // Если мобильное устройство, блокируем и показываем изображения
     const numberElement = projectItemElRef.value.querySelector(".number");
     if (numberElement) {
       numberElement.classList.add("number_gray");
     }
 
-    // Отключаем показ изображения
     showImage.value = false;
 
-    // Переход через router.push
+    // Переход через router.push() с небольшой задержкой
     setTimeout(() => {
-      router.push(projectLink.value);
+      router.push(projectLink.value); // Переход на страницу проекта
       if (projectItemElRef.value) {
         projectItemElRef.value.blur();
       }
-    }, 500); // Плавный переход
+    }, 300); // Плавная задержка для предотвращения конфликтов
   } else {
-    handleSetActiveProjectData();
+    handleSetActiveProjectData(); // Для десктопов просто активируем данные
   }
 };
-
 </script>
 
 <template>
@@ -91,7 +89,7 @@ const handleClick = (event) => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click.prevent="handleClick"  
+      @click="handleClick" 
       ref="projectItemElRef"
     >
       <div class="item-inner">
