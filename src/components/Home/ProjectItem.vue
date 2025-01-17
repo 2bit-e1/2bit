@@ -47,26 +47,29 @@ const handleMouseleave = () => {
 
 const showImage = ref(false);
 
-const handleClick = () => {
+// Обработка кликов
+const handleClick = (event) => {
   if (isClickBlocked.value) {
-    return; // Блокируем обработку клика, если флаг установлен
+    return; // Блокируем клик, если он заблокирован
   }
 
   if (isMobile) {
-    // Устанавливаем флаг блокировки на короткое время
+    // Добавляем блокировку клика, чтобы избежать двойных тапов
     isClickBlocked.value = true;
-
     setTimeout(() => {
-      isClickBlocked.value = false; // Разблокируем клик через 300 мс
+      isClickBlocked.value = false; // Разблокировка клика через 300 мс
     }, 300);
 
+    // Обрабатываем клик только если был тап
     const numberElement = projectItemElRef.value.querySelector(".number");
     if (numberElement) {
       numberElement.classList.add("number_gray");
     }
 
+    // Отключаем показ изображения
     showImage.value = false;
 
+    // Переход через router.push
     setTimeout(() => {
       router.push(projectLink.value);
       if (projectItemElRef.value) {
@@ -88,7 +91,7 @@ const handleClick = () => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click.prevent="handleClick"
+      @click.prevent="handleClick"  
       ref="projectItemElRef"
     >
       <div class="item-inner">
