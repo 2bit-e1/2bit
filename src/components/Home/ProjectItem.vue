@@ -47,19 +47,27 @@ const handleMouseleave = () => {
 
 const showImage = ref(false);
 
+let isTapped = false; // Переменная для отслеживания, был ли клик
+
 const handleTouchStart = (event) => {
   if (isScrollPrevented.value) {
     event.preventDefault();
     event.stopPropagation();
+  } else {
+    isTapped = true; // Устанавливаем флаг, что был клик
   }
 };
 
 const handleClick = () => {
   if (isScrollPrevented.value) {
-    return; // Блокируем обработку клика
+    return; // Блокируем обработку клика, если скролл был предотвращен
   }
 
   if (isMobile) {
+    if (!isTapped) {
+      return; // Игнорируем клик, если не был зафиксирован тач
+    }
+
     // Активируем временную блокировку кликов
     isScrollPrevented.value = true;
     setTimeout(() => {
@@ -84,6 +92,7 @@ const handleClick = () => {
     handleSetActiveProjectData();
   }
 };
+
 </script>
 
 <template>
