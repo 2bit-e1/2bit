@@ -53,7 +53,7 @@ const projectName = computed(() => projectStore.name || "");
           :isAppear="!isImagesCountVisible && isActive"
           :delayOrder="0"
         />
-        <LinkArrowIcon />
+        <LinkArrowIcon class="project-item-inner-svg" />
       </div>
     </RouterLink>
 
@@ -175,6 +175,19 @@ const projectName = computed(() => projectStore.name || "");
   flex-wrap: nowrap;
   align-items: center;
   column-gap: 10px;
+}
+
+.project-item_to-project svg {
+  fill: currentColor; /* Используем цвет родителя */
+  transition: fill 0.3s ease;
+}
+
+.project-item_to-project {
+  color: var(--clr-gray); /* Цвет по умолчанию */
+}
+
+.project-item_to-project-active {
+  color: var(--clr-blue); /* Цвет для активного состояния */
 }
 
 .project-item_to-project svg {

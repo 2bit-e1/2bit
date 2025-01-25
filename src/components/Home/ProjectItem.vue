@@ -191,6 +191,12 @@ a.project-item-link {
   opacity: 1;
 }
 
+@media (max-width: 500px) {
+  .project-item-link {
+    border: none !important;
+  }
+}
+
 @keyframes number-appear {
   from {
     transform: translateY(15px) scale(0.5);
