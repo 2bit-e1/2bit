@@ -21,23 +21,9 @@ const Number_comp = AllNumbers[`Number_${props.number}`];
 const isMobile = window.innerWidth <= 1024;
 const appearDelay = getDelayByNumber(props.number) + "ms";
 const router = useRouter();
-const projectLink = computed(() => `/projects/${props.slug}`);
+const projectLink = computed(() => `/projects/${props.slug}`)
 
 const showImage = ref(false);
-
-// Флаг для предотвращения избыточных переходов
-const isProcessing = ref(false);
-const isScrolling = ref(false); // Флаг для отслеживания скролла
-
-// Обработчик начала прокрутки
-const handleTouchStart = (event) => {
-  isScrolling.value = false; // Сбрасываем флаг при начале тапа
-};
-
-// Обработчик прокрутки
-const handleTouchMove = (event) => {
-  isScrolling.value = true; // Если происходит прокрутка, ставим флаг
-};
 
 const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink == projectLink.value) {
@@ -53,36 +39,25 @@ const handleClearActiveProjectData = () => {
 
 const handleMouseenter = () => {
   handleSetActiveProjectData();
+  showImage.value = true; // Показать изображение при наведении
 };
 
 const handleMouseleave = () => {
   handleClearActiveProjectData();
+  showImage.value = false; // Скрыть изображение при уходе мыши
 };
 
-// Обработка перехода при клике
 const handleClick = () => {
-  if (isProcessing.value || isScrolling.value) return; // Если идет прокрутка, не выполняем переход
-
-  isProcessing.value = true; // Устанавливаем флаг, чтобы предотвратить повторный переход
-
   if (isMobile) {
-    // Если это мобильное устройство, показываем анимацию и блокируем переход на 500ms
-    showImage.value = false;
-
-    // Даем 500 мс для анимации, перед тем как перейти
     setTimeout(() => {
-      router.push(projectLink.value);
-    }, 1000); // Переход после задержки
+      router.push(projectLink.value); // Переход с задержкой 0,5 секунд
+    }, 500);
   } else {
-    handleSetActiveProjectData(); // Для десктопа вызываем сразу
+    handleSetActiveProjectData();
   }
-
-  // Сбрасываем флаг после небольшого времени
-  setTimeout(() => {
-    isProcessing.value = false;
-  }, 500); // Таймаут 500 мс
 };
 </script>
+
 
 <template>
   <li class="project-item">
@@ -92,10 +67,7 @@ const handleClick = () => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click="handleClick"
-      @touchstart="handleTouchStart" 
-      @touchmove="handleTouchMove" 
-      @touchend="handleClick" 
+      @click.prevent="handleClick"
       ref="projectItemElRef"
     >
       <div class="item-inner">
@@ -122,13 +94,14 @@ const handleClick = () => {
   </li>
 </template>
 
+
 <style scoped>
 a.project-item-link {
   border: 1px solid transparent;
   display: block;
   width: 100%;
   height: 100%;
-  padding: 5px;
+  padding: 10px;
   --border-delay: 300ms;
   transition: border 200ms var(--border-delay);
 }
@@ -152,18 +125,38 @@ a.project-item-link {
   overflow: hidden;
 }
 
-.number_gray {
-  stroke: var(--clr-gray);
-}
-
 .number-svg {
   stroke: var(--clr-black);
-  transition: stroke 300ms, transform 300ms;
+
+  --stroke-duration: 300ms;
+  --translate-duration: 300ms;
+  --translate-delay: 0ms;
+  --scale-duration: 300ms;
+  --scale-delay: 0ms;
+  transition: stroke var(--stroke-duration),
+    translate var(--translate-duration) var(--translate-delay)
+      var(--timing-func-2),
+    scale var(--scale-duration) var(--scale-delay) var(--timing-func-1);
 }
 
 .number-svg-container {
   display: inline-block;
-  animation: number-appear 300ms forwards;
+  --appear-delay: 0ms;
+  --appear-default-delay: v-bind(appearDelay);
+  --appear-duration: 300ms;
+  translate: 0 15px;
+  scale: 0.5;
+  animation: number-appear var(--appear-duration)
+    calc(var(--appear-default-delay) + var(--appear-delay)) var(--timing-func-1)
+    forwards;
+}
+
+.number-svg-container:nth-child(1) {
+  --appear-delay: 0ms;
+}
+
+.number-svg-container:nth-child(2) {
+  --appear-delay: 100ms;
 }
 
 .number_dim .number-svg {
@@ -171,38 +164,84 @@ a.project-item-link {
 }
 
 .project-item:hover .number-svg {
-  transform: scale(0.8);
+  translate: 0 -15px;
+  scale: 0.8;
+}
+
+.number-svg-container:nth-child(1) .number-svg {
+  --scale-delay: 330ms;
+  --translate-delay: 230ms;
+}
+
+.project-item:hover .number-svg-container:nth-child(1) .number-svg {
+  --scale-delay: 0ms;
+  --translate-delay: 100ms;
+}
+
+.number-svg-container:nth-child(2) .number-svg {
+  --scale-delay: 230ms;
+  --translate-delay: 130ms;
+}
+
+.project-item:hover .number-svg-container:nth-child(2) .number-svg {
+  --scale-delay: 100ms;
+  --translate-delay: 200ms;
+}
+
+@keyframes number-appear {
+  0% {
+    translate: 0 15px;
+    scale: 0.5;
+  }
+
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
 }
 
 .preview-image {
   position: absolute;
   pointer-events: none;
   overflow: hidden;
-  top: 100%;
+  top: 100%; /* Начальное положение ниже видимой области */
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  transition: top 500ms, opacity 500ms;
+  padding: 0;
+  opacity: 0; /* Начальная прозрачность */
+  transition: top 500ms var(--timing-func-2), opacity 500ms;
 }
 
 .preview-image.show {
-  top: 0;
-  opacity: 1;
+  top: 0; /* Положение при показе изображения */
+  opacity: 1; /* Плавное проявление */
 }
 
-@media (max-width: 500px) {
-  .project-item-link {
-    border: none !important;
+.preview-image img {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  object-position: center;
+  scale: 1.2;
+  transition: scale 400ms var(--timing-func-1);
+}
+
+.project-item:hover .preview-image img {
+  scale: 1; /* Уменьшение масштаба при показе */
+}
+
+.project-item:hover .preview-image img {
+  scale: 1;
+  --scale-delay: 260ms;
+}
+
+@media (max-width: 768px) {
+  a.project-item-link {
+    padding: 4px;
   }
 }
 
-@keyframes number-appear {
-  from {
-    transform: translateY(15px) scale(0.5);
-  }
-  to {
-    transform: translateY(0) scale(1);
-  }
-}
 </style>

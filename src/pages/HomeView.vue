@@ -23,7 +23,7 @@ import { computed, ref, watchEffect } from "vue";
 
 <style scoped>
 .home-view {  
-  padding-top: 100px;
+  padding-top: 50px;
   display: flex;
   flex-direction: column;
 }
