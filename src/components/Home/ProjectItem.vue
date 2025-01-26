@@ -244,4 +244,14 @@ a.project-item-link {
   }
 }
 
+@media (max-width: 500px) {
+  .preview-image {
+    display: none;
+  }
+
+  a.project-item-link {
+    border: none !important;
+  }
+}
+
 </style>

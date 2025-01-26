@@ -27,4 +27,10 @@ import { computed, ref, watchEffect } from "vue";
   display: flex;
   flex-direction: column;
 }
+
+@media (max-width: 500px) {
+  .home-view {  
+  padding-top: 100px;  
+}
+}
 </style>
