@@ -21,12 +21,12 @@ const Number_comp = AllNumbers[`Number_${props.number}`];
 const isMobile = window.innerWidth <= 1024;
 const appearDelay = getDelayByNumber(props.number) + "ms";
 const router = useRouter();
-const projectLink = computed(() => `/projects/${props.slug}`)
+const projectLink = computed(() => `/projects/${props.slug}`);
 
 const showImage = ref(false);
 
 const handleSetActiveProjectData = () => {
-  if (homeStore.activeProjectLink == projectLink.value) {
+  if (homeStore.activeProjectLink === projectLink.value) {
     router.push(projectLink.value);
   } else {
     emit("setActiveProjectData", props.name, props.year, projectLink.value);
@@ -47,17 +47,23 @@ const handleMouseleave = () => {
   showImage.value = false; // Скрыть изображение при уходе мыши
 };
 
-const handleClick = () => {
+const handleClick = (event) => {
   if (isMobile) {
+    
     setTimeout(() => {
       router.push(projectLink.value); // Переход с задержкой 1 секунд
-    }, 1000);
+    }, 1000); // Убираем 1 сек. задержку
   } else {
     handleSetActiveProjectData();
   }
 };
-</script>
 
+const handleTouchStart = (event) => {
+  if (isMobile) {
+    handleClick(event); // Обрабатываем клик сразу при прикосновении
+  }
+};
+</script>
 
 <template>
   <li class="project-item">
@@ -68,6 +74,7 @@ const handleClick = () => {
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
       @click="handleClick"
+      @touchstart="handleTouchStart" 
       ref="projectItemElRef"
     >
       <div class="item-inner">
@@ -76,14 +83,14 @@ const handleClick = () => {
           :class="{
             number_dim:
               homeStore.activeProjectName &&
-              homeStore.activeProjectName != name,
+              homeStore.activeProjectName !== name,
           }"
         >
           <span class="number-svg-container">
-            <component class="number-svg" :is="Number_0"></component>
+            <component class="number-svg" :is="Number_0" />
           </span>
           <span class="number-svg-container">
-            <component class="number-svg" :is="Number_comp"></component>
+            <component class="number-svg" :is="Number_comp" />
           </span>
         </h2>
         <div :class="['preview-image', { show: showImage }]">
@@ -93,7 +100,6 @@ const handleClick = () => {
     </component>
   </li>
 </template>
-
 
 <style scoped>
 a.project-item-link {
