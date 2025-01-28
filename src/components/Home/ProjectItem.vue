@@ -50,8 +50,8 @@ const handleMouseleave = () => {
 const handleClick = () => {
   if (isMobile) {
     setTimeout(() => {
-      router.push(projectLink.value); // Переход с задержкой 0,5 секунд
-    }, 500);
+      router.push(projectLink.value); // Переход с задержкой 1 секунд
+    }, 1000);
   } else {
     handleSetActiveProjectData();
   }
@@ -67,7 +67,7 @@ const handleClick = () => {
       :to="projectLink"
       @mouseenter="handleMouseenter"
       @mouseleave="handleMouseleave"
-      @click.prevent="handleClick"
+      @click="handleClick"
       ref="projectItemElRef"
     >
       <div class="item-inner">
@@ -127,7 +127,6 @@ a.project-item-link {
 
 .number-svg {
   stroke: var(--clr-black);
-
   --stroke-duration: 300ms;
   --translate-duration: 300ms;
   --translate-delay: 0ms;
@@ -251,6 +250,16 @@ a.project-item-link {
 
   a.project-item-link {
     border: none !important;
+  }
+
+  .project-item:hover .number-svg {
+    translate: 0px 0px;
+    scale: 1;
+    stroke: gray;
+  }
+
+  .number_dim .number-svg {
+    stroke: black;
   }
 }
 
