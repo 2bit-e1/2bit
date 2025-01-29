@@ -169,7 +169,7 @@ const playAnimation = () => {
   .footer-item {
     display: flex !important;
     justify-content: space-around !important;
-    width: 95vw !important;
+    width: 88vw !important;
     padding-bottom: 0 !important;
   }
 }
