@@ -44,12 +44,14 @@ onUnmounted(() => {
 
 @media (max-width: 1024px)  {
   .projects-list {
+    padding-top: 68px;
     --item-size: 33vmin;   
   }
 }
 
 @media (max-width: 768px) {
   .projects-list {
+    padding-top: 43px;
     --item-size: 33vmin;   
   }
 }
