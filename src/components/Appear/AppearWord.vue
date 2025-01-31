@@ -53,8 +53,8 @@ const appearDelay = computed(
   /*animation:
       disappear-translate 300ms 100ms forwards var(--timing-func-2),
       disappear-scale 300ms 0ms forwards var(--timing-func-1);*/
-  animation: disappear-translate 300ms 100ms forwards var(--timing-func-2),
-    disappear-opacityscale 300ms 50ms forwards var(--timing-func-1);
+  animation: disappear-translate 50ms 50ms forwards var(--timing-func-2),
+    disappear-opacityscale 50ms 50ms forwards var(--timing-func-1);
 }
 
 .appear-word.appear-word_appear .appear-word-inner {
