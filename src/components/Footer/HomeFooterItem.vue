@@ -112,13 +112,17 @@ const playAnimation = () => {
 
 .home-eyes {
   column-gap: 9px;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  display: flex;
   -webkit-tap-highlight-color: transparent;
 }
 
-
 .footer-item_active .home-eyes {
-  display: flex;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0.3s; /* Опциональная задержка для синхронизации с другими элементами */
 }
 
 .home-eye-item {
