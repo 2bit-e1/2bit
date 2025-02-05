@@ -264,6 +264,8 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
   top: 0;
   translate: -50% 0;
   color: #776e62;
+  text-decoration: none; /* Убираем линии */
+  border-bottom: none;   /* Убираем линии */
 }
 
 .item_left .item-btn-text_home {

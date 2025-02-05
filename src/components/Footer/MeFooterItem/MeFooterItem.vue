@@ -195,6 +195,13 @@ const pressItemsDelayOrder =
   }
 }
 
+@media (max-width: 1024px) {
+  .me-list-area_services, .me-list-area_contacts {
+    bottom: 67px !important;
+  }
+
+}
+
 @media (max-width: 820px) {
   .me-list-area_press {
     left: calc(var(--column-width) * 7);

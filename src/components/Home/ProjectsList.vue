@@ -43,15 +43,23 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1024px)  {
+  .header {
+    padding-top: 54px;
+  }
+
   .projects-list {
-    padding-top: 68px;
+    padding-top: 115px;
     --item-size: 33vmin;   
+  }
+
+  .home-btn {
+    padding: 0px 0px 57px 0px;
   }
 }
 
 @media (max-width: 768px) {
   .projects-list {
-    padding-top: 43px;
+    padding-top: 72.5px;
     --item-size: 33vmin;   
   }
 }
