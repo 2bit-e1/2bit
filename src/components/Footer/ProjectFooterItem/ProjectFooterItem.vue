@@ -237,6 +237,10 @@ const projectName = computed(() => projectStore.name || "");
 }
 
 @media (max-width: 1024px) {
+  .footer-item_project {
+    bottom: 82px !important;
+  }
+
   .project-item_role {
     grid-column: 7 / 12;
     min-height: 32px;
@@ -299,6 +303,9 @@ const projectName = computed(() => projectStore.name || "");
 }
 
 @media (max-width: 768px) {
+  .footer-item_project {
+    bottom: 68px !important;
+  }
   .project-item_role {
     grid-column: 2 / 12;
   }
