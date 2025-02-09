@@ -86,6 +86,10 @@ const pressItemsDelayOrder =
 </template>
 
 <style scoped>
+.me-list-area.me-list-area_services {
+  height: 1px;
+}
+
 .me-title {
   color: var(--clr-gray);
 }
@@ -286,6 +290,8 @@ const pressItemsDelayOrder =
   .me-list-area {
     bottom: 68px !important;
   }
+
+  
 }
 
 @media (max-height: 720px) and (max-width: 768px) {
