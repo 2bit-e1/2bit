@@ -28,6 +28,12 @@ import { computed, ref, watchEffect } from "vue";
   flex-direction: column;
 }
 
+@media (max-width: 1024px) {
+  .home-view {
+    padding-top: 0 !important;
+  }
+}
+
 @media (max-width: 500px) {
   .home-view {  
   padding-top: 100px;  
