@@ -42,7 +42,7 @@ import { computed, ref, watchEffect } from "vue";
 
 @media (max-width: 500px) {
   .home-view { 
-    padding-top: 80px !important;
+    padding-top: 50px !important;
     margin-bottom: 95px;
     min-height: 390px;
   }
