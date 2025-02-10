@@ -34,9 +34,15 @@ import { computed, ref, watchEffect } from "vue";
   }
 }
 
+@media (max-width: 768px) {
+  .home-view {  
+    padding-top: 100px !important;  
+  }
+}
+
 @media (max-width: 500px) {
   .home-view {  
-  padding-top: 100px;  
-}
+    padding-top: 100px !important;  
+  }
 }
 </style>

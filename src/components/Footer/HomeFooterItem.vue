@@ -138,7 +138,7 @@ const playAnimation = () => {
 @media (max-width: 1024px) {
   
   .home-btn {
-    padding: 0px 0px 67px 0px !important;
+    padding: 0px 0px 33px 0px !important;
   }
 
   .footer-item_home {
@@ -168,7 +168,7 @@ const playAnimation = () => {
 
 @media (max-width: 768px) {
   .home-btn {
-    padding: 0px 0px 44px 0px !important;
+    padding: 0px 0px 10px 0px !important;
   }
 }
 
@@ -189,6 +189,10 @@ const playAnimation = () => {
   .home-btn {
     padding: 0px 0px 30px 0px !important;
   }
-}
+
+  dotlottie-player {
+    transform: translate3d(-7px, 0px, 0px);
+  }
+}  
 
 </style>
