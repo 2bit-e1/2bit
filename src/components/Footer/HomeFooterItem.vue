@@ -143,11 +143,9 @@ const playAnimation = () => {
 
   .footer-item_home {
     bottom: 0px !important;
+    padding: 0px !important;
   }
-
-  .footer-item_home[data-v-25a69d38] {
-    padding: 0;
-  }
+ 
 
   .home-btn:nth-child(1) {
     grid-column: 2 / 4;
@@ -169,6 +167,11 @@ const playAnimation = () => {
 @media (max-width: 768px) {
   .home-btn {
     padding: 0px 0px 10px 0px !important;
+  }
+
+  .footer-item_home {
+    bottom: 0px !important;
+    padding: 0px !important;
   }
 }
 
