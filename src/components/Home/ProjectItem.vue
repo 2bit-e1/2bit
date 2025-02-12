@@ -107,7 +107,7 @@ a.project-item-link {
   display: block;
   width: 100%;
   height: 100%;
-  padding: 10px;
+  padding: 5px;
   --border-delay: 300ms;
   transition: border 200ms var(--border-delay);
 }

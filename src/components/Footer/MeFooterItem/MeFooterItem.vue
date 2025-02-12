@@ -197,11 +197,17 @@ const pressItemsDelayOrder =
   .me-list-area_services {
     bottom: 50px;
   }
+
+
 }
 
 @media (max-width: 1024px) {
   .me-list-area_services, .me-list-area_contacts {
     bottom: 88px !important;
+  }
+
+  .me-list-area.me-list-area_services {
+    height: auto;
   }
 
 }
@@ -291,6 +297,9 @@ const pressItemsDelayOrder =
     bottom: 68px !important;
   }
 
+  .me-list-area.me-list-area_services {
+    height: 1px;
+  }
   
 }
 
