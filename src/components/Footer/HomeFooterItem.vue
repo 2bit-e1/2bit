@@ -175,11 +175,39 @@ const playAnimation = () => {
   }
 }
 
+@media (max-width: 768px) and (max-height: 960px) {
+
+ .home-btn:nth-child(1) {
+  grid-column: 3 / 4;
+}
+
+.home-btn:nth-child(3) {
+  grid-column: 9 / 12;
+}
+
+}
+
+@media (max-width: 768px) and (max-height: 851px) {
+
+  .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 73vw !important;
+    padding-bottom: 0 !important;
+  }
+
+  .home-eyes {
+    margin-right: 11px;  
+  }  
+
+}
+
 
 @media (max-width: 500px) {
   .home-eyes {
      width: 100px !important;
      grid-column: 5 / 10 !important;
+     margin-right: 0;
   }   
 
   .footer-item {

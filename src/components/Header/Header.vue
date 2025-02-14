@@ -384,7 +384,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
   }*/
 
   .header {
-    padding-top: 40px;
+    padding-top: 34px;
   }
 
   .item_left {

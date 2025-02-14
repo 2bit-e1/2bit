@@ -263,9 +263,7 @@ a.project-item-link {
     padding-top: 43px;
     --item-size: 33vmin;   
   }
-}
 
-@media (max-width: 768px) {
   a.project-item-link {
     padding: 4px;
   }
