@@ -94,6 +94,16 @@ onUnmounted(() => {
 
 }
 
+@media (max-width: 768px) and (max-height: 750px) {
+
+  .projects-list {
+    
+    --item-size: 25vmin;
+  }
+
+}
+
+
 @media (max-width: 500px)  {
   .projects-list {
     --item-size: 33vmin;
