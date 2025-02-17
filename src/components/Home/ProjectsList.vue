@@ -57,6 +57,27 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 1024px) and (max-height: 1366px) {
+  .projects-list {
+    padding-top: 70px;
+    --item-size: 30vmin;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 1150px) {
+  .projects-list {
+    padding-top: 70px;
+    --item-size: 28vmin;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 1000px) {
+  .projects-list {
+    padding-top: 65px;
+    --item-size: 26vmin;
+  }
+}
+
 @media (max-width: 768px) {
   .projects-list {
     padding-top: 72.5px;
@@ -80,7 +101,7 @@ onUnmounted(() => {
   .projects-list {
     padding-top: 20px;
     padding-bottom: 45px;  
-    --item-size: 25vmin;
+    --item-size: 27vmin;
   }
 
 }
