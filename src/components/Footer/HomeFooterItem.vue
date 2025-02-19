@@ -175,6 +175,25 @@ const playAnimation = () => {
   }
 }
 
+@media (max-width: 850px) and (max-height: 1050px) {
+  .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 93vw !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 1366px) {
+   .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 93vw !important;
+    padding-bottom: 0 !important;
+  }
+} 
+
+
 @media (max-width: 768px) and (max-height: 960px) {
 
  .home-btn:nth-child(1) {

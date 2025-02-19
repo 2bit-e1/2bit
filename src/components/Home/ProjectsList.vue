@@ -49,7 +49,7 @@ onUnmounted(() => {
 
   .projects-list {
     padding-top: 115px;
-    --item-size: 33vmin;   
+    --item-size: 34vmin;   
   }
 
   .home-btn {
@@ -59,15 +59,15 @@ onUnmounted(() => {
 
 @media (max-width: 1024px) and (max-height: 1366px) {
   .projects-list {
-    padding-top: 70px;
-    --item-size: 32vmin;   
+    padding-top: 100px;
+    --item-size: 33vmin;   
   }
 } 
 
 @media (max-width: 1024px) and (max-height: 1150px) {
   .projects-list {
     padding-top: 80px;
-    --item-size: 29vmin; 
+    --item-size: 33vmin; 
   }
 } 
 
