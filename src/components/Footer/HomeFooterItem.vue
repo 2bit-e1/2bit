@@ -192,7 +192,7 @@ const playAnimation = () => {
   .footer-item {
     display: flex !important;
     justify-content: space-around !important;
-    width: 73vw !important;
+    width: 56vw !important;
     padding-bottom: 0 !important;
   }
 

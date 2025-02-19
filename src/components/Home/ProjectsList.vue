@@ -60,23 +60,16 @@ onUnmounted(() => {
 @media (max-width: 1024px) and (max-height: 1366px) {
   .projects-list {
     padding-top: 70px;
-    --item-size: 30vmin;
+    --item-size: 32vmin;   
   }
-}
+} 
 
 @media (max-width: 1024px) and (max-height: 1150px) {
   .projects-list {
-    padding-top: 70px;
-    --item-size: 28vmin;
+    padding-top: 80px;
+    --item-size: 29vmin; 
   }
-}
-
-@media (max-width: 1024px) and (max-height: 1000px) {
-  .projects-list {
-    padding-top: 65px;
-    --item-size: 26vmin;
-  }
-}
+} 
 
 @media (max-width: 768px) {
   .projects-list {
