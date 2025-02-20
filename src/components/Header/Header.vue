@@ -360,7 +360,7 @@ const headerExtraClass = computed(() => getHeaderExtraClass(props.pageName));
   }
 }
 
-@media (max-width: 820px) {
+@media (max-width: 850px) {
   .header {
     padding-top: 25px;
   }

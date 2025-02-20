@@ -66,7 +66,7 @@ onUnmounted(() => {
 
 @media (max-width: 1024px) and (max-height: 1150px) {
   .projects-list {
-    padding-top: 80px;
+    padding-top: 75px;
     --item-size: 33vmin; 
   }
 } 
