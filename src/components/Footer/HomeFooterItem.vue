@@ -135,6 +135,8 @@ const playAnimation = () => {
   color: var(--clr-gray);
 }
 
+
+
 @media (max-width: 1024px) {
   
   .home-btn {
@@ -164,6 +166,43 @@ const playAnimation = () => {
   }
 }
 
+@media (max-width: 1024px) and (max-height: 1366px) {
+   .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 93vw !important;
+    padding-bottom: 0 !important;
+  }
+} 
+
+
+@media (max-width: 1024px) and (max-height: 1220px) {
+    .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 88vw !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 1150px)  {
+ .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 85vw !important;
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 1100px) {
+  .footer-item {
+    display: flex !important;
+    justify-content: space-around !important;
+    width: 79vw !important;
+    padding-bottom: 0 !important;
+  }
+}
+
 @media (max-width: 768px) {
   .home-btn {
     padding: 0px 0px 10px 0px !important;
@@ -183,16 +222,6 @@ const playAnimation = () => {
     padding-bottom: 0 !important;
   }
 }
-
-@media (max-width: 1024px) and (max-height: 1366px) {
-   .footer-item {
-    display: flex !important;
-    justify-content: space-around !important;
-    width: 93vw !important;
-    padding-bottom: 0 !important;
-  }
-} 
-
 
 @media (max-width: 768px) and (max-height: 960px) {
 

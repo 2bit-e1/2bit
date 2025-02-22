@@ -412,6 +412,18 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 1024px) and (max-height: 1050px) {
+  .info-image_me, .info-video {
+      margin: 0 0 calc((100vh - 350px) / 3) 0;
+  } 
+}
+
+@media (max-width: 1024px) and (max-height: 950px) {
+  .info-image_me, .info-video {
+      margin: 0 0 calc((100vh - 550px) / 3) 0;
+  } 
+}
+
 @media (max-width: 820px) {
   .text-container {
     padding-bottom: 180px;
