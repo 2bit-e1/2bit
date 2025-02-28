@@ -304,7 +304,7 @@ const projectName = computed(() => projectStore.name || "");
 
 @media (max-width: 768px) {
   .footer-item_project {
-    bottom: 68px !important;
+    bottom: 29px !important;
   }
   .project-item_role {
     grid-column: 2 / 12;
