@@ -203,7 +203,7 @@ const pressItemsDelayOrder =
 
 @media (max-width: 1024px) {
   .me-list-area_services, .me-list-area_contacts {
-    bottom: 88px !important;
+    bottom: 51px !important;
   }
 
   .me-list-area.me-list-area_services {

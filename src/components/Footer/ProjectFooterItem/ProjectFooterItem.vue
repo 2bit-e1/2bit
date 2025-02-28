@@ -238,7 +238,7 @@ const projectName = computed(() => projectStore.name || "");
 
 @media (max-width: 1024px) {
   .footer-item_project {
-    bottom: 82px !important;
+    bottom: 62px !important;
   }
 
   .project-item_role {
