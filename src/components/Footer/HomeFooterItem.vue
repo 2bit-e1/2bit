@@ -223,6 +223,7 @@ const playAnimation = () => {
 
 
 @media (max-width: 500px) {
+
   .home-eyes {
      width: 100px !important;
      grid-column: 5 / 10 !important;
@@ -234,10 +235,12 @@ const playAnimation = () => {
     justify-content: space-around !important;
     width: 88vw !important;
     padding-bottom: 0 !important;
+    height: 10px !important;
+    margin-bottom: 71px;
   }
 
   .home-btn {
-    padding: 0px 0px 30px 0px !important;
+    padding: 0px !important;
   }
 
   dotlottie-player {
