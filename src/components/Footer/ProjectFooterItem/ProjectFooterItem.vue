@@ -322,4 +322,11 @@ const projectName = computed(() => projectStore.name || "");
     bottom: 170px;
   }
 }
+
+@media (max-width: 500px) {
+  .footer-item_project {
+    bottom: 18px !important;
+  }
+ 
+}
 </style>

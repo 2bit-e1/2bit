@@ -310,4 +310,11 @@ const pressItemsDelayOrder =
     position: initial;
   }
 }
+
+@media (max-width: 500px) {
+  .me-list-area {
+    bottom: 55px !important;
+  }
+}
+
 </style>
