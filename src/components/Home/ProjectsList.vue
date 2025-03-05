@@ -122,7 +122,7 @@ onUnmounted(() => {
   .projects-list {
     --item-size: 33vmin;
     gap: 0 0;
-    padding-top: 125px;
+    padding-top: 80px;
     padding-bottom: 0;
   }
 }
