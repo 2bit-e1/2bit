@@ -159,4 +159,10 @@ onUnmounted(() => {
     width: calc(var(--column-width) * 10);
   }
 }
+
+@media (max-width: 500px) {
+  .description {
+    padding-top: 45px;
+  }
+}
 </style>
