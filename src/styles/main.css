@@ -4,8 +4,8 @@
 @import url("./utils.css");
 
 :root {
-  --clr-black: #494949;
-  --clr-gray: #a1a1a1;
+  --clr-black: #000000;
+  --clr-gray: #727272;
   --bg-clr-white: #f8f8f8;
   --bg-clr-white-rgb: 248, 248, 248;
 
