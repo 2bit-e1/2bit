@@ -18,10 +18,35 @@ const handleImageClick = (imageData) => {
   emits("openPopup", getImageSrc(imageData.name), imageData.description);
 };
 
+const handleParallax = (scrollY) => {
+  const items = scrollContainer.value.querySelectorAll(".list-item");
+
+  items.forEach((item) => {
+    const column = parseInt(item.dataset.column);
+    const delay = (column - 1.5) * 10; // -15, -5, 5, 15
+    const offset = scrollY * delay * 0.01;
+
+    item.style.transform = `translateY(${offset}px)`;
+  });
+};
+
+let scrollTimeout;
+
 onMounted(() => {
-  scrollInstance.value = getLocomotiveScrollInstance(
-    scrollContainer.value
-  );
+  scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
+
+  scrollInstance.value.on("scroll", (args) => {
+    clearTimeout(scrollTimeout);
+
+    handleParallax(args.scroll.y);
+
+    scrollTimeout = setTimeout(() => {
+      const items = scrollContainer.value.querySelectorAll(".list-item");
+      items.forEach((item) => {
+        item.style.transform = "";
+      });
+    }, 80);
+  });
 });
 
 onUnmounted(() => {
@@ -46,7 +71,12 @@ useWaitingImagesToLoad(
   >
     <div class="list-container">
       <ul class="list">
-        <li class="list-item" v-for="(imageData, ind) in processImagesData">
+        <li
+          class="list-item"
+          v-for="(imageData, ind) in processImagesData"
+          :key="ind"
+          :data-column="ind % 4"
+        >
           <ImagesListItem
             :src="getImageSrc(imageData.name)"
             :isHide="!isImagesLoaded"
@@ -66,15 +96,11 @@ useWaitingImagesToLoad(
   padding: var(--header-height) max(calc((100vw - 1440px) / 5), 26px);
 }
 
-.list-container {
-}
-
 .list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0px, 280px));
   justify-content: space-between;
   --row-gap: 80px;
-
   grid-auto-rows: 160px;
   column-gap: 50px;
   row-gap: var(--row-gap);
@@ -85,28 +111,22 @@ useWaitingImagesToLoad(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
   --appear-delay-default: 0ms;
   --appear-delay-step: 100ms;
   --appear-delay: var(--appear-delay-default);
+  transition: transform 0.4s ease-out;
 }
 
 .list-item:nth-child(4n + 2) {
-  --appear-delay: calc(
-    1 * var(--appear-delay-step) + var(--appear-delay-default)
-  );
+  --appear-delay: calc(1 * var(--appear-delay-step) + var(--appear-delay-default));
 }
 
 .list-item:nth-child(4n + 3) {
-  --appear-delay: calc(
-    2 * var(--appear-delay-step) + var(--appear-delay-default)
-  );
+  --appear-delay: calc(2 * var(--appear-delay-step) + var(--appear-delay-default));
 }
 
 .list-item:nth-child(4n + 4) {
-  --appear-delay: calc(
-    3 * var(--appear-delay-step) + var(--appear-delay-default)
-  );
+  --appear-delay: calc(3 * var(--appear-delay-step) + var(--appear-delay-default));
 }
 
 @media (max-width: 1024px) {
