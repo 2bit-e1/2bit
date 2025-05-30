@@ -1,11 +1,10 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, computed } from "vue";
 import ImagesListItem from "./ImageListItem.vue";
 import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
 import { getImageSrc, timeForLoadAllImages } from "./utils";
 import LocomotiveScroll from "locomotive-scroll";
 import { processImagesData } from "@/data/process/images";
-import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
 
 const emits = defineEmits(["openPopup"]);
 
@@ -14,6 +13,15 @@ const isImagesLoaded = ref(false);
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
+// Получаем количество колонок по ширине экрана
+const getColumnsCount = () => {
+  if (window.innerWidth <= 600) return 2;
+  if (window.innerWidth <= 1024) return 3;
+  return 4;
+};
+
+const columnCount = ref(getColumnsCount());
+
 const handleImageClick = (imageData) => {
   emits("openPopup", getImageSrc(imageData.name), imageData.description);
 };
@@ -21,10 +29,11 @@ const handleImageClick = (imageData) => {
 const handleParallax = (scrollY) => {
   const items = scrollContainer.value.querySelectorAll(".list-item");
 
-  items.forEach((item) => {
-    const column = parseInt(item.dataset.column);
-    const delay = (column - 1.5) * 10; // -15, -5, 5, 15
-    const offset = scrollY * delay * 0.01;
+  items.forEach((item, index) => {
+    const col = index % columnCount.value;
+    const middle = (columnCount.value - 1) / 2;
+    const delayFactor = (col - middle) * 10; // -10, 0, 10 для 3 колонок
+    const offset = scrollY * delayFactor * 0.01;
 
     item.style.transform = `translateY(${offset}px)`;
   });
@@ -33,14 +42,25 @@ const handleParallax = (scrollY) => {
 let scrollTimeout;
 
 onMounted(() => {
-  scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
+  columnCount.value = getColumnsCount();
+
+  scrollInstance.value = new LocomotiveScroll({
+    el: scrollContainer.value,
+    smooth: true,
+    smartphone: {
+      smooth: true,
+    },
+    tablet: {
+      smooth: true,
+    },
+  });
 
   scrollInstance.value.on("scroll", (args) => {
     clearTimeout(scrollTimeout);
-
     handleParallax(args.scroll.y);
 
     scrollTimeout = setTimeout(() => {
+      // сброс transform при окончании скролла
       const items = scrollContainer.value.querySelectorAll(".list-item");
       items.forEach((item) => {
         item.style.transform = "";
@@ -75,7 +95,6 @@ useWaitingImagesToLoad(
           class="list-item"
           v-for="(imageData, ind) in processImagesData"
           :key="ind"
-          :data-column="ind % 4"
         >
           <ImagesListItem
             :src="getImageSrc(imageData.name)"
@@ -111,22 +130,7 @@ useWaitingImagesToLoad(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  --appear-delay-default: 0ms;
-  --appear-delay-step: 100ms;
-  --appear-delay: var(--appear-delay-default);
   transition: transform 0.4s ease-out;
-}
-
-.list-item:nth-child(4n + 2) {
-  --appear-delay: calc(1 * var(--appear-delay-step) + var(--appear-delay-default));
-}
-
-.list-item:nth-child(4n + 3) {
-  --appear-delay: calc(2 * var(--appear-delay-step) + var(--appear-delay-default));
-}
-
-.list-item:nth-child(4n + 4) {
-  --appear-delay: calc(3 * var(--appear-delay-step) + var(--appear-delay-default));
 }
 
 @media (max-width: 1024px) {
@@ -137,12 +141,6 @@ useWaitingImagesToLoad(
   .list {
     grid-template-columns: repeat(3, 1fr);
     --row-gap: 50px;
-  }
-}
-
-@media (max-width: 820px) {
-  .list {
-    grid-auto-rows: 120px;
   }
 }
 
