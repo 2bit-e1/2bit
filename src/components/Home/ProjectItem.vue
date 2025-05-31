@@ -29,7 +29,8 @@ const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink === projectLink.value) {
     router.push(projectLink.value);
   } else {
-    emit("setActiveProjectData", props.name, props.year, projectLink.value);
+    // добавляем путь к изображению
+    emit("setActiveProjectData", props.name, props.year, projectLink.value, "/images/image.png");
   }
 };
 

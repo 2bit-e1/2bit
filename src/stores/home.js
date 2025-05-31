@@ -6,18 +6,20 @@ export const useHomeStore = defineStore('home', {
     activeProjectName: null,
     activeProjectYear: null,
     activeProjectLink: null,
+    activeProjectImage: null, // <---- новое
   }),
   actions: {
-    /** @param {string} projectName @param {number} projectYear */
-    setActiveProjectData(projectName, projectYear, projectLink) {
-      this.activeProjectName = projectName
-      this.activeProjectYear = projectYear
-      this.activeProjectLink = projectLink
+    setActiveProjectData(name, year, link, image = null) {
+      this.activeProjectName = name;
+      this.activeProjectYear = year;
+      this.activeProjectLink = link;
+      this.activeProjectImage = image;
     },
     clearActiveProjectData() {
-      this.activeProjectName = null
-      this.activeProjectYear = null
-      this.activeProjectLink = null
+      this.activeProjectName = null;
+      this.activeProjectYear = null;
+      this.activeProjectLink = null;
+      this.activeProjectImage = null;
     },
   },
 })

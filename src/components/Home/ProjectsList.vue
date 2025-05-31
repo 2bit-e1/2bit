@@ -4,10 +4,31 @@ import ProjectItem from "@/components/Home/ProjectItem.vue";
 import { onBeforeMount, onUnmounted } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
+import { ref, onMounted } from "vue";
+
+const isDesktop = ref(false);
+
+const checkIsDesktop = () => {
+  isDesktop.value = window.innerWidth > 1024;
+};
+
+onMounted(() => {
+  checkIsDesktop();
+  window.addEventListener("resize", checkIsDesktop);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkIsDesktop);
+});
 
 const homeStore = useHomeStore();
 
-const setActiveProjectData = useDebounce(homeStore.setActiveProjectData, 200);
+const setActiveProjectData = useDebounce(
+  (name, year, link, image) => {
+    homeStore.setActiveProjectData(name, year, link, image);
+  },
+  200
+);
 const clearActiveProjectData = useDebounce(homeStore.clearActiveProjectData, 200);
 
 onUnmounted(() => {
@@ -28,9 +49,33 @@ onUnmounted(() => {
       @clearActiveProjectData="clearActiveProjectData"
     />
   </ul>
+  <div
+    class="fullscreen-preview"
+    v-if="homeStore.activeProjectImage && isDesktop"
+    :style="{ backgroundImage: `url(${homeStore.activeProjectImage})` }"
+  />
 </template>
 
 <style scoped>
+
+.fullscreen-preview {
+  position: fixed;
+  inset: 0;
+  z-index: -1; /* теперь ПОД всеми элементами */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  animation: fadeIn 0.4s forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
 .projects-list {
   
   display: grid;
