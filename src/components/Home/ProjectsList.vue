@@ -1,7 +1,7 @@
 <script setup>
 import allProjects from "@/data/projects/index.js";
 import ProjectItem from "@/components/Home/ProjectItem.vue";
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 
@@ -31,7 +31,6 @@ onMounted(() => {
 
 const homeStore = useHomeStore();
 
-// Дебаунс для плавности появления/исчезания
 const setActiveProjectData = useDebounce(
   (name, year, link, image) => {
     homeStore.setActiveProjectData(name, year, link, image);
@@ -49,14 +48,21 @@ onUnmounted(() => {
   clearActiveProjectData();
 });
 
-// Локальное состояние для управления видимостью превью с анимацией
-const isPreviewVisible = computed(() => !!homeStore.activeProjectImage && isDesktop.value);
-const activeImage = computed(() => homeStore.activeProjectImage);
 </script>
 
 <template>
   <ul class="projects-list">
-    <ProjectItem
+    <!-- <ProjectItem
+      v-for="project in allProjects"
+      :key="project.number"
+      :number="project.number"
+      :slug="project.slug"
+      :name="project.name"
+      :year="project.year"
+      @setActiveProjectData="setActiveProjectData"
+      @clearActiveProjectData="clearActiveProjectData"
+    /> -->
+     <ProjectItem
       v-for="project in allProjects"
       :key="project.number"
       :number="project.number"
@@ -69,26 +75,71 @@ const activeImage = computed(() => homeStore.activeProjectImage);
     />
   </ul>
 
-  <transition name="fade" mode="out-in">
-    <div
-      v-if="isPreviewVisible"
-      class="fullscreen-preview"
-      aria-hidden="!isPreviewVisible"
-    >
-      <template v-if="activeImage.endsWith('.mp4')">
-        <video :src="activeImage" autoplay muted loop playsinline />
-      </template>
-      <template v-else>
-        <div
-          class="fullscreen-preview-image"
-          :style="{ backgroundImage: `url(${activeImage})` }"
-        />
-      </template>
-    </div>
-  </transition>
+  <!-- <div
+    class="fullscreen-preview"
+    v-if="homeStore.activeProjectImage && isDesktop"
+    :style="{ backgroundImage: url(${homeStore.activeProjectImage}) }"
+  /> -->
+  <div v-if="homeStore.activeProjectImage && isDesktop" class="fullscreen-preview">
+    <template v-if="homeStore.activeProjectImage.endsWith('.mp4')">
+      <video :src="homeStore.activeProjectImage" autoplay muted loop playsinline />
+    </template>
+    <template v-else>
+      <div
+        v-if="homeStore.activeProjectImage && isDesktop"
+        class="fullscreen-preview-image"
+        :style="{ backgroundImage: `url(${homeStore.activeProjectImage})` }"
+      />
+    </template>
+  </div>
 </template>
 
 <style scoped>
+
+/* .fullscreen-preview-image {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  animation: fadeIn .2s forwards;
+  pointer-events: none;
+
+  filter: invert(1) hue-rotate(180deg);
+} */
+
+.fullscreen-preview video {
+  width: 100vw;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: 100vh;
+  object-fit: cover;
+
+}
+
+.fullscreen-preview video,
+.fullscreen-preview-image {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  animation: fadeIn .2s forwards;
+  pointer-events: none;
+
+  filter: invert(1) hue-rotate(180deg);
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
 .projects-list {
   
   display: grid;
@@ -184,54 +235,17 @@ const activeImage = computed(() => homeStore.activeProjectImage);
     padding-bottom: 0;
   }
 }
-
-/* Другие медиа-запросы оставь как у тебя */
-
-.fullscreen-preview {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  filter: invert(1) hue-rotate(180deg);
-  background: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.fullscreen-preview video,
-.fullscreen-preview-image {
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-/* Плавное появление/исчезание через transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
-}
 </style>
 
 <style>
-body {
-  transition: filter 0s ease;
-  will-change: filter;
-}
 
-body.inverted {
-  filter: invert(1) hue-rotate(180deg);
-  transition: filter 0.1s ease;
-}
+  body {
+    transition: filter 0s ease;
+    will-change: filter;
+  }
+
+  body.inverted {
+    filter: invert(1) hue-rotate(180deg);
+    transition: filter 0.1s ease;
+  }
 </style>
