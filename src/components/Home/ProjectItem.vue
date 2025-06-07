@@ -3,31 +3,41 @@ import { useRouter } from "vue-router";
 import * as AllNumbers from "@/assets/svgs/project-numbers/index.js";
 import { useHomeStore } from "@/stores/home";
 import { getDelayByNumber } from "./utils";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 
 const props = defineProps({
   number: Number,
   slug: String,
   name: String,
   year: Number,
+  media: Array, // [{ type: 'image' | 'video', src: string }]
 });
 
 const emit = defineEmits(["setActiveProjectData", "clearActiveProjectData"]);
 
 const homeStore = useHomeStore();
-const Number_0 = AllNumbers[`Number_0`];
+
+const isMobile = ref(false);
+
+onMounted(() => {
+  isMobile.value = window.innerWidth <= 1024;
+});
+
+const router = useRouter();
+
+
+const projectLink = computed(() => `/projects/${props.slug}`);
+const Number_0 = AllNumbers["Number_0"];
 const Number_comp = AllNumbers[`Number_${props.number}`];
 
-const isMobile = window.innerWidth <= 1024;
-const router = useRouter();
-const projectLink = computed(() => `/projects/${props.slug}`);
 const appearDelay = getDelayByNumber(props.number) + "ms";
 
 const handleSetActiveProjectData = () => {
   if (homeStore.activeProjectLink === projectLink.value) {
     router.push(projectLink.value);
   } else {
-    emit("setActiveProjectData", props.name, props.year, projectLink.value, "/images/image.png");
+    const preview = props.media.find(item => item.type === "image")?.src || props.media[0]?.src || "";
+    emit("setActiveProjectData", props.name, props.year, projectLink.value, preview);
   }
 };
 
@@ -35,16 +45,8 @@ const handleClearActiveProjectData = () => {
   emit("clearActiveProjectData");
 };
 
-const handleMouseenter = () => {
-  handleSetActiveProjectData();
-};
-
-const handleMouseleave = () => {
-  handleClearActiveProjectData();
-};
-
 const handleClick = () => {
-  if (isMobile) {
+  if (isMobile.value) {
     setTimeout(() => {
       router.push(projectLink.value);
     }, 1000);
@@ -54,7 +56,7 @@ const handleClick = () => {
 };
 
 const handleTouchStart = () => {
-  if (isMobile) {
+  if (isMobile.value) {
     handleClick();
   }
 };
@@ -63,23 +65,24 @@ const handleTouchStart = () => {
 <template>
   <li class="project-item">
     <component
-      :is="!isMobile ? 'router-link' : 'a'"
+      :is="!isMobile.value ? 'router-link' : 'a'"
       class="link project-item-link"
-      :to="projectLink"
-      @mouseenter="handleMouseenter"
-      @mouseleave="handleMouseleave"
-      @click="handleClick"
-      @touchstart="handleTouchStart"
+      :to="!isMobile.value ? projectLink : undefined"
+      @mouseenter="handleSetActiveProjectData"
+      @mouseleave="handleClearActiveProjectData"
+      @click.prevent="handleClick"
+      @touchstart.prevent="handleTouchStart"
+      preload="auto"
     >
       <div class="item-inner">
         <h2
           class="number"
-          :class="{ number_dim: homeStore.activeProjectName && homeStore.activeProjectName !== name }"
+          :class="{ number_dim: homeStore.activeProjectName && homeStore.activeProjectName !== props.name }"
         >
-          <span class="number-svg-container">
+          <span class="number-svg-container" :style="{ '--appear-default-delay': appearDelay }">
             <component class="number-svg" :is="Number_0" />
           </span>
-          <span class="number-svg-container">
+          <span class="number-svg-container" :style="{ '--appear-default-delay': appearDelay }">
             <component class="number-svg" :is="Number_comp" />
           </span>
         </h2>
@@ -119,8 +122,7 @@ a.project-item-link {
 
 .number-svg-container {
   display: inline-block;
-  --appear-default-delay: v-bind(appearDelay);
-  animation: number-appear 300ms calc(var(--appear-default-delay)) var(--timing-func-1) forwards;
+  animation: number-appear 300ms var(--appear-default-delay) var(--timing-func-1) forwards;
   translate: 0 15px;
   scale: 0.5;
 }
