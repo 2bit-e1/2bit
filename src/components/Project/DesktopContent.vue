@@ -96,3 +96,10 @@ useDisableScrollOnInfoOpen();
   }
 }
 </style>
+
+<style>
+body {
+   transition: none;
+   will-change: unset;
+}
+</style>

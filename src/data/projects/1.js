@@ -27,6 +27,6 @@ export default {
     "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D"
   ],
   media: [
-    { type: "video", src: "/mainPic8.mp4" }, 
+    { type: "video", src: "/mainPic6.mp4" }, 
   ]
 };
