@@ -1,105 +1,147 @@
 <script setup>
-import { useTemplateRef, ref, watchEffect } from "vue";
-import { useDisableScrollOnInfoOpen, useHandleScrollImages } from "./hooks";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "@/stores/project";
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array
-})
+});
 
-const imagesBoxesRefs = useTemplateRef('imagesBoxes');
 const projectStore = useProjectStore();
-const isFirstImageAppear = ref(true);
+const currentIndex = ref(0);
+projectStore.setCurrentImage(0);
 
-useHandleScrollImages(imagesBoxesRefs, isFirstImageAppear, projectStore.setCurrentImage);
+let isScrolling = false;
+let touchStartY = 0;
+let touchEndY = 0;
 
-useDisableScrollOnInfoOpen();
+const scrollToIndex = (index) => {
+  if (index < 0 || index >= imagesSrc.length) return;
+  currentIndex.value = index;
+  projectStore.setCurrentImage(index);
+};
 
-// watchEffect(() => {
-//   if (!projectStore.isInfoOpen) {
-//     projectStore.setCurrentImage(0);
-//   }
-// })
+const handleWheel = (e) => {
+  if (isScrolling) return;
 
+  isScrolling = true;
+
+  if (e.deltaY > 0) {
+    scrollToIndex(currentIndex.value + 1);
+  } else if (e.deltaY < 0) {
+    scrollToIndex(currentIndex.value - 1);
+  }
+
+  setTimeout(() => {
+    isScrolling = false;
+  }, 700);
+};
+
+const handleTouchStart = (e) => {
+  touchStartY = e.changedTouches[0].clientY;
+};
+
+const handleTouchEnd = (e) => {
+  touchEndY = e.changedTouches[0].clientY;
+  const deltaY = touchStartY - touchEndY;
+
+  if (Math.abs(deltaY) < 50 || isScrolling) return; // игнорируем мелкие движения
+
+  isScrolling = true;
+
+  if (deltaY > 0) {
+    scrollToIndex(currentIndex.value + 1); // свайп вверх → след. слайд
+  } else {
+    scrollToIndex(currentIndex.value - 1); // свайп вниз → пред. слайд
+  }
+
+  setTimeout(() => {
+    isScrolling = false;
+  }, 700);
+};
+
+onMounted(() => {
+  window.addEventListener("wheel", handleWheel, { passive: false });
+  window.addEventListener("touchstart", handleTouchStart, { passive: true });
+  window.addEventListener("touchend", handleTouchEnd, { passive: true });
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("wheel", handleWheel);
+  window.removeEventListener("touchstart", handleTouchStart);
+  window.removeEventListener("touchend", handleTouchEnd);
+});
 </script>
 
-<template>
-  <div
-    class="desktop-content"
-    :style="{ height: imagesSrc.length * 100 + 'vh' }"
-  >
-    <div class="images-container">
-      <div
-        v-for="(imageSrc, ind) in imagesSrc"
-        class="image-box"
-        :class="{ 'image-box_appear': isFirstImageAppear && ind == 0 }"
-        ref="imagesBoxes"
-      >
-        <img :src="imageSrc" />
-      </div>
+
+
+<template>  
+   <div class="scroller">
+    <div
+      v-for="(imageSrc, ind) in imagesSrc"
+      :key="ind"
+      class="image-box"
+      :class="{
+        'image-box_active': currentIndex === ind,
+        'image-box_above': ind < currentIndex,
+        'image-box_below': ind > currentIndex
+      }"
+    >
+      <img :src="imageSrc" />
     </div>
   </div>
 </template>
 
-<style scoped>
-.desktop-content {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 100%;
-}
 
-.images-container {
-  position: fixed;
+<style scoped>
+
+.scroller {
+  position: fixed; /* это нужно, если ещё не было */
   top: var(--header-height);
-  bottom: var(--footer-height);
+  left: 0;
   width: 100%;
+  height: calc(100vh - var(--header-height) - var(--footer-height));
   overflow: hidden;
 }
 
 .image-box {
   position: absolute;
-  width: 100vw;
-  height: 100%;
+  top: 0;
   left: 0;
-  bottom: 0;
+  height: calc(100vh - var(--header-height) - var(--footer-height));
+  width: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: center; /* центр по горизонтали */
+  align-items: flex-end;   /* или center — если хочешь по центру по вертикали */
+  transition: transform 0.6s ease;
+  z-index: 1;
 }
 
 .image-box img {
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  height: 100%;
-  position: absolute;
-  left: 0;
-  bottom: 0;
+  max-height: 100%;
   width: auto;
-  max-width: calc(100% - 214px);
-  left: 50%;
-  translate: -50% 0;
-  max-height: calc(100vh - var(--header-height) - var(--footer-height));
+  max-width: calc(100% - 214px); /* или убери это, если мешает на мобилках */
   object-fit: cover;
   object-position: bottom;
 }
 
-.image-box_appear img {
-  animation: appear 300ms forwards;
+/* Transition states */
+.image-box_active {
+  transform: translateY(0%);
+  z-index: 2;
 }
 
-@keyframes appear {
-  0% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  }
+.image-box_above {
+  transform: translateY(-100%);
+}
 
-  100% {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-  }
+.image-box_below {
+  transform: translateY(100%);
 }
 </style>
 
 <style>
 body {
-   transition: none;
-   will-change: unset;
+  transition: none;
+  will-change: unset;
 }
 </style>
