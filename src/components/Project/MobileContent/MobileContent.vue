@@ -1,105 +1,130 @@
 <script setup>
-import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
-import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
-import MobileContentImage from "./MobileContentImage.vue";
-import { timeForLoadAllImages } from "@/components/Process/utils";
-import LocomotiveScroll from "locomotive-scroll";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 import { useProjectStore } from "@/stores/project";
-import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array,
 });
 
-const imagesRefs = ref([]);
-const isImagesHide = ref(true);
+const projectStore = useProjectStore();
+const currentIndex = ref(0);
+projectStore.setCurrentImage(0);
 
-useWaitingImagesToLoad(
-  imagesRefs,
-  () => {
-    isImagesHide.value = false;
-  },
-  timeForLoadAllImages
-);
+let isScrolling = false;
+let touchStartY = 0;
 
-const scrollContainer = ref(null);
-const scrollInstance = ref(null);
+const scrollToIndex = (index) => {
+  if (index < 0 || index >= imagesSrc.length) return;
+  currentIndex.value = index;
+  projectStore.setCurrentImage(index);
+};
+
+const handleWheel = (e) => {
+  if (isScrolling) return;
+  isScrolling = true;
+
+  if (e.deltaY > 0) {
+    scrollToIndex(currentIndex.value + 1);
+  } else {
+    scrollToIndex(currentIndex.value - 1);
+  }
+
+  setTimeout(() => {
+    isScrolling = false;
+  }, 700);
+};
+
+const handleTouchStart = (e) => {
+  touchStartY = e.changedTouches[0].clientY;
+};
+
+const handleTouchEnd = (e) => {
+  const deltaY = touchStartY - e.changedTouches[0].clientY;
+  if (Math.abs(deltaY) < 50 || isScrolling) return;
+
+  isScrolling = true;
+  if (deltaY > 0) {
+    scrollToIndex(currentIndex.value + 1);
+  } else {
+    scrollToIndex(currentIndex.value - 1);
+  }
+
+  setTimeout(() => {
+    isScrolling = false;
+  }, 700);
+};
 
 onMounted(() => {
-  // scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
-
-  // scrollInstance.value?.on("scroll", scrollListener);
-  // window.addEventListener("scroll", scrollListener);
+  window.addEventListener("wheel", handleWheel, { passive: false });
+  window.addEventListener("touchstart", handleTouchStart, { passive: true });
+  window.addEventListener("touchend", handleTouchEnd, { passive: true });
 });
 
-const projectStore = useProjectStore();
-const lastScrollTop = ref(0);
-
-// const scrollListener = (scrollInfo) => {
-//   if (lastScrollTop.value > 1) projectStore.hideFooterData();
-//   else projectStore.showFooterData();
-
-//   lastScrollTop.value = scrollInfo.scroll.y;
-// };
-
-onUnmounted(() => {
-  scrollInstance.value?.destroy();
+onBeforeUnmount(() => {
+  window.removeEventListener("wheel", handleWheel);
+  window.removeEventListener("touchstart", handleTouchStart);
+  window.removeEventListener("touchend", handleTouchEnd);
 });
 </script>
 
 <template>
-  <div class="mobile-content" ref="scrollContainer">
-    <ul class="images-list">
-      <MobileContentImage
-        v-for="(src, ind) in imagesSrc"
-        :src="src"
-        :ind="ind"
-        :key="src"
-        :isImageHide="isImagesHide"
-        @setImageRef="(ref) => (imagesRefs[ind] = ref)"
-      />
-    </ul>
+  <div class="mobile-scroller">
+    <div
+      v-for="(src, ind) in imagesSrc"
+      :key="ind"
+      class="mobile-image-box"
+      :class="{
+        'mobile-image-box_active': currentIndex === ind,
+        'mobile-image-box_above': ind < currentIndex,
+        'mobile-image-box_below': ind > currentIndex,
+      }"
+    >
+      <img :src="src" />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.mobile-content {
-  display: grid;
-  grid-template-columns: repeat(12, var(--column-width));
-  padding-top: 130px;
+.mobile-scroller {
+  position: fixed;
+  top: 65px; /* header height */
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 65px - 45px); /* 65px header, 45px footer */
+  overflow: hidden;
 }
 
-.images-list {
-  grid-column: 2 / 12;
-  justify-content: center;
+.mobile-image-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 65px - 45px);
   display: flex;
-  flex-direction: column;
-  row-gap: 26px;
+  justify-content: center;
+  align-items: flex-end;
+  transition: transform 0.6s ease;
+  z-index: 1;
 }
 
-@media (max-width: 820px) {
-  .mobile-content {
-    padding-top: 86px;
-  }
-
-  .images-list {
-    grid-column: 12 span;
-    row-gap: 23px;
-  }
+.mobile-image-box img {
+  max-height: 100%;
+  width: auto;
+  max-width: calc(100% - 40px); /* немного отступов по бокам */
+  object-fit: cover;
+  object-position: bottom;
 }
 
-@media (max-width: 768px) {
-  .mobile-content {
-    padding-top: 93px;
-  }
+.mobile-image-box_active {
+  transform: translateY(0%);
+  z-index: 2;
+}
 
-  .images-list {
-    grid-column: 2 / 12;
-    display: flex;
-    flex-direction: column;
-    row-gap: 10px;
-    padding-bottom: 40px;
-  }
+.mobile-image-box_above {
+  transform: translateY(-100%);
+}
+
+.mobile-image-box_below {
+  transform: translateY(100%);
 }
 </style>

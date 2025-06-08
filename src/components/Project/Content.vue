@@ -11,7 +11,7 @@ const isDesktop = window.innerWidth > 1024
 
 <template>
   <DesktopContent v-if="isDesktop" :imagesSrc="imagesSrc" />
-  <!-- <MobileContent v-else :imagesSrc="imagesSrc" /> -->
+  <MobileContent v-else :imagesSrc="imagesSrc" />
 </template>
 
 <style scoped>
