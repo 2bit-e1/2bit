@@ -225,13 +225,15 @@ const activeImage = computed(() => homeStore.activeProjectImage);
 </style>
 
 <style>
-body {
-  transition: filter 0s ease;
-  will-change: filter;
-}
+@media (min-width: 1024px) {
+  body {
+    transition: filter 0s ease;
+    will-change: filter;
+  }
 
-body.inverted {
-  filter: invert(1) hue-rotate(180deg);
-  transition: filter 0.1s ease;
+  body.inverted {
+    filter: invert(1) hue-rotate(180deg);
+    transition: filter 0.1s ease;
+  }
 }
 </style>

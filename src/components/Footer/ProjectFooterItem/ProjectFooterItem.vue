@@ -109,6 +109,15 @@ const projectName = computed(() => projectStore.name || "");
 </template>
 
 <style scoped>
+
+.footer-item_project {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
 .project-item {
   display: flex;
   align-items: start;

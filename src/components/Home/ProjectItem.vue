@@ -46,14 +46,21 @@ const handleClearActiveProjectData = () => {
 };
 
 const handleClick = () => {
+  handleSetActiveProjectData(); // всегда вызываем, чтобы показать хедер
+
   if (isMobile.value) {
+    // ждём 1 секунду и переходим
     setTimeout(() => {
       router.push(projectLink.value);
     }, 1000);
   } else {
-    handleSetActiveProjectData();
+    // На десктопе: если уже активен этот проект — переход
+    if (homeStore.activeProjectLink === projectLink.value) {
+      router.push(projectLink.value);
+    }
   }
 };
+
 
 const handleTouchStart = () => {
   if (isMobile.value) {
