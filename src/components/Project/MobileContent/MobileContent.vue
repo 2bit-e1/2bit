@@ -17,7 +17,7 @@ onMounted(() => {
         }
       });
     },
-    { threshold: 0.6 } // можно немного увеличить, чтобы анимация была более плавной
+    { threshold: 0.3 } // можно немного увеличить, чтобы анимация была более плавной
   );
 
   document.querySelectorAll(".image-box").forEach((el) => {
@@ -70,7 +70,7 @@ onBeforeUnmount(() => {
 }
 
 .image-box img {
-  max-height: 70vh;
+  min-height: 50vh;
   width: auto;
   max-width: calc(100% - 40px);
   object-fit: cover;
