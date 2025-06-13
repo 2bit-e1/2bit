@@ -17,7 +17,7 @@ onMounted(() => {
         }
       });
     },
-    { threshold: 0.3 } // можно немного увеличить, чтобы анимация была более плавной
+    { threshold: 0.3 }
   );
 
   document.querySelectorAll(".image-box").forEach((el) => {
@@ -39,7 +39,10 @@ onBeforeUnmount(() => {
       :key="ind"
       class="image-box"
     >
-      <img :src="imageSrc" loading="lazy" />
+      <div class="image-wrapper">
+        <img :src="imageSrc" loading="lazy" />
+        <div class="mask" />
+      </div>
     </div>
   </div>
 </template>
@@ -50,6 +53,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 30px;
   padding: 80px 0;
+  background: #f8f8f8;
 }
 
 .image-box {
@@ -57,23 +61,51 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  transform-origin: center center;
-  transform: scaleY(0.5);
-  opacity: 0;
-  transition: transform 0.8s ease, opacity 0.8s ease;
-  will-change: transform, opacity;
 }
 
-.image-box.in-view {
-  transform: scaleY(1);
-  opacity: 1;
-}
-
-.image-box img {
+/* Обёртка вокруг изображения и маски */
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
   min-height: 50vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Маска */
+.mask {
+  position: absolute;
+  inset: 0;
+  background: #f8f8f8;
+  z-index: 2;
+  transform: translateY(0%);
+  transition: transform 0.8s ease;
+  will-change: transform;
+}
+
+/* Картинка */
+.image-wrapper img {
+  position: relative;
+  z-index: 1;
   width: auto;
+  height: 100%;
   max-width: calc(100% - 40px);
   object-fit: cover;
   object-position: center;
+  transform: scale(1.2);
+  transition: transform 0.8s ease;
+  will-change: transform;
+}
+
+/* При появлении */
+.image-box.in-view .mask {
+  transform: translateY(-100%);
+}
+
+.image-box.in-view img {
+  transform: scale(1);
 }
 </style>
