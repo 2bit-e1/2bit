@@ -69,37 +69,35 @@ const activeImage = computed(() => homeStore.activeProjectImage);
     />
   </ul>
 
-  <transition name="fade" mode="out-in">
-    <div
-      v-if="isPreviewVisible"
-      class="fullscreen-preview"
-      aria-hidden="!isPreviewVisible"
-    >
-      <template v-if="activeImage.endsWith('.mp4')">
-        <video :src="activeImage" autoplay muted loop playsinline />
-      </template>
-      <template v-else>
-        <div
-          class="fullscreen-preview-image"
-          :style="{ backgroundImage: `url(${activeImage})` }"
-        />
-      </template>
-    </div>
-  </transition>
+  <div
+    class="fullscreen-preview"
+    :class="{ visible: isPreviewVisible && !!activeImage }"
+    aria-hidden="!isPreviewVisible"
+  >
+    <template v-if="activeImage && activeImage.endsWith('.mp4')">
+      <video :src="activeImage" autoplay muted loop playsinline />
+    </template>
+    <template v-else-if="activeImage">
+      <div
+        class="fullscreen-preview-image"
+        :style="{ backgroundImage: `url(${activeImage})` }"
+      />
+    </template>
+  </div>
 </template>
+
 
 <style scoped>
 .projects-list {
-  
   display: grid;
   --item-size: var(--column-width);
   grid-template-columns: repeat(3, var(--item-size));
   grid-template-rows: repeat(3, var(--item-size));
   justify-content: center;
   align-content: center;
- 
 }
 
+/* Адаптивы оставлены как были */
 @media (max-width: 1024px)  {
   .header {
     padding-top: 54px;
@@ -137,44 +135,32 @@ const activeImage = computed(() => homeStore.activeProjectImage);
 }
 
 @media (max-width: 768px) and (max-height: 960px) {
-
   .projects-list {
     padding-top: 20px;
     padding-bottom: 45px;  
     --item-size: 30vmin;
   }
-
 }
 
-
 @media (max-width: 768px) and (max-height: 851px) {
-
   .projects-list {
     padding-top: 20px;
     padding-bottom: 45px;  
     --item-size: 27vmin;
   }
-
 }
 
 @media (max-width: 768px) and (max-height: 715px) {
-
   .projects-list {
     padding-top: 10px;
-    
   }
-
 }
 
 @media (max-width: 768px) and (max-height: 750px) {
-
   .projects-list {
-    
     --item-size: 25vmin;
   }
-
 }
-
 
 @media (max-width: 500px)  {
   .projects-list {
@@ -185,8 +171,7 @@ const activeImage = computed(() => homeStore.activeProjectImage);
   }
 }
 
-/* Другие медиа-запросы оставь как у тебя */
-
+/* preview */
 .fullscreen-preview {
   position: fixed;
   inset: 0;
@@ -197,6 +182,13 @@ const activeImage = computed(() => homeStore.activeProjectImage);
   display: flex;
   justify-content: center;
   align-items: center;
+
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.fullscreen-preview.visible {
+  opacity: 1;
 }
 
 .fullscreen-preview video,
@@ -207,20 +199,6 @@ const activeImage = computed(() => homeStore.activeProjectImage);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-/* Плавное появление/исчезание через transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.1s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-.fade-enter-to,
-.fade-leave-from {
-  opacity: 1;
 }
 </style>
 

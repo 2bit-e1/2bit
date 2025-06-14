@@ -51,8 +51,8 @@ onBeforeUnmount(() => {
 .scroller-vertical {
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  padding: 80px 0;
+  gap: 10px;
+  padding: 102px 0;
   background: #f8f8f8;
 }
 
@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
   position: relative;
   width: 100%;
   max-width: 100%;
-  min-height: 50vh;
+  height: auto;
   overflow: hidden;
   display: flex;
   justify-content: center;
