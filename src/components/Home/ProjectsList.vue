@@ -212,7 +212,7 @@ const activeImage = computed(() => homeStore.activeProjectImage);
 /* Плавное появление/исчезание через transition */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.1s ease;
 }
 .fade-enter-from,
 .fade-leave-to {

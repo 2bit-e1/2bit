@@ -158,3 +158,12 @@ onBeforeUnmount(() => {
   transform: scale(1);
 }
 </style>
+
+<style>
+@media (min-width: 1024px) {
+  body {
+    transition: unset;
+    will-change: unset;
+  }
+}
+</style>
