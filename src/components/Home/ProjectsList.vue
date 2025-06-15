@@ -177,7 +177,7 @@ const activeImage = computed(() => homeStore.activeProjectImage);
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  filter: invert(1) hue-rotate(180deg);
+  filter: none;
   background: transparent;
   display: flex;
   justify-content: center;

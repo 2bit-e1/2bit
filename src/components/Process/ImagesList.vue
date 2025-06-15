@@ -31,8 +31,8 @@ const handleParallax = (scrollY) => {
 
   items.forEach((item, index) => {
     const col = index % columnCount.value;
-    const middle = (columnCount.value - 1) / 2;
-    const delayFactor = (col - middle) * 10; // -10, 0, 10 для 3 колонок
+    const middle = (columnCount.value - 1) / 1;
+    const delayFactor = (col - middle) * 3; // -10, 0, 10 для 3 колонок
     const offset = scrollY * delayFactor * 0.01;
 
     item.style.transform = `translateY(${offset}px)`;
@@ -65,7 +65,7 @@ onMounted(() => {
       items.forEach((item) => {
         item.style.transform = "";
       });
-    }, 80);
+    }, 40);
   });
 });
 

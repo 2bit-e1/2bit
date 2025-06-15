@@ -161,9 +161,14 @@ onBeforeUnmount(() => {
 
 <style>
 @media (min-width: 1024px) {
-  body {
-    transition: unset;
-    will-change: unset;
+   body {
+    transition: filter 0s ease;
+    will-change: filter;
+  }
+
+  body.inverted {
+    filter: none;
+    transition: none;
   }
 }
 </style>
