@@ -1,7 +1,7 @@
 <script setup>
 import allProjects from "@/data/projects/index.js";
 import ProjectItem from "@/components/Home/ProjectItem.vue";
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
@@ -12,7 +12,6 @@ const checkIsDesktop = () => {
 };
 
 onMounted(() => {
-  // Предзагрузка всех медиафайлов
   allProjects.forEach(project => {
     project.media.forEach(media => {
       if (media.type === 'image') {
@@ -32,31 +31,44 @@ onMounted(() => {
 
 const homeStore = useHomeStore();
 
-// Дебаунс для плавности появления/исчезания
+const activeImage = computed(() => homeStore.activeProjectImage);
+const isPreviewVisible = ref(false);
+
+// Управляемый переход: сначала активируем, потом плавно скрываем
+let hideTimeout;
+
+watch(activeImage, (newVal, oldVal) => {
+  clearTimeout(hideTimeout);
+  if (newVal) {
+    isPreviewVisible.value = true;
+    document.body.classList.add("inverted");
+  } else {
+    hideTimeout = setTimeout(() => {
+      isPreviewVisible.value = false;
+    }, 300); // время исчезновения
+    document.body.classList.remove("inverted");
+  }
+});
+
 const setActiveProjectData = useDebounce(
   (name, year, link, image) => {
     homeStore.setActiveProjectData(name, year, link, image);
-    document.body.classList.add("inverted"); // инверсия при появлении
   },
-  200
+  100
 );
 
 const clearActiveProjectData = useDebounce(() => {
   homeStore.clearActiveProjectData();
-  document.body.classList.remove("inverted"); // убрать инверсию
-}, 200);
+}, 100);
 
 onUnmounted(() => {
+  clearTimeout(hideTimeout);
   clearActiveProjectData();
 });
 
 onBeforeRouteLeave(() => {
   document.body.classList.remove('inverted');
 });
-
-// Локальное состояние для управления видимостью превью с анимацией
-const isPreviewVisible = computed(() => !!homeStore.activeProjectImage && isDesktop.value);
-const activeImage = computed(() => homeStore.activeProjectImage);
 </script>
 
 <template>
@@ -74,23 +86,24 @@ const activeImage = computed(() => homeStore.activeProjectImage);
     />
   </ul>
 
-  <div
-    class="fullscreen-preview"
-    :class="{ visible: isPreviewVisible && !!activeImage }"
-    aria-hidden="!isPreviewVisible"
-  >
-    <template v-if="activeImage && activeImage.endsWith('.mp4')">
-      <video :src="activeImage" autoplay muted loop playsinline />
-    </template>
-    <template v-else-if="activeImage">
-      <div
-        class="fullscreen-preview-image"
-        :style="{ backgroundImage: `url(${activeImage})` }"
-      />
-    </template>
-  </div>
+  <Transition name="preview-fade" appear>
+    <div
+      v-if="isPreviewVisible && activeImage"
+      class="fullscreen-preview"
+      aria-hidden="false"
+    >
+      <template v-if="activeImage.endsWith('.mp4')">
+        <video :src="activeImage" autoplay muted loop playsinline />
+      </template>
+      <template v-else>
+        <div
+          class="fullscreen-preview-image"
+          :style="{ backgroundImage: `url(${activeImage})` }"
+        />
+      </template>
+    </div>
+  </Transition>
 </template>
-
 
 <style scoped>
 .projects-list {
@@ -100,6 +113,36 @@ const activeImage = computed(() => homeStore.activeProjectImage);
   grid-template-rows: repeat(3, var(--item-size));
   justify-content: center;
   align-content: center;
+}
+
+.fullscreen-preview {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: invert(1) hue-rotate(180deg) !important;
+  transition: filter 0.1s ease;
+}
+
+.fullscreen-preview video,
+.fullscreen-preview-image {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Transition animations */
+.preview-fade-enter-active {
+  animation: fadeIn 0.4s ease forwards;
+}
+.preview-fade-leave-active {
+  animation: fadeOut 0.3s ease forwards;
 }
 
 /* Адаптивы оставлены как были */
@@ -176,36 +219,24 @@ const activeImage = computed(() => homeStore.activeProjectImage);
   }
 }
 
-/* preview */
-.fullscreen-preview {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  filter: none;
-  background: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  opacity: 0;
-  transition: opacity 0.1s ease;
-  filter: invert(1) hue-rotate(180deg);
-  transition: filter 0.1s ease;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.fullscreen-preview.visible {
-  opacity: 1;
-}
-
-.fullscreen-preview video,
-.fullscreen-preview-image {
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 </style>
 
