@@ -33,6 +33,7 @@ const Number_comp = AllNumbers[`Number_${props.number}`];
 const appearDelay = getDelayByNumber(props.number) + "ms";
 
 const handleSetActiveProjectData = () => {
+
   if (homeStore.activeProjectLink === projectLink.value) {
     router.push(projectLink.value);
   } else {

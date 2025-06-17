@@ -4,6 +4,7 @@ import ProjectItem from "@/components/Home/ProjectItem.vue";
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
+import { onBeforeRouteLeave } from 'vue-router';
 
 const isDesktop = ref(false);
 const checkIsDesktop = () => {
@@ -47,6 +48,10 @@ const clearActiveProjectData = useDebounce(() => {
 
 onUnmounted(() => {
   clearActiveProjectData();
+});
+
+onBeforeRouteLeave(() => {
+  document.body.classList.remove('inverted');
 });
 
 // Локальное состояние для управления видимостью превью с анимацией
@@ -185,6 +190,8 @@ const activeImage = computed(() => homeStore.activeProjectImage);
 
   opacity: 0;
   transition: opacity 0.1s ease;
+  filter: invert(1) hue-rotate(180deg);
+  transition: filter 0.1s ease;
 }
 
 .fullscreen-preview.visible {

@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
 </style>
 
 <style>
-@media (min-width: 1024px) {
+/* @media (min-width: 1024px) {
   body {
     transition: filter 0s ease;
     will-change: filter;
@@ -193,5 +193,5 @@ onBeforeUnmount(() => {
     filter: none;
     transition: none;
   }
-}
+} */
 </style>
