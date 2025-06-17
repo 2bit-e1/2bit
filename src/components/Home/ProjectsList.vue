@@ -176,6 +176,10 @@ onBeforeRouteLeave(() => {
 } 
 
 @media (max-width: 768px) {
+  .fullscreen-preview {
+    display: none;
+  }
+  
   .projects-list {
     padding-top: 72.5px;
     --item-size: 33vmin;   
