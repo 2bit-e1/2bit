@@ -1,5 +1,8 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { useProjectStore } from "@/stores/project";
+
+const projectStore = useProjectStore();
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array
@@ -10,12 +13,19 @@ const direction = ref(0); // -1 вверх, 1 вниз
 const scrollerRef = ref(null);
 let isThrottled = false;
 
+const shouldShowFirstImage = ref(false); // 👉 новый флаг
+
 function handleScroll(event) {
-  event.preventDefault(); // Блокируем скролл страницы
+  event.preventDefault();
 
   if (isThrottled) return;
 
-  const dir = event.deltaY > 0 ? 1 : -1;
+  const deltaY = event.deltaY;
+
+  // игнорировать слишком маленькие или слишком большие дельты
+  if (Math.abs(deltaY) < 20) return;
+
+  const dir = deltaY > 0 ? 1 : -1;
   const nextIndex = activeIndex.value + dir;
 
   if (nextIndex < 0 || nextIndex >= imagesSrc.length) return;
@@ -23,28 +33,40 @@ function handleScroll(event) {
   direction.value = dir;
   isThrottled = true;
   activeIndex.value = nextIndex;
+  projectStore.setCurrentImage(nextIndex);
 
   setTimeout(() => {
     isThrottled = false;
   }, 1000);
 }
 
-onMounted(() => {
-  document.body.style.overflow = "hidden"; // Блокируем прокрутку страницы
+
+onMounted(async () => {
+  projectStore.setCurrentImage(0);
+  document.body.style.overflow = "hidden";
 
   if (scrollerRef.value) {
     scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
   }
+
+  // 👉 Имитация анимации первой картинки
+  direction.value = 1;
+
+  await nextTick();
+  requestAnimationFrame(() => {
+    shouldShowFirstImage.value = true;
+  });
 });
 
 onBeforeUnmount(() => {
-  document.body.style.overflow = ""; // Возвращаем прокрутку
+  document.body.style.overflow = "";
 
   if (scrollerRef.value) {
     scrollerRef.value.removeEventListener("wheel", handleScroll);
   }
 });
 </script>
+
 
 <template>
   <div class="scroller-vertical" ref="scrollerRef">
@@ -53,7 +75,7 @@ onBeforeUnmount(() => {
       :key="ind"
       class="image-box"
       :class="{
-        'in-view': ind === activeIndex,
+        'in-view': (ind === activeIndex) && (ind !== 0 || shouldShowFirstImage),
         'above': ind < activeIndex,
         'below': ind > activeIndex,
         'from-top': direction === -1 && ind === activeIndex,
@@ -67,6 +89,7 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .scroller-vertical {
@@ -100,9 +123,11 @@ onBeforeUnmount(() => {
 .image-box.from-top {
   translate: 0 -100%;
 }
+
 .image-box.from-bottom {
   translate: 0 100%;
 }
+
 .image-box.in-view.from-top,
 .image-box.in-view.from-bottom {
   translate: 0 0;
@@ -111,11 +136,11 @@ onBeforeUnmount(() => {
 .image-box.above {
   translate: 0 -100%;
 }
+
 .image-box.below {
   translate: 0 100%;
 }
 
-/* Обертка для картинки и маски */
 .image-wrapper {
   position: relative;
   width: 80vw;
@@ -126,7 +151,6 @@ onBeforeUnmount(() => {
   justify-content: center;
 }
 
-/* Маска поверх картинки */
 .mask {
   position: absolute;
   inset: 0;
@@ -141,7 +165,6 @@ onBeforeUnmount(() => {
   transform: translateY(-100%);
 }
 
-/* Картинка увеличена и масштабируется до нормального размера */
 .image-wrapper img {
   position: relative;
   z-index: 1;
@@ -161,7 +184,7 @@ onBeforeUnmount(() => {
 
 <style>
 @media (min-width: 1024px) {
-   body {
+  body {
     transition: filter 0s ease;
     will-change: filter;
   }
