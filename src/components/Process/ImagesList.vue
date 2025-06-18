@@ -48,7 +48,7 @@ let scrollTimeout;
 onMounted(() => {
   columnCount.value = getColumnsCount();
 
-  // ⏱ Показываем прелоудер, только если загрузка дольше 300 мс
+  //Показываем прелоудер, только если загрузка дольше 300 мс
   preloaderTimeout = setTimeout(() => {
     shouldShowPreloader.value = true;
   }, 300);
@@ -71,6 +71,7 @@ onMounted(() => {
       });
     }, 40);
   });
+
 });
 
 onUnmounted(() => {
