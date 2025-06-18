@@ -188,13 +188,13 @@ const allPreviewMedia = computed(() =>
   background-repeat: no-repeat;
   opacity: 0;
   transition: opacity 0.4s ease;
-  filter: invert(1) hue-rotate(180deg);
   z-index: 0;
 }
 
 .preview-item.active {
   opacity: 1;
   z-index: 1;
+  filter: invert(1) hue-rotate(180deg);
 }
 
 @media (max-width: 1024px) {
