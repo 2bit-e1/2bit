@@ -149,6 +149,12 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #f8f8f8;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  box-shadow: 0 -0.5px 0 #f8f8f8;
 }
 
 .mask {
@@ -180,18 +186,4 @@ onBeforeUnmount(() => {
 .image-box.in-view img {
   transform: scale(1);
 }
-</style>
-
-<style>
-/* @media (min-width: 1024px) {
-  body {
-    transition: filter 0s ease;
-    will-change: filter;
-  }
-
-  body.inverted {
-    filter: none;
-    transition: none;
-  }
-} */
 </style>

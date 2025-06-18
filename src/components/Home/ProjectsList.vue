@@ -123,8 +123,6 @@ onBeforeRouteLeave(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  filter: invert(1) hue-rotate(180deg) !important;
-  transition: filter 0.1s ease;
 }
 
 .fullscreen-preview video,
@@ -134,7 +132,9 @@ onBeforeRouteLeave(() => {
   object-fit: cover;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
+  background-repeat: no-repeat;  
+  filter: invert(1) hue-rotate(180deg) !important;
+  transition: filter 0.1s ease;
 }
 
 /* Transition animations */

@@ -169,7 +169,7 @@ const projectName = computed(() => projectStore.name || "");
   justify-content: start;
   text-align: left;
   z-index: 20;
-  grid-column: 2;
+  grid-column: 1;
 }
 
 .project-item_to-project:not(.project-item_to-project-active) {
