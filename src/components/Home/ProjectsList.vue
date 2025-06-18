@@ -61,7 +61,7 @@ onMounted(() => {
 
   const hasVisited = sessionStorage.getItem("hasVisited");
 
-  if (!hasVisited) {
+  if (isDesktop.value && !hasVisited) {
     sessionStorage.setItem("hasVisited", "true");
     shouldShowPreloader.value = true;
 
@@ -120,7 +120,7 @@ const allPreviewMedia = computed(() =>
 </script>
 
 <template>
-  <Preloader v-if="shouldShowPreloader && !isMediaLoaded" />
+  <Preloader v-if="shouldShowPreloader && !isMediaLoaded" class="preloader"/>
   <ul class="projects-list" v-show="isMediaLoaded">
     <ProjectItem
       v-for="project in allProjects"
@@ -158,6 +158,8 @@ const allPreviewMedia = computed(() =>
 </template>
 
 <style scoped>
+
+
 .projects-list {
   display: grid;
   --item-size: var(--column-width);
@@ -198,6 +200,9 @@ const allPreviewMedia = computed(() =>
 }
 
 @media (max-width: 1024px) {
+  .preloader {
+    display: none;
+  }
   .fullscreen-preview {
     display: none;
   }
