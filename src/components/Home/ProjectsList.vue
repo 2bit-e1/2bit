@@ -5,7 +5,7 @@ import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
-import Preloader from "@/components/Preloader.vue"; // ← добавлен импорт
+import Preloader from "@/components/Preloader.vue";
 
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
@@ -20,38 +20,57 @@ onMounted(() => {
   checkIsDesktop();
   window.addEventListener("resize", checkIsDesktop);
 
-  // Устанавливаем задержку показа прелоудера (300 мс)
-  preloaderTimeout = setTimeout(() => {
-    shouldShowPreloader.value = true;
-  }, 300);
+  const preloadMedia = [];
 
-  // Прелоадим все изображения и видео
-  const promises = [];
+  // 1. Минимальная задержка — минимум 3 секунды
+  const minPreloaderDelay = new Promise((resolve) => {
+    setTimeout(resolve, 3000);
+  });
 
+  // 2. Загрузка всех медиа (изображения + видео)
   allProjects.forEach((project) => {
     project.media.forEach((media) => {
       if (media.type === 'image') {
         const img = new Image();
         img.src = media.src;
-        promises.push(new Promise((resolve) => {
-          img.onload = img.onerror = resolve;
-        }));
+        img.loading = 'eager';
+        img.decoding = 'async';
+        preloadMedia.push(
+          new Promise((resolve) => {
+            img.onload = img.onerror = resolve;
+          })
+        );
       } else if (media.type === 'video') {
-        const video = document.createElement('video');
-        video.src = media.src;
-        video.preload = 'auto';
-        promises.push(new Promise((resolve) => {
-          video.onloadeddata = video.onerror = resolve;
-        }));
+        preloadMedia.push(
+          fetch(media.src, { cache: 'force-cache' })
+            .catch(() => {}) // если видео не загрузилось — продолжаем
+            .then(() => {
+              return new Promise((resolve) => {
+                const video = document.createElement('video');
+                video.preload = 'auto';
+                video.src = media.src;
+                video.onloadeddata = video.onerror = resolve;
+              });
+            })
+        );
       }
     });
   });
 
-  Promise.all(promises).then(() => {
+  // 3. Запускаем параллельно задержку и загрузку медиа
+  Promise.all([
+    Promise.all(preloadMedia),
+    minPreloaderDelay
+  ]).then(() => {
     isMediaLoaded.value = true;
-    clearTimeout(preloaderTimeout);
   });
+
+  // Показываем прелоудер с небольшой задержкой, чтобы избежать "моргания"
+  preloaderTimeout = setTimeout(() => {
+    shouldShowPreloader.value = true;
+  }, 100);
 });
+
 
 const homeStore = useHomeStore();
 
@@ -96,7 +115,6 @@ onBeforeRouteLeave(() => {
 </script>
 
 <template>
-  <!-- Показываем прелоудер только при долгой загрузке -->
   <Preloader v-if="!isMediaLoaded && shouldShowPreloader" />
 
   <ul class="projects-list" v-show="isMediaLoaded">
@@ -164,7 +182,6 @@ onBeforeRouteLeave(() => {
   transition: filter 0.1s ease;
 }
 
-/* Анимации */
 .preview-fade-enter-active {
   animation: fadeIn 0.4s ease forwards;
 }
@@ -172,7 +189,6 @@ onBeforeRouteLeave(() => {
   animation: fadeOut 0.3s ease forwards;
 }
 
-/* Адаптив */
 @media (max-width: 1024px) {
   .header {
     padding-top: 54px;
@@ -206,7 +222,7 @@ onBeforeRouteLeave(() => {
   .fullscreen-preview {
     display: none;
   }
-  
+
   .projects-list {
     padding-top: 72.5px;
     --item-size: 33vmin;   
