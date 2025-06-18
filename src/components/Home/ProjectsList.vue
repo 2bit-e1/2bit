@@ -52,8 +52,9 @@ const preloadMedia = () => {
     });
   });
 
-  return promises;
+  return Promise.all(promises);
 };
+
 
 onMounted(() => {
   checkIsDesktop();
@@ -67,13 +68,21 @@ onMounted(() => {
 
     const mediaPromises = preloadMedia();
 
-    Promise.all(mediaPromises).then(() => {
+    // Минимум 3 секунды задержки
+    const timeoutPromise = new Promise(resolve => {
+      preloaderTimeout = setTimeout(resolve, 3000);
+    });
+
+    // Ожидаем и загрузку, и 3 секунды
+    Promise.all([...mediaPromises, timeoutPromise]).then(() => {
       isMediaLoaded.value = true;
     });
+
   } else {
     isMediaLoaded.value = true;
   }
 });
+
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
