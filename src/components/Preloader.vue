@@ -1,12 +1,21 @@
-<script setup>
-import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
-</script>
-
 <template>
-  <div class="preloader">   
-     <DotLottieVue style="height: 100px; width: 100px" autoplay loop src="https://lottie.host/05c37978-2684-4c79-89bb-e71d18a72da5/H7tgSfUvyC.lottie" />
+  <div class="preloader">
+    <video
+      autoplay
+      loop
+      muted
+      playsinline
+      class="preloader-video"
+    >
+      <source src="@/assets/preloadanim.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   </div>
 </template>
+
+<script setup>
+// ничего не нужно подключать
+</script>
 
 <style scoped>
 .preloader {
@@ -17,5 +26,11 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
   justify-content: center;
   align-items: center;
   z-index: 9999;
+}
+
+.preloader-video {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
 }
 </style>
