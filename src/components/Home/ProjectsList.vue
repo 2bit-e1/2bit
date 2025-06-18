@@ -22,12 +22,12 @@ onMounted(() => {
 
   const preloadMedia = [];
 
-  // 1. Минимальная задержка — минимум 3 секунды
+  // Минимальная задержка — минимум 3 секунды
   const minPreloaderDelay = new Promise((resolve) => {
     setTimeout(resolve, 3000);
   });
 
-  // 2. Загрузка всех медиа (изображения + видео)
+  // Реальная загрузка всех медиа через DOM
   allProjects.forEach((project) => {
     project.media.forEach((media) => {
       if (media.type === 'image') {
@@ -35,48 +35,51 @@ onMounted(() => {
         img.src = media.src;
         img.loading = 'eager';
         img.decoding = 'async';
+        document.body.appendChild(img); // Вставляем в DOM (невидимо)
+        img.style.display = 'none';
+
         preloadMedia.push(
           new Promise((resolve) => {
-            img.onload = img.onerror = resolve;
+            img.onload = img.onerror = () => {
+              document.body.removeChild(img);
+              resolve();
+            };
           })
         );
       } else if (media.type === 'video') {
+        const video = document.createElement('video');
+        video.src = media.src;
+        video.preload = 'auto';
+        video.muted = true;
+        video.playsInline = true;
+        video.style.display = 'none';
+        document.body.appendChild(video);
+
         preloadMedia.push(
-          fetch(media.src, { cache: 'force-cache' })
-            .catch(() => {}) // если видео не загрузилось — продолжаем
-            .then(() => {
-              return new Promise((resolve) => {
-                const video = document.createElement('video');
-                video.preload = 'auto';
-                video.src = media.src;
-                video.onloadeddata = video.onerror = resolve;
-              });
-            })
+          new Promise((resolve) => {
+            video.onloadeddata = video.onerror = () => {
+              document.body.removeChild(video);
+              resolve();
+            };
+          })
         );
       }
     });
   });
 
-  // 3. Запускаем параллельно задержку и загрузку медиа
-  Promise.all([
-    Promise.all(preloadMedia),
-    minPreloaderDelay
-  ]).then(() => {
+  Promise.all([Promise.all(preloadMedia), minPreloaderDelay]).then(() => {
     isMediaLoaded.value = true;
   });
 
-  // Показываем прелоудер с небольшой задержкой, чтобы избежать "моргания"
+  // Прелоудер с небольшой задержкой (чтобы избежать моргания)
   preloaderTimeout = setTimeout(() => {
     shouldShowPreloader.value = true;
   }, 100);
 });
 
-
 const homeStore = useHomeStore();
-
 const activeImage = computed(() => homeStore.activeProjectImage);
 const isPreviewVisible = ref(false);
-
 let hideTimeout;
 
 watch(activeImage, (newVal, oldVal) => {
