@@ -137,12 +137,23 @@ onBeforeRouteLeave(() => {
       aria-hidden="false"
     >
       <template v-if="activeImage.endsWith('.mp4')">
-        <video :src="activeImage" autoplay muted loop playsinline />
+        <video
+          :src="activeImage"
+          autoplay
+          muted
+          loop
+          playsinline
+          class="fullscreen-preview-video"
+          @loadeddata="isVideoLoaded = true"
+          :class="{ loaded: isVideoLoaded }"
+        />
       </template>
       <template v-else>
-        <div
+        <img
+          :src="activeImage"
           class="fullscreen-preview-image"
-          :style="{ backgroundImage: `url(${activeImage})` }"
+          @load="isImageLoaded = true"
+          :class="{ loaded: isImageLoaded }"
         />
       </template>
     </div>
@@ -178,7 +189,7 @@ onBeforeRouteLeave(() => {
   background-position: center;
   background-repeat: no-repeat;
   filter: invert(1) hue-rotate(180deg) !important;
-  transition: filter 0.1s ease;
+  transition: filter 0.4s ease;
 }
 
 .preview-fade-enter-active {

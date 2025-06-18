@@ -54,7 +54,6 @@ function preloadAllImages(srcArray) {
 }
 
 onMounted(async () => {
-  document.body.style.overflow = "hidden";
   projectStore.setCurrentImage(0);
 
   if (scrollerRef.value) {

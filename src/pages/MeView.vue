@@ -14,5 +14,8 @@ const props = defineProps({
   <VideoPopup/>
 </template>
 
-<style scoped>
+<style>
+body {
+  overflow: hidden;
+}
 </style>
