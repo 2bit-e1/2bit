@@ -11,8 +11,11 @@ const emits = defineEmits(["openPopup"]);
 
 const imagesRefs = ref([]);
 const isImagesLoaded = ref(false);
-const shouldShowPreloader = ref(false); // ← флаг задержки
+const shouldShowPreloader = ref(false);
+const canHidePreloader = ref(false); // ← новое состояние
+
 let preloaderTimeout = null;
+let minPreloaderDurationTimeout = null;
 
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
@@ -48,9 +51,14 @@ let scrollTimeout;
 onMounted(() => {
   columnCount.value = getColumnsCount();
 
-  //Показываем прелоудер, только если загрузка дольше 300 мс
+  // Показываем прелоудер, только если загрузка дольше 300 мс
   preloaderTimeout = setTimeout(() => {
     shouldShowPreloader.value = true;
+
+    // Минимальная длительность прелоудера — 3 секунды
+    minPreloaderDurationTimeout = setTimeout(() => {
+      canHidePreloader.value = true;
+    }, 3000);
   }, 300);
 
   scrollInstance.value = new LocomotiveScroll({
@@ -71,18 +79,37 @@ onMounted(() => {
       });
     }, 40);
   });
-
 });
 
 onUnmounted(() => {
   scrollInstance.value?.destroy();
+  clearTimeout(preloaderTimeout);
+  clearTimeout(minPreloaderDurationTimeout);
 });
 
 // Когда все изображения загружены
 useWaitingImagesToLoad(
   imagesRefs,
   () => {
-    isImagesLoaded.value = true;
+    const hideLoader = () => {
+      isImagesLoaded.value = true;
+    };
+
+    if (shouldShowPreloader.value) {
+      if (canHidePreloader.value) {
+        hideLoader();
+      } else {
+        const interval = setInterval(() => {
+          if (canHidePreloader.value) {
+            hideLoader();
+            clearInterval(interval);
+          }
+        }, 100);
+      }
+    } else {
+      hideLoader();
+    }
+
     clearTimeout(preloaderTimeout);
   },
   timeForLoadAllImages
