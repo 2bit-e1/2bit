@@ -372,6 +372,24 @@ onUnmounted(() => {
   margin-bottom: 0;
 }
 
+@media (min-width: 1920px) {
+  .text-container {
+    grid-template-columns: repeat(12, var(--column-width));
+    padding-bottom: 193px;
+  }
+  .info-text {
+    max-width: 287px;
+    height: 169px;
+  }
+  .info-text_extra {
+    max-width: 575px;
+    height: 25px;
+  }
+  .info-video.info-video_appear {
+    margin-bottom: 150px;
+  }
+}
+
 @media (max-height: 768px) {
   .info-image_me, .info-video {
     margin: 0 0 50px 0;
