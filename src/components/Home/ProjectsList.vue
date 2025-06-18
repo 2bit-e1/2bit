@@ -9,8 +9,8 @@ import Preloader from "@/components/Preloader.vue";
 
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
-let preloaderTimeout = null;
 const shouldShowPreloader = ref(false);
+let preloaderTimeout = null;
 
 const checkIsDesktop = () => {
   isDesktop.value = window.innerWidth > 1024;
@@ -26,7 +26,6 @@ const preloadMedia = () => {
         img.src = media.src;
         img.loading = 'eager';
         img.decoding = 'async';
-
         promises.push(
           new Promise((resolve) => {
             img.onload = img.onerror = resolve;
@@ -60,21 +59,21 @@ onMounted(() => {
   checkIsDesktop();
   window.addEventListener("resize", checkIsDesktop);
 
-  const mediaPromises = preloadMedia();
+  const hasVisited = sessionStorage.getItem("hasVisited");
 
-  const minPreloaderDelay = new Promise((resolve) =>
-    setTimeout(resolve, 5000)
-  );
-
-  preloaderTimeout = setTimeout(() => {
+  if (!hasVisited) {
+    sessionStorage.setItem("hasVisited", "true");
     shouldShowPreloader.value = true;
-  }, 100);
 
-  Promise.all([Promise.all(mediaPromises), minPreloaderDelay]).then(() => {
+    const mediaPromises = preloadMedia();
+
+    Promise.all(mediaPromises).then(() => {
+      isMediaLoaded.value = true;
+    });
+  } else {
     isMediaLoaded.value = true;
-  });
+  }
 });
-
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
@@ -122,7 +121,6 @@ const allPreviewMedia = computed(() =>
 
 <template>
   <Preloader v-if="shouldShowPreloader && !isMediaLoaded" />
-  
   <ul class="projects-list" v-show="isMediaLoaded">
     <ProjectItem
       v-for="project in allProjects"
@@ -137,7 +135,6 @@ const allPreviewMedia = computed(() =>
     />
   </ul>
 
-  <!-- Только для десктопа -->
   <div class="fullscreen-preview" aria-hidden="true">
     <template v-for="media in allPreviewMedia" :key="media.src">
       <video

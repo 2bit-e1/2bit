@@ -4,7 +4,7 @@ import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 
 <template>
   <div class="preloader">   
-     <DotLottieVue style="height: 500px; width: 500px" autoplay loop src="https://lottie.host/05c37978-2684-4c79-89bb-e71d18a72da5/H7tgSfUvyC.lottie" />
+     <DotLottieVue style="height: 100px; width: 100px" autoplay loop src="https://lottie.host/05c37978-2684-4c79-89bb-e71d18a72da5/H7tgSfUvyC.lottie" />
   </div>
 </template>
 
