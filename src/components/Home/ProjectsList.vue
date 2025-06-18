@@ -174,6 +174,10 @@ const allPreviewMedia = computed(() =>
   align-content: center;
 }
 
+.fullscreen-preview-image.preview-item.inactive {
+filter: invert(1) hue-rotate(180deg);
+}
+
 .fullscreen-preview {
   position: fixed;
   inset: 0;

@@ -247,6 +247,11 @@ const pressItemsDelayOrder =
 }
 
 @media (max-width: 768px) {
+
+  .me-list-area.me-list-area_press {
+    height: 20px;
+  }
+
   .me-title_process,
   .me-title_projects {
     display: none;
