@@ -109,8 +109,3 @@ onBeforeUnmount(() => {
   transform: scale(1);
 }
 </style>
-<style>
-  body {
-    overflow: scroll !important;
-  }
-</style>

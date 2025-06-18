@@ -32,7 +32,6 @@ const preloadMedia = () => {
           })
         );
       } else if (media.type === "video") {
-        // Добавляем preload ссылку в head
         const link = document.createElement("link");
         link.rel = "preload";
         link.as = "video";
@@ -71,7 +70,6 @@ onMounted(() => {
       setTimeout(resolve, 3000)
     );
 
-    // Покажем прелоадер только при первом входе
     preloaderTimeout = setTimeout(() => {
       shouldShowPreloader.value = true;
     }, 100);
@@ -80,14 +78,11 @@ onMounted(() => {
       isMediaLoaded.value = true;
     });
   } else {
-    // Без задержек и без прелоадера
     Promise.all(mediaPromises).then(() => {
       isMediaLoaded.value = true;
     });
   }
 });
-
-
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
@@ -127,6 +122,10 @@ onUnmounted(() => {
 onBeforeRouteLeave(() => {
   document.body.classList.remove("inverted");
 });
+
+const allPreviewMedia = computed(() =>
+  allProjects.flatMap((project) => project.media)
+);
 </script>
 
 <template>
@@ -146,23 +145,27 @@ onBeforeRouteLeave(() => {
     />
   </ul>
 
-  <Transition name="preview-fade" appear>
-    <div
-      v-if="isPreviewVisible && activeImage"
-      class="fullscreen-preview"
-      aria-hidden="false"
-    >
-      <template v-if="activeImage.endsWith('.mp4')">
-        <video :src="activeImage" autoplay muted loop playsinline />
-      </template>
-      <template v-else>
-        <div
-          class="fullscreen-preview-image"
-          :style="{ backgroundImage: `url(${activeImage})` }"
-        />
-      </template>
-    </div>
-  </Transition>
+  <!-- Только для десктопа -->
+  <div class="fullscreen-preview" aria-hidden="true">
+    <template v-for="media in allPreviewMedia" :key="media.src">
+      <video
+        v-if="media.type === 'video'"
+        :src="media.src"
+        autoplay
+        muted
+        loop
+        playsinline
+        class="preview-item"
+        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+      />
+      <div
+        v-else
+        class="fullscreen-preview-image preview-item"
+        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+        :style="{ backgroundImage: `url(${media.src})` }"
+      />
+    </template>
+  </div>
 </template>
 
 <style scoped>
@@ -185,28 +188,29 @@ onBeforeRouteLeave(() => {
   align-items: center;
 }
 
-.fullscreen-preview video,
-.fullscreen-preview-image {
+.preview-item {
+  position: absolute;
+  inset: 0;
   width: 100vw;
   height: 100vh;
   object-fit: cover;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: invert(1) hue-rotate(180deg) !important;
-  transition: filter 0.1s ease;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  filter: invert(1) hue-rotate(180deg);
+  z-index: 0;
 }
 
-.preview-fade-enter-active {
-  animation: fadeIn 0.4s ease forwards;
-}
-.preview-fade-leave-active {
-  animation: fadeOut 0.3s ease forwards;
+.preview-item.active {
+  opacity: 1;
+  z-index: 1;
 }
 
 @media (max-width: 1024px) {
-  .header {
-    padding-top: 54px;
+  .fullscreen-preview {
+    display: none;
   }
 
   .projects-list {
@@ -234,10 +238,6 @@ onBeforeRouteLeave(() => {
 }
 
 @media (max-width: 768px) {
-  .fullscreen-preview {
-    display: none;
-  }
-
   .projects-list {
     padding-top: 72.5px;
     --item-size: 33vmin;
@@ -278,26 +278,6 @@ onBeforeRouteLeave(() => {
     gap: 0 0;
     padding-top: 60px;
     padding-bottom: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(1.2);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
   }
 }
 </style>
