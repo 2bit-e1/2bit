@@ -6,6 +6,7 @@ import MeView from './pages/MeView.vue'
 import TestView from './pages/Test.vue'
 import { ROUTES } from './utils/constants'
 import ProjectView_old from './pages/ProjectView_old.vue'
+import Preloader from './components/Preloader.vue'
 
 const routes = [
   { path: ROUTES.home, component: HomeView },
@@ -14,6 +15,7 @@ const routes = [
   { path: "/old", component: ProjectView_old },
   { path: ROUTES.process, component: GalleryView },
   { path: ROUTES.project, component: ProjectView },
+  { path: "/preloader", component: Preloader },
 ]
 
 export const router = createRouter({

@@ -1,15 +1,19 @@
 <script setup>
-import { onMounted, onUnmounted, ref, computed } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import ImagesListItem from "./ImageListItem.vue";
 import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
 import { getImageSrc, timeForLoadAllImages } from "./utils";
 import LocomotiveScroll from "locomotive-scroll";
 import { processImagesData } from "@/data/process/images";
+import Preloader from "@/components/Preloader.vue";
 
 const emits = defineEmits(["openPopup"]);
 
 const imagesRefs = ref([]);
 const isImagesLoaded = ref(false);
+const shouldShowPreloader = ref(false); // ← флаг задержки
+let preloaderTimeout = null;
+
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
@@ -32,7 +36,7 @@ const handleParallax = (scrollY) => {
   items.forEach((item, index) => {
     const col = index % columnCount.value;
     const middle = (columnCount.value - 1) / 1;
-    const delayFactor = (col - middle) * 3; // -10, 0, 10 для 3 колонок
+    const delayFactor = (col - middle) * 3;
     const offset = scrollY * delayFactor * 0.01;
 
     item.style.transform = `translateY(${offset}px)`;
@@ -44,15 +48,16 @@ let scrollTimeout;
 onMounted(() => {
   columnCount.value = getColumnsCount();
 
+  // ⏱ Показываем прелоудер, только если загрузка дольше 300 мс
+  preloaderTimeout = setTimeout(() => {
+    shouldShowPreloader.value = true;
+  }, 300);
+
   scrollInstance.value = new LocomotiveScroll({
     el: scrollContainer.value,
     smooth: true,
-    smartphone: {
-      smooth: true,
-    },
-    tablet: {
-      smooth: true,
-    },
+    smartphone: { smooth: true },
+    tablet: { smooth: true },
   });
 
   scrollInstance.value.on("scroll", (args) => {
@@ -60,7 +65,6 @@ onMounted(() => {
     handleParallax(args.scroll.y);
 
     scrollTimeout = setTimeout(() => {
-      // сброс transform при окончании скролла
       const items = scrollContainer.value.querySelectorAll(".list-item");
       items.forEach((item) => {
         item.style.transform = "";
@@ -73,16 +77,21 @@ onUnmounted(() => {
   scrollInstance.value?.destroy();
 });
 
+// Когда все изображения загружены
 useWaitingImagesToLoad(
   imagesRefs,
   () => {
     isImagesLoaded.value = true;
+    clearTimeout(preloaderTimeout);
   },
   timeForLoadAllImages
 );
 </script>
 
 <template>
+  <!-- Прелоудер покажется только если загрузка заняла больше 300мс -->
+  <Preloader v-if="!isImagesLoaded && shouldShowPreloader" />
+
   <div
     class="images-list"
     ref="scrollContainer"

@@ -5,28 +5,52 @@ import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
+import Preloader from "@/components/Preloader.vue"; // ← добавлен импорт
 
 const isDesktop = ref(false);
+const isMediaLoaded = ref(false);
+const shouldShowPreloader = ref(false);
+let preloaderTimeout = null;
+
 const checkIsDesktop = () => {
   isDesktop.value = window.innerWidth > 1024;
 };
 
 onMounted(() => {
-  allProjects.forEach(project => {
-    project.media.forEach(media => {
+  checkIsDesktop();
+  window.addEventListener("resize", checkIsDesktop);
+
+  // Устанавливаем задержку показа прелоудера (300 мс)
+  preloaderTimeout = setTimeout(() => {
+    shouldShowPreloader.value = true;
+  }, 300);
+
+  // Прелоадим все изображения и видео
+  const promises = [];
+
+  allProjects.forEach((project) => {
+    project.media.forEach((media) => {
       if (media.type === 'image') {
         const img = new Image();
         img.src = media.src;
+        promises.push(new Promise((resolve) => {
+          img.onload = img.onerror = resolve;
+        }));
       } else if (media.type === 'video') {
         const video = document.createElement('video');
         video.src = media.src;
         video.preload = 'auto';
+        promises.push(new Promise((resolve) => {
+          video.onloadeddata = video.onerror = resolve;
+        }));
       }
     });
   });
 
-  checkIsDesktop();
-  window.addEventListener("resize", checkIsDesktop);
+  Promise.all(promises).then(() => {
+    isMediaLoaded.value = true;
+    clearTimeout(preloaderTimeout);
+  });
 });
 
 const homeStore = useHomeStore();
@@ -34,7 +58,6 @@ const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
 const isPreviewVisible = ref(false);
 
-// Управляемый переход: сначала активируем, потом плавно скрываем
 let hideTimeout;
 
 watch(activeImage, (newVal, oldVal) => {
@@ -45,7 +68,7 @@ watch(activeImage, (newVal, oldVal) => {
   } else {
     hideTimeout = setTimeout(() => {
       isPreviewVisible.value = false;
-    }, 300); // время исчезновения
+    }, 300);
     document.body.classList.remove("inverted");
   }
 });
@@ -63,6 +86,7 @@ const clearActiveProjectData = useDebounce(() => {
 
 onUnmounted(() => {
   clearTimeout(hideTimeout);
+  clearTimeout(preloaderTimeout);
   clearActiveProjectData();
 });
 
@@ -72,7 +96,10 @@ onBeforeRouteLeave(() => {
 </script>
 
 <template>
-  <ul class="projects-list">
+  <!-- Показываем прелоудер только при долгой загрузке -->
+  <Preloader v-if="!isMediaLoaded && shouldShowPreloader" />
+
+  <ul class="projects-list" v-show="isMediaLoaded">
     <ProjectItem
       v-for="project in allProjects"
       :key="project.number"
@@ -137,7 +164,7 @@ onBeforeRouteLeave(() => {
   transition: filter 0.1s ease;
 }
 
-/* Transition animations */
+/* Анимации */
 .preview-fade-enter-active {
   animation: fadeIn 0.4s ease forwards;
 }
@@ -145,8 +172,8 @@ onBeforeRouteLeave(() => {
   animation: fadeOut 0.3s ease forwards;
 }
 
-/* Адаптивы оставлены как были */
-@media (max-width: 1024px)  {
+/* Адаптив */
+@media (max-width: 1024px) {
   .header {
     padding-top: 54px;
   }

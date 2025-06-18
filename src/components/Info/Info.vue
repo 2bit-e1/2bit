@@ -214,20 +214,19 @@ onUnmounted(() => {
   opacity: 0;
   transition: opacity 150ms;
   pointer-events: none;
-  display: flex;
+  display: flex;  
+  justify-content: center;
   position: fixed;
   width: 100%;
   height: 100%;
   z-index: calc(var(--footer-z-index) - 1);
   background-color: var(--bg-clr-white);
-  /* display: flex; */
-  justify-content: center;
   --content-width: calc(100% - var(--page-padding-x) * 2);
 }
 
-.info_me {
+/* .info_me {
   height: auto;
-}
+} */
 
 .info_open {
   opacity: 1;

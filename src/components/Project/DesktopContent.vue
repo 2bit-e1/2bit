@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useProjectStore } from "@/stores/project";
+import Preloader from "@/components/Preloader.vue";
 
 const projectStore = useProjectStore();
 
@@ -9,20 +10,19 @@ const { imagesSrc } = defineProps({
 });
 
 const activeIndex = ref(0);
-const direction = ref(0); // -1 вверх, 1 вниз
+const direction = ref(0);
 const scrollerRef = ref(null);
 let isThrottled = false;
 
-const shouldShowFirstImage = ref(false); // 👉 новый флаг
+const shouldShowFirstImage = ref(false);
+const isLoading = ref(true);
+const showPreloader = ref(false); // прелоудер только если загрузка >100мс
 
 function handleScroll(event) {
   event.preventDefault();
-
   if (isThrottled) return;
 
   const deltaY = event.deltaY;
-
-  // игнорировать слишком маленькие или слишком большие дельты
   if (Math.abs(deltaY) < 20) return;
 
   const dir = deltaY > 0 ? 1 : -1;
@@ -40,16 +40,36 @@ function handleScroll(event) {
   }, 1000);
 }
 
+function preloadAllImages(srcArray) {
+  return Promise.all(
+    srcArray.map(src => {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = resolve;
+        img.src = src;
+      });
+    })
+  );
+}
 
 onMounted(async () => {
-  projectStore.setCurrentImage(0);
   document.body.style.overflow = "hidden";
+  projectStore.setCurrentImage(0);
 
   if (scrollerRef.value) {
     scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
   }
 
-  // 👉 Имитация анимации первой картинки
+  // показать прелоудер только если загрузка дольше 100мс
+  const delay = setTimeout(() => {
+    showPreloader.value = true;
+  }, 100);
+
+  await preloadAllImages(imagesSrc);
+  clearTimeout(delay);
+  isLoading.value = false;
+
   direction.value = 1;
 
   await nextTick();
@@ -67,29 +87,31 @@ onBeforeUnmount(() => {
 });
 </script>
 
-
 <template>
-  <div class="scroller-vertical" ref="scrollerRef">
-    <div
-      v-for="(imageSrc, ind) in imagesSrc"
-      :key="ind"
-      class="image-box"
-      :class="{
-        'in-view': (ind === activeIndex) && (ind !== 0 || shouldShowFirstImage),
-        'above': ind < activeIndex,
-        'below': ind > activeIndex,
-        'from-top': direction === -1 && ind === activeIndex,
-        'from-bottom': direction === 1 && ind === activeIndex,
-      }"
-    >
-      <div class="image-wrapper">
-        <img :src="imageSrc" loading="lazy" />
-        <div class="mask" />
+  <div>
+    <Preloader v-if="isLoading && showPreloader" />
+
+    <div v-else class="scroller-vertical" ref="scrollerRef">
+      <div
+        v-for="(imageSrc, ind) in imagesSrc"
+        :key="ind"
+        class="image-box"
+        :class="{
+          'in-view': (ind === activeIndex) && (ind !== 0 || shouldShowFirstImage),
+          'above': ind < activeIndex,
+          'below': ind > activeIndex,
+          'from-top': direction === -1 && ind === activeIndex,
+          'from-bottom': direction === 1 && ind === activeIndex,
+        }"
+      >
+        <div class="image-wrapper">
+          <img :src="imageSrc" />
+          <div class="mask" />
+        </div>
       </div>
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .scroller-vertical {
