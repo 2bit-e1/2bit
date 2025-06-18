@@ -10,6 +10,7 @@ import Preloader from "@/components/Preloader.vue";
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
 let preloaderTimeout = null;
+const shouldShowPreloader = ref(false);
 
 const checkIsDesktop = () => {
   isDesktop.value = window.innerWidth > 1024;
@@ -59,30 +60,21 @@ onMounted(() => {
   checkIsDesktop();
   window.addEventListener("resize", checkIsDesktop);
 
-  const hasVisited = sessionStorage.getItem("hasVisited");
-
   const mediaPromises = preloadMedia();
 
-  if (!hasVisited) {
-    sessionStorage.setItem("hasVisited", "true");
+  const minPreloaderDelay = new Promise((resolve) =>
+    setTimeout(resolve, 5000)
+  );
 
-    const minPreloaderDelay = new Promise((resolve) =>
-      setTimeout(resolve, 3000)
-    );
+  preloaderTimeout = setTimeout(() => {
+    shouldShowPreloader.value = true;
+  }, 100);
 
-    preloaderTimeout = setTimeout(() => {
-      shouldShowPreloader.value = true;
-    }, 100);
-
-    Promise.all([Promise.all(mediaPromises), minPreloaderDelay]).then(() => {
-      isMediaLoaded.value = true;
-    });
-  } else {
-    Promise.all(mediaPromises).then(() => {
-      isMediaLoaded.value = true;
-    });
-  }
+  Promise.all([Promise.all(mediaPromises), minPreloaderDelay]).then(() => {
+    isMediaLoaded.value = true;
+  });
 });
+
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
@@ -129,8 +121,8 @@ const allPreviewMedia = computed(() =>
 </script>
 
 <template>
-  <Preloader v-if="!isMediaLoaded" />
-
+  <Preloader v-if="shouldShowPreloader && !isMediaLoaded" />
+  
   <ul class="projects-list" v-show="isMediaLoaded">
     <ProjectItem
       v-for="project in allProjects"
