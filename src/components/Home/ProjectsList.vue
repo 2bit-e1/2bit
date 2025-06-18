@@ -16,62 +16,58 @@ const checkIsDesktop = () => {
   isDesktop.value = window.innerWidth > 1024;
 };
 
-onMounted(() => {
-  checkIsDesktop();
-  window.addEventListener("resize", checkIsDesktop);
+const preloadMedia = () => {
+  const promises = [];
 
-  const preloadMedia = [];
-
-  // Минимальная задержка — минимум 3 секунды
-  const minPreloaderDelay = new Promise((resolve) => {
-    setTimeout(resolve, 3000);
-  });
-
-  // Реальная загрузка всех медиа через DOM
   allProjects.forEach((project) => {
     project.media.forEach((media) => {
-      if (media.type === 'image') {
+      if (media.type === "image") {
         const img = new Image();
         img.src = media.src;
         img.loading = 'eager';
         img.decoding = 'async';
-        document.body.appendChild(img); // Вставляем в DOM (невидимо)
-        img.style.display = 'none';
 
-        preloadMedia.push(
+        promises.push(
           new Promise((resolve) => {
-            img.onload = img.onerror = () => {
-              document.body.removeChild(img);
-              resolve();
-            };
+            img.onload = img.onerror = resolve;
           })
         );
-      } else if (media.type === 'video') {
-        const video = document.createElement('video');
-        video.src = media.src;
-        video.preload = 'auto';
-        video.muted = true;
-        video.playsInline = true;
-        video.style.display = 'none';
-        document.body.appendChild(video);
+      } else if (media.type === "video") {
+        // Добавляем preload ссылку в head
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "video";
+        link.href = media.src;
+        document.head.appendChild(link);
 
-        preloadMedia.push(
+        promises.push(
           new Promise((resolve) => {
-            video.onloadeddata = video.onerror = () => {
-              document.body.removeChild(video);
-              resolve();
-            };
+            const video = document.createElement("video");
+            video.src = media.src;
+            video.preload = "auto";
+            video.muted = true;
+            video.playsInline = true;
+            video.onloadeddata = video.onerror = resolve;
           })
         );
       }
     });
   });
 
-  Promise.all([Promise.all(preloadMedia), minPreloaderDelay]).then(() => {
+  return promises;
+};
+
+onMounted(() => {
+  checkIsDesktop();
+  window.addEventListener("resize", checkIsDesktop);
+
+  const minPreloaderDelay = new Promise((resolve) => setTimeout(resolve, 3000));
+  const mediaPromises = preloadMedia();
+
+  Promise.all([Promise.all(mediaPromises), minPreloaderDelay]).then(() => {
     isMediaLoaded.value = true;
   });
 
-  // Прелоудер с небольшой задержкой (чтобы избежать моргания)
   preloaderTimeout = setTimeout(() => {
     shouldShowPreloader.value = true;
   }, 100);
@@ -82,7 +78,7 @@ const activeImage = computed(() => homeStore.activeProjectImage);
 const isPreviewVisible = ref(false);
 let hideTimeout;
 
-watch(activeImage, (newVal, oldVal) => {
+watch(activeImage, (newVal) => {
   clearTimeout(hideTimeout);
   if (newVal) {
     isPreviewVisible.value = true;
@@ -113,7 +109,7 @@ onUnmounted(() => {
 });
 
 onBeforeRouteLeave(() => {
-  document.body.classList.remove('inverted');
+  document.body.classList.remove("inverted");
 });
 </script>
 
@@ -180,7 +176,7 @@ onBeforeRouteLeave(() => {
   object-fit: cover;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;  
+  background-repeat: no-repeat;
   filter: invert(1) hue-rotate(180deg) !important;
   transition: filter 0.1s ease;
 }
@@ -199,7 +195,7 @@ onBeforeRouteLeave(() => {
 
   .projects-list {
     padding-top: 115px;
-    --item-size: 34vmin;   
+    --item-size: 34vmin;
   }
 
   .home-btn {
@@ -210,16 +206,16 @@ onBeforeRouteLeave(() => {
 @media (max-width: 1024px) and (max-height: 1366px) {
   .projects-list {
     padding-top: 100px;
-    --item-size: 33vmin;   
+    --item-size: 33vmin;
   }
-} 
+}
 
 @media (max-width: 1024px) and (max-height: 1150px) {
   .projects-list {
     padding-top: 75px;
-    --item-size: 33vmin; 
+    --item-size: 33vmin;
   }
-} 
+}
 
 @media (max-width: 768px) {
   .fullscreen-preview {
@@ -228,14 +224,14 @@ onBeforeRouteLeave(() => {
 
   .projects-list {
     padding-top: 72.5px;
-    --item-size: 33vmin;   
+    --item-size: 33vmin;
   }
 }
 
 @media (max-width: 768px) and (max-height: 960px) {
   .projects-list {
     padding-top: 20px;
-    padding-bottom: 45px;  
+    padding-bottom: 45px;
     --item-size: 30vmin;
   }
 }
@@ -243,7 +239,7 @@ onBeforeRouteLeave(() => {
 @media (max-width: 768px) and (max-height: 851px) {
   .projects-list {
     padding-top: 20px;
-    padding-bottom: 45px;  
+    padding-bottom: 45px;
     --item-size: 27vmin;
   }
 }
@@ -260,7 +256,7 @@ onBeforeRouteLeave(() => {
   }
 }
 
-@media (max-width: 500px)  {
+@media (max-width: 500px) {
   .projects-list {
     --item-size: 33vmin;
     gap: 0 0;
