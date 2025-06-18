@@ -10,6 +10,8 @@ import Preloader from "@/components/Preloader.vue";
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
 const shouldShowPreloader = ref(false);
+const isImageLoaded = ref(false);
+const isVideoLoaded = ref(false);
 let preloaderTimeout = null;
 
 const checkIsDesktop = () => {
@@ -80,6 +82,9 @@ let hideTimeout;
 
 watch(activeImage, (newVal) => {
   clearTimeout(hideTimeout);
+  isImageLoaded.value = false;
+  isVideoLoaded.value = false;
+
   if (newVal) {
     isPreviewVisible.value = true;
     document.body.classList.add("inverted");
@@ -90,6 +95,7 @@ watch(activeImage, (newVal) => {
     document.body.classList.remove("inverted");
   }
 });
+
 
 const setActiveProjectData = useDebounce(
   (name, year, link, image) => {
@@ -190,7 +196,14 @@ onBeforeRouteLeave(() => {
   background-repeat: no-repeat;
   filter: invert(1) hue-rotate(180deg) !important;
   transition: filter 0.4s ease;
+  opacity: 0;
 }
+
+.fullscreen-preview-image.loaded,
+.fullscreen-preview-video.loaded {
+  opacity: 1;
+}
+
 
 .preview-fade-enter-active {
   animation: fadeIn 0.4s ease forwards;
