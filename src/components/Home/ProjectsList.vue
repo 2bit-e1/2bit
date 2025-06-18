@@ -1,11 +1,11 @@
 <script setup>
 import allProjects from "@/data/projects/index.js";
 import ProjectItem from "@/components/Home/ProjectItem.vue";
-import Preloader from "@/components/Preloader.vue";
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
+import Preloader from "@/components/Preloader.vue";
 
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
@@ -33,6 +33,7 @@ const preloadMedia = () => {
           })
         );
       } else if (media.type === "video") {
+        // Добавляем preload ссылку в head
         const link = document.createElement("link");
         link.rel = "preload";
         link.as = "video";
@@ -75,13 +76,10 @@ onMounted(() => {
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
 const isPreviewVisible = ref(false);
-const previewLoaded = ref(false);
 let hideTimeout;
 
 watch(activeImage, (newVal) => {
   clearTimeout(hideTimeout);
-  previewLoaded.value = false;
-
   if (newVal) {
     isPreviewVisible.value = true;
     document.body.classList.add("inverted");
@@ -138,28 +136,13 @@ onBeforeRouteLeave(() => {
       class="fullscreen-preview"
       aria-hidden="false"
     >
-      <!-- Показываем прелоадер пока превью не загружено -->
-      <Preloader v-if="!previewLoaded" />
-
       <template v-if="activeImage.endsWith('.mp4')">
-        <video
-          :src="activeImage"
-          autoplay
-          muted
-          loop
-          playsinline
-          @loadeddata="previewLoaded = true"
-          @error="previewLoaded = true"
-        />
+        <video :src="activeImage" autoplay muted loop playsinline />
       </template>
-
       <template v-else>
-        <img
-          :src="activeImage"
-          alt=""
+        <div
           class="fullscreen-preview-image"
-          @load="previewLoaded = true"
-          @error="previewLoaded = true"
+          :style="{ backgroundImage: `url(${activeImage})` }"
         />
       </template>
     </div>
