@@ -66,22 +66,18 @@ onMounted(() => {
     sessionStorage.setItem("hasVisited", "true");
     shouldShowPreloader.value = true;
 
-    const mediaPromises = preloadMedia();
+    // Стартуем загрузку, но не ждём её завершения
+    preloadMedia();
 
-    // Минимум 3 секунды задержки
-    const timeoutPromise = new Promise(resolve => {
-      preloaderTimeout = setTimeout(resolve, 3000);
-    });
-
-    // Ожидаем и загрузку, и 3 секунды
-    Promise.all([...mediaPromises, timeoutPromise]).then(() => {
+    // Показываем прелоадер ровно 3 секунды
+    preloaderTimeout = setTimeout(() => {
       isMediaLoaded.value = true;
-    });
-
+    }, 3000);
   } else {
     isMediaLoaded.value = true;
   }
 });
+
 
 
 const homeStore = useHomeStore();
