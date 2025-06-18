@@ -1,17 +1,15 @@
 <script setup>
 import allProjects from "@/data/projects/index.js";
 import ProjectItem from "@/components/Home/ProjectItem.vue";
+import Preloader from "@/components/Preloader.vue";
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
-import Preloader from "@/components/Preloader.vue";
 
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
 const shouldShowPreloader = ref(false);
-const isImageLoaded = ref(false);
-const isVideoLoaded = ref(false);
 let preloaderTimeout = null;
 
 const checkIsDesktop = () => {
@@ -35,7 +33,6 @@ const preloadMedia = () => {
           })
         );
       } else if (media.type === "video") {
-        // Добавляем preload ссылку в head
         const link = document.createElement("link");
         link.rel = "preload";
         link.as = "video";
@@ -78,12 +75,12 @@ onMounted(() => {
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
 const isPreviewVisible = ref(false);
+const previewLoaded = ref(false);
 let hideTimeout;
 
 watch(activeImage, (newVal) => {
   clearTimeout(hideTimeout);
-  isImageLoaded.value = false;
-  isVideoLoaded.value = false;
+  previewLoaded.value = false;
 
   if (newVal) {
     isPreviewVisible.value = true;
@@ -95,7 +92,6 @@ watch(activeImage, (newVal) => {
     document.body.classList.remove("inverted");
   }
 });
-
 
 const setActiveProjectData = useDebounce(
   (name, year, link, image) => {
@@ -142,6 +138,9 @@ onBeforeRouteLeave(() => {
       class="fullscreen-preview"
       aria-hidden="false"
     >
+      <!-- Показываем прелоадер пока превью не загружено -->
+      <Preloader v-if="!previewLoaded" />
+
       <template v-if="activeImage.endsWith('.mp4')">
         <video
           :src="activeImage"
@@ -149,17 +148,18 @@ onBeforeRouteLeave(() => {
           muted
           loop
           playsinline
-          class="fullscreen-preview-video"
-          @loadeddata="isVideoLoaded = true"
-          :class="{ loaded: isVideoLoaded }"
+          @loadeddata="previewLoaded = true"
+          @error="previewLoaded = true"
         />
       </template>
+
       <template v-else>
         <img
           :src="activeImage"
+          alt=""
           class="fullscreen-preview-image"
-          @load="isImageLoaded = true"
-          :class="{ loaded: isImageLoaded }"
+          @load="previewLoaded = true"
+          @error="previewLoaded = true"
         />
       </template>
     </div>
@@ -195,15 +195,8 @@ onBeforeRouteLeave(() => {
   background-position: center;
   background-repeat: no-repeat;
   filter: invert(1) hue-rotate(180deg) !important;
-  transition: filter 0.4s ease;
-  opacity: 0;
+  transition: filter 0.1s ease;
 }
-
-.fullscreen-preview-image.loaded,
-.fullscreen-preview-video.loaded {
-  opacity: 1;
-}
-
 
 .preview-fade-enter-active {
   animation: fadeIn 0.4s ease forwards;
