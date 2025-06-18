@@ -16,7 +16,7 @@ let isThrottled = false;
 
 const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
-const showPreloader = ref(false); // прелоудер только если загрузка >100мс
+const showPreloader = ref(false);
 
 function handleScroll(event) {
   event.preventDefault();
@@ -60,15 +60,28 @@ onMounted(async () => {
     scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
   }
 
-  // показать прелоудер только если загрузка дольше 100мс
+  // Таймер на 300мс: если загрузка медленная — показываем прелоадер
+  let preloaderStartTime = null;
+
   const delay = setTimeout(() => {
     showPreloader.value = true;
-  }, 100);
+    preloaderStartTime = performance.now(); // засечь время показа
+  }, 300);
 
   await preloadAllImages(imagesSrc);
   clearTimeout(delay);
-  isLoading.value = false;
 
+  if (preloaderStartTime) {
+    const now = performance.now();
+    const timeShown = now - preloaderStartTime;
+    const timeToWait = 3000 - timeShown;
+
+    if (timeToWait > 0) {
+      await new Promise(resolve => setTimeout(resolve, timeToWait));
+    }
+  }
+
+  isLoading.value = false;
   direction.value = 1;
 
   await nextTick();
@@ -76,6 +89,7 @@ onMounted(async () => {
     shouldShowFirstImage.value = true;
   });
 });
+
 
 onBeforeUnmount(() => {
   document.body.style.overflow = "";
