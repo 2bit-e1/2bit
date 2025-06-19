@@ -35,7 +35,6 @@ const Number_comp = AllNumbers[`Number_${props.number}`];
 const appearDelay = getDelayByNumber(props.number) + "ms";
 
 const handleSetActiveProjectData = () => {
-
   if (homeStore.activeProjectLink === projectLink.value) {
     router.push(projectLink.value);
   } else {
@@ -75,6 +74,7 @@ const handleClick = () => {
       :is="'a'"
       class="link project-item-link"
       href="#"
+      tabindex="0"
       @mouseenter="handleSetActiveProjectData"
       @mouseleave="handleClearActiveProjectData"
       @click.prevent="handleClick"
@@ -105,6 +105,7 @@ a.project-item-link {
   padding: 5px;
   /* Удаляем обводку */
   border: none !important;
+  cursor: pointer;
 }
 
 .item-inner {
