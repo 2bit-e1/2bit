@@ -221,4 +221,5 @@ onBeforeUnmount(() => {
 .image-box.in-view img {
   transform: scale(1);
 }
+
 </style>

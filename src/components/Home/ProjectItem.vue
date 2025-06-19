@@ -79,7 +79,7 @@ const handleTouchStart = () => {
       @mouseenter="handleSetActiveProjectData"
       @mouseleave="handleClearActiveProjectData"
       @click.prevent="handleClick"
-      @touchstart.prevent="handleTouchStart"
+      @touchstart="handleTouchStart"
       preload="auto"
     >
       <div class="item-inner">

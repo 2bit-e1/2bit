@@ -108,4 +108,11 @@ onBeforeUnmount(() => {
 .image-box.in-view img {
   transform: scale(1);
 }
+
+@media (max-width: 1024px) {
+  .image-wrapper img {
+    width: 836px;
+  }
+}
+
 </style>

@@ -209,6 +209,7 @@ filter: invert(1) hue-rotate(180deg);
 }
 
 @media (max-width: 1024px) {
+
   .preloader {
     display: none;
   }
@@ -286,7 +287,7 @@ filter: invert(1) hue-rotate(180deg);
 </style>
 
 <style>
-@media (min-width: 1024px) {
+@media (min-width: 1025px) {
   body {
     transition: filter 0s ease;
     will-change: filter;
@@ -297,4 +298,5 @@ filter: invert(1) hue-rotate(180deg);
     transition: filter 0.1s ease;
   }
 }
+
 </style>
