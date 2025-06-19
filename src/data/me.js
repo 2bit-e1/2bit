@@ -8,7 +8,7 @@ export default {
         text: "hello@madboot.co",
       },
       {
-        link: "/",
+        link: "/https://www.instagram.com/stone_and_echo/?hl=ru",
         text: "Instagram",
       },
       {
