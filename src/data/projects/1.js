@@ -11,7 +11,7 @@ export default {
     {
       type: CONTENT_TYPES.paragraph,
       text: `
-        In 2020 we were approached by a founder of uprising hedge fund to help him develop branding. The client's main request was to create a trusted image for the fund with deep expertise.
+        In 2021 we were approached by a founder of uprising hedge fund to help him develop branding. The client's main request was to create a trusted image for the fund with deep expertise.
       `,
     },
     {
