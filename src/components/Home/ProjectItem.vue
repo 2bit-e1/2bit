@@ -47,7 +47,11 @@ const handleClearActiveProjectData = () => {
   emit("clearActiveProjectData");
 };
 
+let hasClicked = false;
+
 const handleClick = () => {
+  if (hasClicked) return;
+  hasClicked = true;
   handleSetActiveProjectData();
 
   const isTouch =
@@ -78,6 +82,7 @@ const handleClick = () => {
       @mouseenter="handleSetActiveProjectData"
       @mouseleave="handleClearActiveProjectData"
       @click.prevent="handleClick"
+      @touchstart="handleClick"
       preload="auto"
     >
       <div class="item-inner">
@@ -103,7 +108,6 @@ a.project-item-link {
   width: 100%;
   height: 100%;
   padding: 5px;
-  /* Удаляем обводку */
   border: none !important;
   cursor: pointer;
 }
