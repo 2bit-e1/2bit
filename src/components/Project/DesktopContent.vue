@@ -18,6 +18,38 @@ const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
 const showPreloader = ref(false);
 
+//новинка для айпада снизу
+let touchStartY = 0;
+let touchEndY = 0;
+
+function handleTouchStart(e) {
+  touchStartY = e.touches[0].clientY;
+}
+
+function handleTouchMove(e) {
+  touchEndY = e.touches[0].clientY;
+}
+
+function handleTouchEnd() {
+  const deltaY = touchStartY - touchEndY;
+  if (Math.abs(deltaY) < 20) return;
+
+  const dir = deltaY > 0 ? 1 : -1;
+  const nextIndex = activeIndex.value + dir;
+
+  if (nextIndex < 0 || nextIndex >= imagesSrc.length) return;
+
+  direction.value = dir;
+  activeIndex.value = nextIndex;
+  projectStore.setCurrentImage(nextIndex);
+
+  isThrottled = true;
+  setTimeout(() => {
+    isThrottled = false;
+  }, 1000);
+}
+//новинка для айпада сверху
+
 function handleScroll(event) {
   event.preventDefault();
   if (isThrottled) return;
@@ -58,6 +90,11 @@ onMounted(async () => {
 
   if (scrollerRef.value) {
     scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
+
+     //  Добавим слушатели для сенсорных экранов
+    scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
+    scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
+    scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
   }
 
   // Таймер на 300мс: если загрузка медленная — показываем прелоадер
@@ -96,6 +133,10 @@ onBeforeUnmount(() => {
 
   if (scrollerRef.value) {
     scrollerRef.value.removeEventListener("wheel", handleScroll);
+    //для сенсеров
+    scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
+    scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
+    scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
   }
 });
 </script>
