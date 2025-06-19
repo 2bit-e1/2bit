@@ -67,7 +67,7 @@ const pressItemsDelayOrder =
         :delayOrder="4 + data.footerData.contacts.length + 1"
       />
       <AppearWords
-        text="(2024. (c) Все права защищены)"
+        text="(2025. (c) Все права защищены)"
         :delayOrder="6 + data.footerData.contacts.length + 1"
         :isAppear="isActive"
         class="me-copyright-text"
