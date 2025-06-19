@@ -4,11 +4,11 @@ export default {
   footerData: {
     contacts: [
       {
-        link: "mailto:hello@madboot.co",
-        text: "hello@madboot.co",
+        link: "mailto:kakpechorin666@gmail.com",
+        text: "2bit.works",
       },
       {
-        link: "/https://www.instagram.com/stone_and_echo/?hl=ru",
+        link: "https://www.instagram.com/stone_and_echo/?hl=ru",
         text: "Instagram",
       },
       {
@@ -28,9 +28,9 @@ export default {
     ],
     services: [
       "Исследование",
-      "Визуальная идентификация",
+      "Идентификация",
       "Web",
-      "Гайдлайн",
+      "Guidline",
       "Артдирекшн",
       "Анимация",
       "3D",
