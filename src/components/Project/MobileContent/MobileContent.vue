@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 1024px) {
   .image-wrapper img {
-    width: 836px;
+    width: 860px;
   }
 }
 

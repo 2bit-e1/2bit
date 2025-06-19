@@ -222,4 +222,9 @@ onBeforeUnmount(() => {
   transform: scale(1);
 }
 
+@media (max-width: 1368px) {
+  .image-wrapper {
+    width: 90vw;
+  }
+}
 </style>

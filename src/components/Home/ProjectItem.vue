@@ -18,9 +18,11 @@ const emit = defineEmits(["setActiveProjectData", "clearActiveProjectData"]);
 const homeStore = useHomeStore();
 
 const isMobile = ref(false);
+const isTouchDevice = ref(false);
 
 onMounted(() => {
   isMobile.value = window.innerWidth <= 1024;
+   isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 });
 
 const router = useRouter();
@@ -47,15 +49,16 @@ const handleClearActiveProjectData = () => {
 };
 
 const handleClick = () => {
-  handleSetActiveProjectData(); // всегда вызываем, чтобы показать хедер
+  handleSetActiveProjectData();
 
-  if (isMobile.value) {
-    // ждём 1 секунду и переходим
+  const isTouch =
+    'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  if (isTouch) {
     setTimeout(() => {
       router.push(projectLink.value);
     }, 1000);
   } else {
-    // На десктопе: если уже активен этот проект — переход
     if (homeStore.activeProjectLink === projectLink.value) {
       router.push(projectLink.value);
     }
@@ -63,23 +66,18 @@ const handleClick = () => {
 };
 
 
-const handleTouchStart = () => {
-  if (isMobile.value) {
-    handleClick();
-  }
-};
+
 </script>
 
 <template>
   <li class="project-item">
     <component
-      :is="!isMobile.value ? 'router-link' : 'a'"
+      :is="'a'"
       class="link project-item-link"
-      :to="!isMobile.value ? projectLink : undefined"
+      href="#"
       @mouseenter="handleSetActiveProjectData"
       @mouseleave="handleClearActiveProjectData"
       @click.prevent="handleClick"
-      @touchstart="handleTouchStart"
       preload="auto"
     >
       <div class="item-inner">
