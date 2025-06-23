@@ -21,10 +21,13 @@ export default {
     },
   ],
   images: [
-    "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-    "https://plus.unsplash.com/premium_photo-1673597080829-89755cc852d4?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-    "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
-    "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
+    "https://disk.yandex.ru/i/U1mPVjOeEsAtrQ",
+    "https://disk.yandex.ru/i/zu0TK4bQYN247w",
+    "https://disk.yandex.ru/i/x4CJ2j_KE763lQ",
+    "https://disk.yandex.ru/i/eZqDzsEp-wTXBg",
+    "https://disk.yandex.ru/i/EEcyDRrIwvbhDQ",
+    "https://disk.yandex.ru/i/KkM1Pd64-UY-Gg",
+
   ],
   media: [
     { type: "img", src: "/5.webp" }, 
