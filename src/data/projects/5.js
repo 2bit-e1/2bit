@@ -21,12 +21,11 @@ export default {
     },
   ],
   images: [
-    "https://disk.yandex.ru/i/U1mPVjOeEsAtrQ",
-    "https://disk.yandex.ru/i/zu0TK4bQYN247w",
-    "https://disk.yandex.ru/i/x4CJ2j_KE763lQ",
-    "https://disk.yandex.ru/i/eZqDzsEp-wTXBg",
-    "https://disk.yandex.ru/i/EEcyDRrIwvbhDQ",
-    "https://disk.yandex.ru/i/KkM1Pd64-UY-Gg",
+    "/5.1.mp4",
+    "/5.2-3.mp4",
+    "/5.4.mp4",
+    "/5.5.mp4",
+    "/5.6.mp4",
 
   ],
   media: [
