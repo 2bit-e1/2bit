@@ -219,8 +219,9 @@ onBeforeUnmount(() => {
 
 .image-wrapper {
   position: relative;
-  width: 100vw;
-  height: 85vh;
+  width: 90vw;
+  max-width: 1600px;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -231,7 +232,9 @@ onBeforeUnmount(() => {
   transform-style: preserve-3d;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
   box-shadow: 0 -0.5px 0 #f8f8f8;
+  margin: 0 auto;
 }
+
 
 .mask {
   position: absolute;
@@ -250,8 +253,8 @@ onBeforeUnmount(() => {
 .image-wrapper img {
   position: relative;
   z-index: 1;
+  width: 100%;
   height: 100%;
-  width: auto;
   object-fit: cover;
   object-position: center;
   transform: scale(1.2);
@@ -263,9 +266,9 @@ onBeforeUnmount(() => {
   transform: scale(1);
 }
 
-@media (max-width: 1368px) {
+/* @media (max-width: 1368px) {
   .image-wrapper {
     width: 90vw;
   }
-}
+} */
 </style>
