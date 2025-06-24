@@ -21,6 +21,22 @@ const showPreloader = ref(false);
 let touchStartY = 0;
 let touchEndY = 0;
 
+function addScrollListeners() {
+  if (!scrollerRef.value) return;
+
+  // Удаляем, чтобы не подключать дважды
+  scrollerRef.value.removeEventListener("wheel", handleScroll);
+  scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
+  scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
+  scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
+
+  // Повторно подключаем обработчики
+  scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
+  scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
+  scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
+  scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
+}
+
 function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
@@ -97,13 +113,6 @@ function preloadAllMedia(srcArray) {
 onMounted(async () => {
   projectStore.setCurrentImage(0);
 
-  if (scrollerRef.value) {
-    scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
-    scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
-    scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
-    scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
-  }
-
   let preloaderStartTime = null;
   const delay = setTimeout(() => {
     showPreloader.value = true;
@@ -128,8 +137,10 @@ onMounted(async () => {
   await nextTick();
   requestAnimationFrame(() => {
     shouldShowFirstImage.value = true;
+    addScrollListeners(); // ✅ здесь подключаются обработчики
   });
 });
+
 
 onBeforeUnmount(() => {
   document.body.style.overflow = "";
