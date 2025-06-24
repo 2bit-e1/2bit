@@ -18,9 +18,12 @@ const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
 const showPreloader = ref(false);
 
-//новинка для айпада снизу
 let touchStartY = 0;
 let touchEndY = 0;
+
+function isVideo(src) {
+  return /\.(mp4|webm|ogg)$/i.test(src);
+}
 
 function handleTouchStart(e) {
   touchStartY = e.touches[0].clientY;
@@ -48,7 +51,6 @@ function handleTouchEnd() {
     isThrottled = false;
   }, 1000);
 }
-//новинка для айпада сверху
 
 function handleScroll(event) {
   event.preventDefault();
@@ -72,14 +74,21 @@ function handleScroll(event) {
   }, 1000);
 }
 
-function preloadAllImages(srcArray) {
+function preloadAllMedia(srcArray) {
   return Promise.all(
     srcArray.map(src => {
       return new Promise(resolve => {
-        const img = new Image();
-        img.onload = resolve;
-        img.onerror = resolve;
-        img.src = src;
+        if (isVideo(src)) {
+          const video = document.createElement("video");
+          video.src = src;
+          video.onloadeddata = resolve;
+          video.onerror = resolve;
+        } else {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = resolve;
+          img.src = src;
+        }
       });
     })
   );
@@ -90,29 +99,24 @@ onMounted(async () => {
 
   if (scrollerRef.value) {
     scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
-
-     //  Добавим слушатели для сенсорных экранов
     scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
     scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
     scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
   }
 
-  // Таймер на 300мс: если загрузка медленная — показываем прелоадер
   let preloaderStartTime = null;
-
   const delay = setTimeout(() => {
     showPreloader.value = true;
-    preloaderStartTime = performance.now(); // засечь время показа
+    preloaderStartTime = performance.now();
   }, 300);
 
-  await preloadAllImages(imagesSrc);
+  await preloadAllMedia(imagesSrc);
   clearTimeout(delay);
 
   if (preloaderStartTime) {
     const now = performance.now();
     const timeShown = now - preloaderStartTime;
     const timeToWait = 3000 - timeShown;
-
     if (timeToWait > 0) {
       await new Promise(resolve => setTimeout(resolve, timeToWait));
     }
@@ -127,13 +131,11 @@ onMounted(async () => {
   });
 });
 
-
 onBeforeUnmount(() => {
   document.body.style.overflow = "";
 
   if (scrollerRef.value) {
     scrollerRef.value.removeEventListener("wheel", handleScroll);
-    //для сенсеров
     scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
     scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
     scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
@@ -147,7 +149,7 @@ onBeforeUnmount(() => {
 
     <div v-else class="scroller-vertical" ref="scrollerRef">
       <div
-        v-for="(imageSrc, ind) in imagesSrc"
+        v-for="(src, ind) in imagesSrc"
         :key="ind"
         class="image-box"
         :class="{
@@ -159,7 +161,15 @@ onBeforeUnmount(() => {
         }"
       >
         <div class="image-wrapper">
-          <img :src="imageSrc" />
+          <img v-if="!isVideo(src)" :src="src" />
+          <video
+            v-else
+            :src="src"
+            autoplay
+            muted
+            loop
+            playsinline
+          />
           <div class="mask" />
         </div>
       </div>
@@ -182,9 +192,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   opacity: 0;
-  transition:
-    opacity 0.8s ease,
-    translate 0.8s ease;
+  transition: opacity 0.8s ease, translate 0.8s ease;
   will-change: transform, opacity, translate;
   pointer-events: none;
   z-index: 1;
@@ -233,6 +241,21 @@ onBeforeUnmount(() => {
   box-shadow: 0 -0.5px 0 #f8f8f8;
 }
 
+.image-wrapper img,
+.image-wrapper video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.2);
+  transition: transform 1s ease;
+  will-change: transform;
+}
+
+.image-box.in-view img,
+.image-box.in-view video {
+  transform: scale(1);
+}
+
 .mask {
   position: absolute;
   inset: 0;
@@ -245,19 +268,6 @@ onBeforeUnmount(() => {
 
 .image-box.in-view .mask {
   transform: translateY(-100%);
-}
-
-.image-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.2);
-  transition: transform 1s ease;
-  will-change: transform;
-}
-
-.image-box.in-view img {
-  transform: scale(1);
 }
 
 @media (max-width: 1368px) {
