@@ -7,6 +7,10 @@ const { imagesSrc } = defineProps({
 
 const observer = ref(null);
 
+function isVideo(src) {
+  return /\.(mp4|webm|ogg)$/i.test(src);
+}
+
 onMounted(() => {
   observer.value = new IntersectionObserver(
     (entries) => {
@@ -35,12 +39,24 @@ onBeforeUnmount(() => {
 <template>
   <div class="scroller-vertical">
     <div
-      v-for="(imageSrc, ind) in imagesSrc"
+      v-for="(src, ind) in imagesSrc"
       :key="ind"
       class="image-box"
     >
       <div class="image-wrapper">
-        <img :src="imageSrc" loading="lazy" />
+        <img
+          v-if="!isVideo(src)"
+          :src="src"
+          loading="lazy"
+        />
+        <video
+          v-else
+          :src="src"
+          autoplay
+          muted
+          loop
+          playsinline
+        />
         <div class="mask" />
       </div>
     </div>
@@ -86,8 +102,9 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-/* Картинка */
-.image-wrapper img {
+/* Общие стили для медиа */
+.image-wrapper img,
+.image-wrapper video {
   position: relative;
   z-index: 1;
   width: auto;
@@ -105,14 +122,15 @@ onBeforeUnmount(() => {
   transform: translateY(-100%);
 }
 
-.image-box.in-view img {
+.image-box.in-view img,
+.image-box.in-view video {
   transform: scale(1);
 }
 
 @media (max-width: 1024px) {
-  .image-wrapper img {
+  .image-wrapper img,
+  .image-wrapper video {
     width: 860px;
   }
 }
-
 </style>
