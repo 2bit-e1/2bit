@@ -7,31 +7,34 @@ const props = defineProps({
   imageSrc: String,
   imageDescription: String,
   isOpen: Boolean
-})
+});
 
 const emits = defineEmits(['closePopup']);
 
 const isPopupOpen = computed(() => props.isOpen);
 
+// Определяем, видео ли это
+const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.imageSrc));
+
 const keydownHandler = (event) => {
   if (event.key == 'Escape') {
     emits('closePopup');
   }
-}
+};
 
 const clickHandler = (event) => {
   if (!event.target.closest('.description')) {
     emits('closePopup');
   }
-}
+};
 
 watchEffect(() => {
   if (props.isOpen) {
-    window.addEventListener('keydown', keydownHandler)
-    window.addEventListener('click', clickHandler)
+    window.addEventListener('keydown', keydownHandler);
+    window.addEventListener('click', clickHandler);
   } else {
-    window.removeEventListener('keydown', keydownHandler)
-    window.removeEventListener('click', clickHandler)
+    window.removeEventListener('keydown', keydownHandler);
+    window.removeEventListener('click', clickHandler);
   }
 });
 
@@ -39,14 +42,28 @@ useDisableScroll(isPopupOpen);
 
 onUnmounted(() => {
   document.body.style.overflow = '';
-})
+});
 </script>
 
 <template>
   <div class="image-popup" :class="{ 'image-popup_open': isOpen }">
     <div class="image-popup-inner">
       <div class="image-container">
-        <img class="image" :src="imageSrc" alt="">
+        <img
+          v-if="!isVideo"
+          class="image"
+          :src="imageSrc"
+          alt=""
+        />
+        <video
+          v-else
+          class="image"
+          :src="imageSrc"
+          autoplay
+          muted
+          loop
+          playsinline
+        />
       </div>
       <p class="description">
         <AppearBlocks

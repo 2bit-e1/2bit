@@ -26,6 +26,9 @@ onMounted(() => {
     appearDelay.value = ((props.ind % 4) - 1) * appearDelayStep + "ms";
   }, timeForLoadAllImages);
 });
+
+// Определение, является ли src видео
+const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.src));
 </script>
 
 <template>
@@ -39,8 +42,18 @@ onMounted(() => {
       ref="elemRef"
     >
       <img
+        v-if="!isVideo"
         :src="src"
         :alt="alt || ''"
+        :ref="(ref) => $emit('setImageRef', ref)"
+      />
+      <video
+        v-else
+        :src="src"
+        autoplay
+        muted
+        loop
+        playsinline
         :ref="(ref) => $emit('setImageRef', ref)"
       />
     </div>
@@ -66,7 +79,8 @@ onMounted(() => {
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
-.item-image img {
+.item-image img,
+.item-image video {
   width: 100%;
   height: 100%;
   max-width: 100%;

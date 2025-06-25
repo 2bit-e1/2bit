@@ -1,17 +1,63 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import Preloader from "@/components/Preloader.vue";
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array
 });
 
 const observer = ref(null);
+const isLoading = ref(true);
+const showPreloader = ref(false);
 
 function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
 
-onMounted(() => {
+function preloadAllMedia(srcArray) {
+  return Promise.all(
+    srcArray.map(src => {
+      return new Promise(resolve => {
+        if (isVideo(src)) {
+          const video = document.createElement("video");
+          video.src = src;
+          video.onloadeddata = resolve;
+          video.onerror = resolve;
+        } else {
+          const img = new Image();
+          img.onload = resolve;
+          img.onerror = resolve;
+          img.src = src;
+        }
+      });
+    })
+  );
+}
+
+onMounted(async () => {
+  let preloaderStartTime = null;
+
+  const delay = setTimeout(() => {
+    showPreloader.value = true;
+    preloaderStartTime = performance.now();
+  }, 300);
+
+  await preloadAllMedia(imagesSrc);
+  clearTimeout(delay);
+
+  if (preloaderStartTime) {
+    const now = performance.now();
+    const timeShown = now - preloaderStartTime;
+    const timeToWait = 3000 - timeShown;
+    if (timeToWait > 0) {
+      await new Promise(resolve => setTimeout(resolve, timeToWait));
+    }
+  }
+
+  isLoading.value = false;
+
+  await nextTick();
+
   observer.value = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -37,27 +83,30 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="scroller-vertical">
-    <div
-      v-for="(src, ind) in imagesSrc"
-      :key="ind"
-      class="image-box"
-    >
-      <div class="image-wrapper">
-        <img
-          v-if="!isVideo(src)"
-          :src="src"
-          loading="lazy"
-        />
-        <video
-          v-else
-          :src="src"
-          autoplay
-          muted
-          loop
-          playsinline
-        />
-        <div class="mask" />
+  <div>
+    <Preloader v-if="isLoading && showPreloader" />
+
+    <div v-else class="scroller-vertical">
+      <div
+        v-for="(src, ind) in imagesSrc"
+        :key="ind"
+        class="image-box"
+      >
+        <div class="image-wrapper">
+          <img
+            v-if="!isVideo(src)"
+            :src="src"
+          />
+          <video
+            v-else
+            :src="src"
+            autoplay
+            muted
+            loop
+            playsinline
+          />
+          <div class="mask" />
+        </div>
       </div>
     </div>
   </div>
@@ -79,7 +128,6 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-/* Обёртка вокруг изображения и маски */
 .image-wrapper {
   position: relative;
   width: 100%;
@@ -91,7 +139,6 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-/* Маска */
 .mask {
   position: absolute;
   inset: 0;
@@ -102,7 +149,6 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-/* Общие стили для медиа */
 .image-wrapper img,
 .image-wrapper video {
   position: relative;
@@ -117,7 +163,6 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-/* При появлении */
 .image-box.in-view .mask {
   transform: translateY(-100%);
 }
