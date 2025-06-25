@@ -1,22 +1,22 @@
 export const processImagesData = [
   {
-    name: 'image-1.png',
+    name: 'Pr1.jpeg',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {
-    name: 'image-1.png',
+    name: 'Pr2.jpeg',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {
-    name: 'image-1.png',
+    name: 'Pr3.mp4',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {
-    name: 'image-1.png',
+    name: 'Pr4.webp',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {
-    name: 'image-1.png',
+    name: 'Pr5.mp4',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {
