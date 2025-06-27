@@ -7,6 +7,7 @@ const { imagesSrc } = defineProps({
 });
 
 const observer = ref(null);
+const lazyObserver = ref(null);
 const isLoading = ref(true);
 const showPreloader = ref(false);
 
@@ -15,8 +16,9 @@ function isVideo(src) {
 }
 
 function preloadAllMedia(srcArray) {
+  const preloadLimit = 5;
   return Promise.all(
-    srcArray.map(src => {
+    srcArray.slice(0, preloadLimit).map(src => {
       return new Promise(resolve => {
         if (isVideo(src)) {
           const video = document.createElement("video");
@@ -58,27 +60,41 @@ onMounted(async () => {
 
   await nextTick();
 
-  observer.value = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !entry.target.classList.contains("in-view")) {
-          entry.target.classList.add("in-view");
-          observer.value.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.3 }
-  );
+  // IntersectionObserver для появления
+  observer.value = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && !entry.target.classList.contains("in-view")) {
+        entry.target.classList.add("in-view");
+        observer.value.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
 
-  document.querySelectorAll(".image-box").forEach((el) => {
+  document.querySelectorAll(".image-box").forEach(el => {
     observer.value.observe(el);
+  });
+
+  // Lazy load видео
+  lazyObserver.value = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const videoEl = entry.target.querySelector("video[data-src]");
+        if (videoEl && !videoEl.src) {
+          videoEl.src = videoEl.dataset.src;
+        }
+        lazyObserver.value.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll(".image-box.lazy-video").forEach(el => {
+    lazyObserver.value.observe(el);
   });
 });
 
 onBeforeUnmount(() => {
-  if (observer.value) {
-    observer.value.disconnect();
-  }
+  observer.value?.disconnect();
+  lazyObserver.value?.disconnect();
 });
 </script>
 
@@ -91,20 +107,34 @@ onBeforeUnmount(() => {
         v-for="(src, ind) in imagesSrc"
         :key="ind"
         class="image-box"
+        :class="{ 'lazy-video': isVideo(src) && ind >= 5 }"
       >
         <div class="image-wrapper">
+          <!-- Изображения -->
           <img
             v-if="!isVideo(src)"
             :src="src"
+            :loading="ind < 5 ? 'eager' : 'lazy'"
           />
+
+          <!-- Видео (сразу и отложенная загрузка) -->
           <video
-            v-else
+            v-else-if="ind < 5"
             :src="src"
             autoplay
             muted
             loop
             playsinline
           />
+          <video
+            v-else
+            :data-src="src"
+            autoplay
+            muted
+            loop
+            playsinline
+          />
+
           <div class="mask" />
         </div>
       </div>
