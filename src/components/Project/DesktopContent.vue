@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
 .image-wrapper {
   position: relative;
   width: 100vw;
-  height: 80.76%;
+  height: 83%;
   overflow: hidden;
   display: flex;
   align-items: center;

@@ -16,7 +16,7 @@ function isVideo(src) {
 }
 
 function preloadAllMedia(srcArray) {
-  const preloadLimit = 5;
+  const preloadLimit = 10;
   return Promise.all(
     srcArray.slice(0, preloadLimit).map(src => {
       return new Promise(resolve => {
