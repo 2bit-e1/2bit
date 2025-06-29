@@ -111,6 +111,12 @@ function preloadAllMedia(srcArray) {
 }
 
 onMounted(async () => {
+
+  showPreloader.value = true; 
+
+  await nextTick(); 
+
+
   projectStore.setCurrentImage(0);
 
   let preloaderStartTime = null;
@@ -171,24 +177,39 @@ onBeforeUnmount(() => {
           'from-bottom': direction === 1 && ind === activeIndex,
         }"
       >
-        <div class="image-wrapper">
-          <img v-if="!isVideo(src)" :src="src" />
-          <video
-            v-else
-            :src="src"
-            autoplay
-            muted
-            loop
-            playsinline
-          />
+       <div class="image-wrapper">
+          <div class="media">
+            <img v-if="!isVideo(src)" :src="src" />
+            <video v-else :src="src" autoplay muted loop playsinline />
+          </div>
           <div class="mask" />
         </div>
+
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+
+.media {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media img,
+.media video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .scroller-vertical {
   position: relative;
   height: 100vh;
@@ -239,7 +260,19 @@ onBeforeUnmount(() => {
 .image-wrapper {
   position: relative;
   width: 100vw;
-  height: 83%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f8f8;
+  padding: 60px;
+}
+
+/* .image-wrapper {
+  position: relative;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -250,7 +283,7 @@ onBeforeUnmount(() => {
   transform-style: preserve-3d;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
   box-shadow: 0 -0.5px 0 #f8f8f8;
-}
+} */
 
 .image-wrapper img,
 .image-wrapper video {
