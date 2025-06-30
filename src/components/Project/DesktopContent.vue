@@ -114,9 +114,9 @@ onMounted(async () => {
 
   showPreloader.value = true; 
 
+  document.body.style.overflow = "hidden";
+
   await nextTick(); 
-
-
   projectStore.setCurrentImage(0);
 
   let preloaderStartTime = null;
@@ -139,6 +139,8 @@ onMounted(async () => {
 
   isLoading.value = false;
   direction.value = 1;
+
+
 
   await nextTick();
   requestAnimationFrame(() => {
@@ -318,5 +320,9 @@ onBeforeUnmount(() => {
   .image-wrapper {
     width: 90vw;
   }
+}
+
+@media (max-width: 1366px) and (max-height: 950px) {
+
 }
 </style>
