@@ -22,9 +22,21 @@ function preloadAllMedia(srcArray) {
       return new Promise(resolve => {
         if (isVideo(src)) {
           const video = document.createElement("video");
+          video.muted = true;
+          video.autoplay = false;
+          video.playsInline = true;
+          video.preload = "auto";
           video.src = src;
+
           video.onloadeddata = resolve;
           video.onerror = resolve;
+
+          // iOS Safari fix: вызов .load() и добавление в DOM
+          video.load();
+          document.body.appendChild(video); // добавить в DOM
+          setTimeout(() => {
+            document.body.removeChild(video); // удалить
+          }, 1000);
         } else {
           const img = new Image();
           img.onload = resolve;
@@ -35,6 +47,7 @@ function preloadAllMedia(srcArray) {
     })
   );
 }
+
 
 onMounted(async () => {
   let preloaderStartTime = null;
