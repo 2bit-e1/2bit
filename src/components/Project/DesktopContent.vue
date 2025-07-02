@@ -214,7 +214,7 @@ onBeforeUnmount(() => {
 
 .scroller-vertical {
   position: relative;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: #f8f8f8;
 }
@@ -269,23 +269,6 @@ onBeforeUnmount(() => {
   background-color: #f8f8f8;
   padding: 60px;
 }
-
-/* .image-wrapper {
-  position: relative;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #f8f8f8;
-  will-change: transform;
-  backface-visibility: hidden;
-  transform-style: preserve-3d;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  box-shadow: 0 -0.5px 0 #f8f8f8;
-} */
 
 .image-wrapper img,
 .image-wrapper video {
