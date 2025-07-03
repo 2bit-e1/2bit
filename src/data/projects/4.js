@@ -3,8 +3,8 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "ICE",
   slug: "ice",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
-  year: 26,
+  roles: ["Визуальная идентификация", "Анимация", "Гайдлайн"],
+  year: 22,
   number: 4,
   content: [
     {
@@ -27,6 +27,6 @@ export default {
     "https://images.unsplash.com/photo-1604247416063-e0e6aaf47b0b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGlmZmVyZW50JTIwc2l6ZXN8ZW58MHx8MHx8fDA%3D",
   ],
   media: [
-    { type: "video", src: "/video.mp4" }, 
+    { type: "img", src: "/4.webp" }, 
   ]
 };
