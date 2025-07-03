@@ -3,7 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Refmodel",
   slug: "refmodel",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
+  roles: ["Веб", "Анимация", "3D"],
   year: 23,
   number: 1,
   link: "#",
