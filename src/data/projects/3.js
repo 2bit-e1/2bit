@@ -4,7 +4,7 @@ export default {
   name: "Krondstadt Asset Managment",
   slug: "KAM",
   roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
-  year: 25,
+  year: 22,
   number: 3,
   content: [
     {
