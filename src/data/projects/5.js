@@ -53,6 +53,6 @@ export default {
 
   ],
   media: [
-    { type: "img", src: "/5.webp" }, 
+    { type: "video", src: "/5.mp4" }, 
   ]
 };
