@@ -1,8 +1,8 @@
 import { CONTENT_TYPES } from "@/utils/constants";
 
 export default {
-  name: "Mad beer",
-  slug: "mad-beer",
+  name: "Krondstadt Asset Managment",
+  slug: "KAM",
   roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
   year: 25,
   number: 3,
