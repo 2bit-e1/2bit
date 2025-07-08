@@ -14,7 +14,15 @@ const isMobile = window.innerWidth <= 1024;
 
 const projectStore = useProjectStore();
 const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
+const isExternalLink = computed(() =>
+  projectStore.link?.startsWith("http")
+);
 const projectName = computed(() => projectStore.name || "");
+const projectYear   = computed(() => {        // ← добавили вычисление
+  // выводим две последние цифры, чтобы было ‘23, ‘28 и т.‑д.
+  const y = projectStore.year
+  return typeof y === "number" ? `‘${y.toString().padStart(2, "0")}` : ""
+})
 </script>
 
 <template>
@@ -42,10 +50,14 @@ const projectName = computed(() => projectStore.name || "");
       </div>
     </h3>
 
-    <RouterLink
-      :to="projectStore.link || ''"
+     <component
+      :is="isExternalLink ? 'a' : 'RouterLink'"
+      :href="isExternalLink ? projectStore.link : undefined"
+      :to="!isExternalLink ? projectStore.link : undefined"
       class="hoverable project-item project-item_to-project"
       :class="`${isMobile ? 'hoverable-from-black' : 'hoverable-from-gray'} ${!isImagesCountVisible && isActive && 'project-item_to-project-active'}`"
+      target="_blank"
+      rel="noopener"
     >
       <div class="project-item-inner">
         <AppearWords
@@ -53,9 +65,9 @@ const projectName = computed(() => projectStore.name || "");
           :isAppear="!isImagesCountVisible && isActive"
           :delayOrder="0"
         />
-        <LinkArrowIcon class="project-item-inner-svg" />
+        <LinkArrowIcon class="project-item-inner-svg"/>
       </div>
-    </RouterLink>
+    </component>
 
     <CounterItem
       v-if="projectStore.images.length > 0"
@@ -74,7 +86,7 @@ const projectName = computed(() => projectStore.name || "");
           :delayOrder="6 + projectName.split(' ').length"
         />
         <AppearWords
-          text="‘23"
+          :text="projectYear"
           :isAppear="isActive"
           class="project-value"
           :delayOrder="7 + projectName.split(' ').length"

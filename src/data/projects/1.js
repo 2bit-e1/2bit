@@ -4,9 +4,9 @@ export default {
   name: "Refmodel",
   slug: "refmodel",
   roles: ["Веб", "Анимация", "3D"],
-  year: 23,
+  year: 28,
   number: 1,
-  link: "#",
+  link: "https://www.youtube.com/",
   content: [
     {
       type: CONTENT_TYPES.paragraph,

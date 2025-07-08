@@ -9,6 +9,7 @@ export const useProjectStore = defineStore('project', {
     link: null,
     images: [],
     roles: [],
+    year: null, 
     isInfoOpen: false,
     footerData: {
       isVisible: window.innerWidth > 1024,
@@ -33,6 +34,7 @@ export const useProjectStore = defineStore('project', {
       this.content = projectData.content
       this.images = projectData.images
       this.roles = projectData.roles
+      this.year    = projectData.year
       this.link = projectData.link
     },
 
@@ -43,6 +45,7 @@ export const useProjectStore = defineStore('project', {
       this.content = null
       this.images = []
       this.roles = []
+      this.year    = null
       this.isInfoOpen = false
     },
     showFooterData() {
