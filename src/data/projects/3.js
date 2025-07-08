@@ -6,6 +6,7 @@ export default {
   roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
   year: 22,
   number: 3,
+   link: "https://www.behance.net/gallery/188124693/Investment-Fund-BrandingCorporate-Identity-and-Website",
   content: [
     {
       type: CONTENT_TYPES.paragraph,
