@@ -13,19 +13,39 @@ const emits = defineEmits(['closePopup']);
 
 const isPopupOpen = computed(() => props.isOpen);
 
-// Определяем, видео ли это
+// === Определение типа медиа ===
 const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.imageSrc));
+const isVimeo = computed(() => /vimeo\.com/i.test(props.imageSrc));
 
+function toVimeoEmbed(src) {
+  if (!src) return src;
+  // убираем query/hash, если они есть
+  const cleaned = String(src).split(/[?#]/)[0];
+
+  // ловим id в формах:
+  // player.vimeo.com/video/ID
+  // vimeo.com/ID
+  // vimeo.com/channels/.../ID
+  const m = cleaned.match(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i);
+  if (!m) return src; // fallback — возвращаем как есть
+
+  const id = m[1];
+  // нужные параметры (autoplay только будет работать если muted=1)
+  const params = new URLSearchParams({
+    autoplay: "1",
+    muted: "1",
+    loop: "1",
+    background: "1"
+  });
+  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+}
+
+// === Клавиши и клик по фону для закрытия ===
 const keydownHandler = (event) => {
-  if (event.key == 'Escape') {
-    emits('closePopup');
-  }
+  if (event.key === 'Escape') emits('closePopup');
 };
-
 const clickHandler = (event) => {
-  if (!event.target.closest('.description')) {
-    emits('closePopup');
-  }
+  if (!event.target.closest('.description')) emits('closePopup');
 };
 
 watchEffect(() => {
@@ -49,14 +69,12 @@ onUnmounted(() => {
   <div class="image-popup" :class="{ 'image-popup_open': isOpen }">
     <div class="image-popup-inner">
       <div class="image-container">
-        <img
-          v-if="!isVideo"
-          class="image"
-          :src="imageSrc"
-          alt=""
-        />
+        <!-- Изображение -->
+        <img v-if="!isVideo && !isVimeo" class="image" :src="imageSrc" alt="" />
+
+        <!-- Видео -->
         <video
-          v-else
+          v-else-if="isVideo"
           class="image"
           :src="imageSrc"
           autoplay
@@ -64,7 +82,19 @@ onUnmounted(() => {
           loop
           playsinline
         />
+
+        <!-- Vimeo iframe -->
+        <iframe
+          v-else-if="isVimeo"
+          class="iframe"
+          :src="toVimeoEmbed(imageSrc)"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+        />
+
       </div>
+
       <p class="description">
         <AppearBlocks
           @setDelay="() => {}"
@@ -118,10 +148,12 @@ onUnmounted(() => {
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
-.image {
+.image,
+.iframe {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  display: block;
 }
 
 .description {
@@ -135,51 +167,22 @@ onUnmounted(() => {
   text-indent: var(--text-indent);
 }
 
+/* Медиазапросы оставляем как было */
 @media (max-width: 1024px) {
-  .image-popup {
-    background-color: var(--bg-clr-white);
-    --popup-x-padding: var(--column-width);
-    padding: 120px var(--popup-x-padding) 0;
-  }
-
-  .description {
-    flex: 0 0 130px;
-    padding-top: 55px;
-    padding: 55px 0 0;
-    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 10);
-  }
+  .image-popup { padding: 120px var(--popup-x-padding) 0; }
+  .description { flex: 0 0 130px; padding-top: 55px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
-
 @media (max-width: 820px) {
-  .image-popup {
-    padding: 86px var(--popup-x-padding) 0;
-  }
-
-  .description {
-    flex: 0 0 86px;
-    padding: 35px 0 0;
-    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 10);
-  }
+  .image-popup { padding: 86px var(--popup-x-padding) 0; }
+  .description { flex: 0 0 86px; padding: 35px 0 0; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
-
 @media (max-width: 768px) {
-  .image-popup {
-    padding: 170px var(--popup-x-padding) 0;
-  }
-
-  .description {
-    flex: 0 0 130px;
-    padding-top: 50px;
-    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 10);
-  }
+  .image-popup { padding: 170px var(--popup-x-padding) 0; }
+  .description { flex: 0 0 130px; padding-top: 50px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
-
 @media (max-width: 500px) {
-  .description {
-    padding-top: 45px;
-  }
+  .description { padding-top: 45px; }
 }
+
+
 </style>

@@ -17,7 +17,8 @@ export const CONTENT_TYPES = {
   paragraph: "paragraph",
   extraParagraph: "extra-paragraph",
   image: "image",
-  video: "video"
+  video: "video",
+  iframe: "iframe"
 };
 
 // 100ms задержка в появлинии слов

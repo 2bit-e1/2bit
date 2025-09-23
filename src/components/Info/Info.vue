@@ -1,14 +1,14 @@
 <script setup>
 import { useProjectStore } from "@/stores/project";
 import { CONTENT_TYPES, PAGE_NAMES } from "@/utils/constants";
-import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
-import { appearDelayStep, useToggleFooterDataOnScroll } from "./utils";
+import { computed, onUnmounted, ref, watch, watchEffect } from "vue";
+import { appearDelayStep } from "./utils";
 import AppearBlocks from "./AppearBlocks.vue";
-import LocomotiveScroll from "locomotive-scroll";
 import ImageItem from "./ImageItem.vue";
 import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
 import { useDisableScrollOnInfoOpen } from "../Project/hooks";
 import VideoItem from "./VideoItem.vue";
+import IframeItem from "./IframeItem.vue";
 
 const props = defineProps({
   pageName: String,
@@ -22,26 +22,39 @@ const scrollInstance = ref(null);
 const lastScrollTop = ref(0);
 
 const projectStore = useProjectStore();
-
 const infoAreaRef = ref(null);
 
 const isSkipToggleFooterData = computed(
   () => props.pageName != PAGE_NAMES.project || window.innerWidth > 1024
 );
 
+// === Учитываем iframe тоже ===
 props.content.forEach((contentItem, contentInd) => {
-  if (contentItem.type == CONTENT_TYPES.image || contentItem.type == CONTENT_TYPES.video)
+  if (
+    contentItem.type == CONTENT_TYPES.image ||
+    contentItem.type == CONTENT_TYPES.video ||
+    contentItem.type == CONTENT_TYPES.iframe
+  ) {
     contentBlocksDelay.value[contentInd] = 1 * appearDelayStep;
+  }
 });
 
-// const scrollListener = (scrollInfo) => {
-//   if (lastScrollTop.value > 1) projectStore.hideFooterData()
-//   else projectStore.showFooterData()
-
-//   lastScrollTop.value = scrollInfo.scroll.y
-// }
-
-// useToggleFooterDataOnScroll(infoAreaRef, isSkipToggleFooterData);
+function toVimeoEmbed(src) {
+  if (!src) return src;
+  const cleaned = String(src).split(/[?#]/)[0];
+  const m = cleaned.match(
+    /(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i
+  );
+  if (!m) return src;
+  const id = m[1];
+  const params = new URLSearchParams({
+    autoplay: "1",
+    muted: "1",
+    loop: "1",
+    background: "1",
+  });
+  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+}
 
 watchEffect(() => {
   if (Object.values(contentBlocksDelay.value).length == props.content.length) {
@@ -61,10 +74,7 @@ watch(
     if (isOpen) {
       projectStore.showFooterData();
       scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
-
-      // if (window.innerWidth <= 1024) scrollInstance && scrollInstance.value?.on('scroll', scrollListener)
     } else {
-      // if (window.screenTop == 0) projectStore.hideFooterData()
       if (window.innerWidth <= 1024) projectStore.hideFooterData();
       scrollInstance.value?.destroy();
     }
@@ -89,11 +99,10 @@ onUnmounted(() => {
       info_project: pageName == PAGE_NAMES.project,
     }"
   >
-    <!-- <span class="scroll-mask scroll-mask_top"></span> -->
-
     <div class="info-inner hide-scrollbar" ref="infoAreaRef">
       <div class="text-container" ref="scrollContainer">
         <template v-if="isInfoOpen" v-for="(item, ind) in content">
+          <!-- Заголовки -->
           <h3
             class="info-text info-text_title"
             v-if="item.type == CONTENT_TYPES.title"
@@ -106,13 +115,11 @@ onUnmounted(() => {
                   return +key < ind ? acc + contentBlocksDelay[key] : acc;
                 }, 0)
               "
-              :isAppearReady="
-                isAppearReady &&
-                (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
-              "
+              :isAppearReady="isAppearReady && isInfoOpen"
             />
           </h3>
 
+          <!-- Обычный параграф -->
           <p class="info-text" v-if="item.type == CONTENT_TYPES.paragraph">
             {{ item.text }}
             <AppearBlocks
@@ -122,13 +129,11 @@ onUnmounted(() => {
                   return +key < ind ? acc + contentBlocksDelay[key] : acc;
                 }, 0)
               "
-              :isAppearReady="
-                isAppearReady &&
-                (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
-              "
+              :isAppearReady="isAppearReady && isInfoOpen"
             />
           </p>
 
+          <!-- Доп. параграф -->
           <p
             class="info-text info-text_extra"
             v-if="item.type == CONTENT_TYPES.extraParagraph"
@@ -141,21 +146,16 @@ onUnmounted(() => {
                   return +key < ind ? acc + contentBlocksDelay[key] : acc;
                 }, 0)
               "
-              :isAppearReady="
-                isAppearReady &&
-                (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
-              "
+              :isAppearReady="isAppearReady && isInfoOpen"
             />
           </p>
 
+          <!-- Фото -->
           <ImageItem
             v-if="item.type == CONTENT_TYPES.image"
             :pageName="pageName"
             :src="item.link"
-            :isAppear="
-              isAppearReady &&
-              (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
-            "
+            :isAppear="isAppearReady && isInfoOpen"
             :initialDelay="
               Object.keys(contentBlocksDelay).reduce((acc, key) => {
                 return +key < ind ? acc + contentBlocksDelay[key] : acc;
@@ -163,13 +163,11 @@ onUnmounted(() => {
             "
           />
 
+          <!-- Видео -->
           <VideoItem
             v-if="item.type == CONTENT_TYPES.video"
             :src="item.link"
-            :isAppear="
-              isAppearReady &&
-              (projectStore.isInfoOpen || pageName == PAGE_NAMES.me)
-            "
+            :isAppear="isAppearReady && isInfoOpen"
             :initialDelay="
               Object.keys(contentBlocksDelay).reduce((acc, key) => {
                 return +key < ind ? acc + contentBlocksDelay[key] : acc;
@@ -177,35 +175,32 @@ onUnmounted(() => {
             "
           />
 
-          <!-- <template v-if="item.type == CONTENT_TYPES.image">
-              <div
-                v-if="pageName == PAGE_NAMES.me"
-                class="info-image info-image_me"
-                :class="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me) ? 'info-image_appear' : ''"
-                :style="{ 'animation-delay': Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
-                } , 0) + 'ms' }"
-              >
-                <img :src="item.link" alt="" />
-              </div>
-
-              <div
-                v-else
-                :style="{ 'animation-delay': Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return  +key < ind ? acc + contentBlocksDelay[key] : acc
-                } , 0) + 'ms' }"
-                class="info-image"
-                :class="isAppearReady && (projectStore.isInfoOpen || pageName == PAGE_NAMES.me) ? 'info-image_appear' : ''"
-              >
-                <img :src="item.link" alt="" />
-              </div>
-            </template> -->
+          <!-- Iframe (Vimeo) -->
+          <IframeItem
+            v-if="item.type == CONTENT_TYPES.iframe"
+            :src="toVimeoEmbed(item.link)"
+            :isAppear="isAppearReady && isInfoOpen"
+            :initialDelay="
+              Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                return +key < ind ? acc + contentBlocksDelay[key] : acc;
+              }, 0) + 'ms'
+            "
+            :name="item.name || 'Iframe project'"
+            :author="item.author || '2bit'"
+          />
+          <AppearBlocks
+            v-if="item.type == CONTENT_TYPES.iframe"
+            @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
+            :initialDelay="
+              Object.keys(contentBlocksDelay).reduce((acc, key) => {
+                return +key < ind ? acc + contentBlocksDelay[key] : acc;
+              }, 0)
+            "
+            :isAppearReady="isAppearReady && isInfoOpen"
+          />
         </template>
       </div>
     </div>
-
-    <!-- <span class="scroll-mask scroll-mask_bottom"></span> -->
-    <!-- <span class="scroll-info  ">Скролл</span> -->
   </div>
 </template>
 
@@ -232,6 +227,7 @@ onUnmounted(() => {
   opacity: 1;
   pointer-events: initial;
 }
+
 
 .info-inner {
   width: 100%;
@@ -301,6 +297,7 @@ onUnmounted(() => {
   color: var(--clr-gray);
   grid-column: 1 / 2;
   position: relative;
+  max-width: 231px;
 }
 
 .info-image, .info-video {
@@ -316,6 +313,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding-right: 10px;
+  max-width: 231px;
+  max-height: 130px;
 }
 
 .info-image_appear, .info-video_appear {
@@ -354,6 +353,8 @@ onUnmounted(() => {
   grid-column-end: 3;
   margin: 22px 0;
   padding-right: 10px;
+  width: 100%;
+  max-width: 461px;
 }
 .info-text_title {
   color: var(--clr-black);
@@ -492,4 +493,5 @@ onUnmounted(() => {
     padding-bottom: 0px;
   }
 }
+
 </style>

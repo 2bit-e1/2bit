@@ -5,9 +5,7 @@ import Preloader from "@/components/Preloader.vue";
 
 const projectStore = useProjectStore();
 
-const { imagesSrc } = defineProps({
-  imagesSrc: Array
-});
+const { imagesSrc } = defineProps({ imagesSrc: Array });
 
 const activeIndex = ref(0);
 const direction = ref(0);
@@ -21,75 +19,60 @@ const showPreloader = ref(false);
 let touchStartY = 0;
 let touchEndY = 0;
 
-function addScrollListeners() {
-  if (!scrollerRef.value) return;
-
-  // Удаляем, чтобы не подключать дважды
-  scrollerRef.value.removeEventListener("wheel", handleScroll);
-  scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
-  scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
-  scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
-
-  // Повторно подключаем обработчики
-  scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
-  scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
-  scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
-  scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
+// Определяем Vimeo и локальные видео
+function isVimeo(src) {
+  return /vimeo\.com/i.test(src);
 }
 
 function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
 
-function handleTouchStart(e) {
-  touchStartY = e.touches[0].clientY;
-}
-
-function handleTouchMove(e) {
-  touchEndY = e.touches[0].clientY;
-}
-
+// Скролл/тач обработчики
+function handleTouchStart(e) { touchStartY = e.touches[0].clientY; }
+function handleTouchMove(e) { touchEndY = e.touches[0].clientY; }
 function handleTouchEnd() {
   const deltaY = touchStartY - touchEndY;
   if (Math.abs(deltaY) < 20) return;
-
   const dir = deltaY > 0 ? 1 : -1;
   const nextIndex = activeIndex.value + dir;
-
   if (nextIndex < 0 || nextIndex >= imagesSrc.length) return;
-
   direction.value = dir;
   activeIndex.value = nextIndex;
   projectStore.setCurrentImage(nextIndex);
-
   isThrottled = true;
-  setTimeout(() => {
-    isThrottled = false;
-  }, 1000);
+  setTimeout(() => isThrottled = false, 1000);
 }
 
 function handleScroll(event) {
   event.preventDefault();
   if (isThrottled) return;
-
   const deltaY = event.deltaY;
   if (Math.abs(deltaY) < 20) return;
-
   const dir = deltaY > 0 ? 1 : -1;
   const nextIndex = activeIndex.value + dir;
-
   if (nextIndex < 0 || nextIndex >= imagesSrc.length) return;
-
   direction.value = dir;
-  isThrottled = true;
   activeIndex.value = nextIndex;
   projectStore.setCurrentImage(nextIndex);
-
-  setTimeout(() => {
-    isThrottled = false;
-  }, 1000);
+  isThrottled = true;
+  setTimeout(() => isThrottled = false, 1000);
 }
 
+function addScrollListeners() {
+  if (!scrollerRef.value) return;
+  scrollerRef.value.removeEventListener("wheel", handleScroll);
+  scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
+  scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
+  scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
+
+  scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
+  scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
+  scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
+  scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
+}
+
+// Прелоад картинок/видео
 function preloadAllMedia(srcArray) {
   return Promise.all(
     srcArray.map(src => {
@@ -99,24 +82,22 @@ function preloadAllMedia(srcArray) {
           video.src = src;
           video.onloadeddata = resolve;
           video.onerror = resolve;
-        } else {
+        } else if (!isVimeo(src)) {
           const img = new Image();
+          img.src = src;
           img.onload = resolve;
           img.onerror = resolve;
-          img.src = src;
-        }
+        } else resolve(); // Vimeo iframe загружается асинхронно
       });
     })
   );
 }
 
 onMounted(async () => {
-
-  showPreloader.value = true; 
-
+  showPreloader.value = true;
   document.body.style.overflow = "hidden";
 
-  await nextTick(); 
+  await nextTick();
   projectStore.setCurrentImage(0);
 
   let preloaderStartTime = null;
@@ -132,27 +113,21 @@ onMounted(async () => {
     const now = performance.now();
     const timeShown = now - preloaderStartTime;
     const timeToWait = 3000 - timeShown;
-    if (timeToWait > 0) {
-      await new Promise(resolve => setTimeout(resolve, timeToWait));
-    }
+    if (timeToWait > 0) await new Promise(r => setTimeout(r, timeToWait));
   }
 
   isLoading.value = false;
   direction.value = 1;
 
-
-
   await nextTick();
   requestAnimationFrame(() => {
     shouldShowFirstImage.value = true;
-    addScrollListeners(); // ✅ здесь подключаются обработчики
+    addScrollListeners();
   });
 });
 
-
 onBeforeUnmount(() => {
   document.body.style.overflow = "";
-
   if (scrollerRef.value) {
     scrollerRef.value.removeEventListener("wheel", handleScroll);
     scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
@@ -179,20 +154,33 @@ onBeforeUnmount(() => {
           'from-bottom': direction === 1 && ind === activeIndex,
         }"
       >
-       <div class="image-wrapper">
+        <div class="image-wrapper">
           <div class="media">
-            <img v-if="!isVideo(src)" :src="src" />
-            <video v-else :src="src" autoplay muted loop playsinline />
+            <img v-if="!isVideo(src) && !isVimeo(src)" :src="src" />
+            <video v-else-if="isVideo(src)" :src="src" autoplay muted loop playsinline />
+            <iframe 
+              v-else-if="isVimeo(src)"
+              :src="`${src}?autoplay=1&muted=1&loop=1&background=0`"
+              frameborder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+            />
           </div>
           <div class="mask" />
         </div>
-
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+
+/* оставляем все стили как у тебя, iframe тоже растягивается по media */
+.media iframe {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
 
 .media {
   width: 100%;

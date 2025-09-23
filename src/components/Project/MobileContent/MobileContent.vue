@@ -15,6 +15,17 @@ function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
 
+function isVimeo(src) {
+  return /vimeo\.com/i.test(src);
+}
+
+function toVimeoEmbed(src) {
+  const match = src.match(/vimeo\.com\/(\d+)/);
+  if (!match) return src;
+  const id = match[1];
+  return `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1`;
+}
+
 function preloadAllMedia(srcArray) {
   const preloadLimit = 10;
   return Promise.all(
@@ -31,23 +42,23 @@ function preloadAllMedia(srcArray) {
           video.onloadeddata = resolve;
           video.onerror = resolve;
 
-          // iOS Safari fix: вызов .load() и добавление в DOM
           video.load();
-          document.body.appendChild(video); // добавить в DOM
+          document.body.appendChild(video);
           setTimeout(() => {
-            document.body.removeChild(video); // удалить
+            document.body.removeChild(video);
           }, 1000);
-        } else {
+        } else if (!isVimeo(src)) {
           const img = new Image();
           img.onload = resolve;
           img.onerror = resolve;
           img.src = src;
+        } else {
+          resolve(); // Vimeo iframe не прелоадим
         }
       });
     })
   );
 }
-
 
 onMounted(async () => {
   let preloaderStartTime = null;
@@ -103,6 +114,16 @@ onMounted(async () => {
   document.querySelectorAll(".image-box.lazy-video").forEach(el => {
     lazyObserver.value.observe(el);
   });
+
+  // Принудительный запуск Vimeo после загрузки iframe
+  document.querySelectorAll(".image-wrapper iframe").forEach(iframe => {
+    iframe.addEventListener("load", () => {
+      iframe.contentWindow?.postMessage(
+        JSON.stringify({ method: "play" }),
+        "*"
+      );
+    });
+  });
 });
 
 onBeforeUnmount(() => {
@@ -123,16 +144,16 @@ onBeforeUnmount(() => {
         :class="{ 'lazy-video': isVideo(src) && ind >= 5 }"
       >
         <div class="image-wrapper">
-          <!-- Изображения -->
+          <!-- Картинки -->
           <img
-            v-if="!isVideo(src)"
+            v-if="!isVideo(src) && !isVimeo(src)"
             :src="src"
             :loading="ind < 5 ? 'eager' : 'lazy'"
           />
 
-          <!-- Видео (сразу и отложенная загрузка) -->
+          <!-- Видео -->
           <video
-            v-else-if="ind < 5"
+            v-else-if="isVideo(src) && ind < 5"
             :src="src"
             autoplay
             muted
@@ -140,12 +161,21 @@ onBeforeUnmount(() => {
             playsinline
           />
           <video
-            v-else
+            v-else-if="isVideo(src) && ind >= 5"
             :data-src="src"
             autoplay
             muted
             loop
             playsinline
+          />
+
+          <!-- Vimeo iframe -->
+          <iframe
+            v-else-if="isVimeo(src)"
+            :src="toVimeoEmbed(src)"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
           />
 
           <div class="mask" />
@@ -193,10 +223,11 @@ onBeforeUnmount(() => {
 }
 
 .image-wrapper img,
-.image-wrapper video {
+.image-wrapper video,
+.image-wrapper iframe {
   position: relative;
   z-index: 1;
-  width: auto;
+  width: 100%;
   height: 100%;
   max-width: calc(100% - 40px);
   object-fit: cover;
@@ -211,14 +242,21 @@ onBeforeUnmount(() => {
 }
 
 .image-box.in-view img,
-.image-box.in-view video {
+.image-box.in-view video,
+.image-box.in-view iframe {
   transform: scale(1);
 }
 
 @media (max-width: 1024px) {
   .image-wrapper img,
-  .image-wrapper video {
+  .image-wrapper video,
+  .image-wrapper iframe {
     width: 860px;
+    height: auto;
+  }
+
+  .image-wrapper iframe {
+    height: 60vh;
   }
 }
 </style>

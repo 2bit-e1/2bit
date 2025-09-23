@@ -13,9 +13,22 @@ const mediaPopupStore = useMediaPopupStore();
     :aria-hidden="!mediaPopupStore.popupData.isOpen"
   >
     <div class="video-container">
+      <!-- Видео -->
       <Video
+        v-if="mediaPopupStore.popupData.type === 'video'"
         :videoSrc="mediaPopupStore.popupData.src"
         :isPlaying="mediaPopupStore.popupData.isOpen"
+      />
+
+      <!-- Iframe (например Vimeo, YouTube) -->
+      <iframe
+        v-else-if="mediaPopupStore.popupData.type === 'iframe'"
+        :src="mediaPopupStore.popupData.src"
+        frameborder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowfullscreen
+        loading="lazy"
+        class="video-iframe"
       />
     </div>
 
@@ -62,25 +75,26 @@ const mediaPopupStore = useMediaPopupStore();
 .video-container {
   overflow: hidden;
   height: 100%;
-  transition: clip-path;
+  transition: clip-path 400ms ease;
   clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  --clip-path-delay: 0ms;
-  transition: clip-path 400ms var(--clip-path-delay) ease;
+  display: flex;
+  align-items: center;
 }
 
 .video-popup_open .video-container {
-  --clip-path-delay: 0ms;
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-}
-
-.video-container {
-  display: flex;
-  align-items: center;
 }
 
 .video-container:deep(video) {
   object-fit: contain;
   width: 100%;
+}
+
+.video-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: contain;
 }
 
 .description {

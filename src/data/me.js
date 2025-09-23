@@ -38,8 +38,8 @@ export default {
   },
   content: [
     {
-      type: CONTENT_TYPES.video,
-      link: "/video.mp4",
+      type: CONTENT_TYPES.iframe,
+      link: "https://player.vimeo.com/video/1020358245",///3.1.webp // /3.2.mp4
     },
     {
       type: CONTENT_TYPES.paragraph,

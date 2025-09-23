@@ -1,6 +1,6 @@
 export const processImagesData = [
   {
-    name: 'Pr1.jpeg',
+    name: 'https://player.vimeo.com/video/1020358245',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {

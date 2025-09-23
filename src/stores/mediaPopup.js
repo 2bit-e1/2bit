@@ -7,27 +7,29 @@ export const useMediaPopupStore = defineStore('mediaPopup', {
       src: null,
       name: null,
       author: null,
+      type: null, // 'video' | 'iframe'
     }
   }),
-  getters: {
-  },
   actions: {
     /**
-   * @param {string} src
-   * @param {string} name
-   * @param {string} author
-   */
-    openPopup(src, name, author) {
-      this.popupData.src = src;
-      this.popupData.name = name;
-      this.popupData.author = author;
-      this.popupData.isOpen = true;
+     * @param {string} src
+     * @param {string} name
+     * @param {string} author
+     * @param {'video'|'iframe'} type
+     */
+    openPopup(src, name, author, type = 'video') {
+      this.popupData.src = src
+      this.popupData.name = name
+      this.popupData.author = author
+      this.popupData.type = type
+      this.popupData.isOpen = true
     },
     closePopup() {
-      // this.popupData.src = null;
-      this.popupData.name = null;
-      this.popupData.author = null;
-      this.popupData.isOpen = null;
+      this.popupData.isOpen = false
+      this.popupData.src = null
+      this.popupData.name = null
+      this.popupData.author = null
+      this.popupData.type = null
     },
   },
 })
