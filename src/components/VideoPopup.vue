@@ -1,23 +1,61 @@
 <script setup>
+import { computed, onUnmounted, watchEffect } from "vue";
 import { useMediaPopupStore } from "@/stores/mediaPopup";
 import Video from "@/components/Video.vue";
 import AppearWord from "./Appear/AppearWord.vue";
 
 const mediaPopupStore = useMediaPopupStore();
+
+// === Состояние открытия ===
+const isPopupOpen = computed(() => mediaPopupStore.popupData.isOpen);
+
+// === Закрытие по Escape ===
+const keydownHandler = (event) => {
+  if (event.key === "Escape") {
+    mediaPopupStore.popupData.isOpen = false;
+  }
+};
+
+// === Закрытие по клику на фон ===
+const clickHandler = (event) => {
+  // проверяем, что кликнули именно на фон, а не на содержимое
+  if (event.target.classList.contains("video-popup")) {
+    mediaPopupStore.popupData.isOpen = false;
+  }
+};
+
+// === Слежение за состоянием попапа ===
+watchEffect(() => {
+  if (isPopupOpen.value) {
+    window.addEventListener("keydown", keydownHandler);
+    window.addEventListener("click", clickHandler);
+    document.body.style.overflow = "hidden";
+  } else {
+    window.removeEventListener("keydown", keydownHandler);
+    window.removeEventListener("click", clickHandler);
+    document.body.style.overflow = "";
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", keydownHandler);
+  window.removeEventListener("click", clickHandler);
+  document.body.style.overflow = "";
+});
 </script>
 
 <template>
   <div
     class="video-popup"
-    :class="{ 'video-popup_open': mediaPopupStore.popupData.isOpen }"
-    :aria-hidden="!mediaPopupStore.popupData.isOpen"
+    :class="{ 'video-popup_open': isPopupOpen }"
+    :aria-hidden="!isPopupOpen"
   >
     <div class="video-container">
       <!-- Видео -->
       <Video
         v-if="mediaPopupStore.popupData.type === 'video'"
         :videoSrc="mediaPopupStore.popupData.src"
-        :isPlaying="mediaPopupStore.popupData.isOpen"
+        :isPlaying="isPopupOpen"
       />
 
       <!-- Iframe (например Vimeo, YouTube) -->
@@ -35,13 +73,13 @@ const mediaPopupStore = useMediaPopupStore();
     <h3 class="description">
       <AppearWord
         :word="mediaPopupStore.popupData.name"
-        :isAppear="mediaPopupStore.popupData.isOpen"
+        :isAppear="isPopupOpen"
         :delayOrder="1"
         class="description-name"
       />
       <AppearWord
         :word="mediaPopupStore.popupData.author"
-        :isAppear="mediaPopupStore.popupData.isOpen"
+        :isAppear="isPopupOpen"
         :delayOrder="2"
         class="description-author"
       />

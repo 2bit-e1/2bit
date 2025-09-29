@@ -49,7 +49,8 @@ function toVimeoEmbed(src) {
     autoplay: "1",
     muted: "1",
     loop: "1",
-    background: "1"
+    background: "1",    
+    controls: "1",
   });
   return `https://player.vimeo.com/video/${id}?${params.toString()}`;
 }

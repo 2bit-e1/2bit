@@ -35,40 +35,59 @@ function toVimeoEmbed(src) {
     autoplay: "1",
     muted: "1",
     loop: "1",
-    background: "1"
+    background: "1",
+    controls: "1"
   });
   return `https://player.vimeo.com/video/${id}?${params.toString()}`;
 }
 
-// === Клавиши и клик по фону для закрытия ===
+// === Клавиши для закрытия (Escape) ===
 const keydownHandler = (event) => {
   if (event.key === 'Escape') emits('closePopup');
 };
-const clickHandler = (event) => {
-  if (!event.target.closest('.description')) emits('closePopup');
+
+// === Обработчики кликов/пойнтеров ===
+// Клик по бэкдропу (вне .image-popup-inner)
+const onBackdropPointerDown = (e) => {
+  // срабатывает только если клик был по самому бэкдропу (не по внутренним элементам)
+  if (e.target === e.currentTarget) emits('closePopup');
+};
+
+// "Невидимый" перехватчик над медиа (чтобы поймать клики по iframe)
+const onMediaBackdropPointerDown = (e) => {
+  // останавливаем всплытие чтобы не доходило до onBackdropPointerDown дважды
+  e.stopPropagation();
+  emits('closePopup');
 };
 
 watchEffect(() => {
   if (props.isOpen) {
     window.addEventListener('keydown', keydownHandler);
-    window.addEventListener('click', clickHandler);
   } else {
     window.removeEventListener('keydown', keydownHandler);
-    window.removeEventListener('click', clickHandler);
   }
 });
 
 useDisableScroll(isPopupOpen);
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', keydownHandler);
   document.body.style.overflow = '';
 });
 </script>
 
 <template>
-  <div class="image-popup" :class="{ 'image-popup_open': isOpen }">
+  <!-- pointerdown на бэкдроп — закроет при клике по фону -->
+  <div
+    class="image-popup"
+    :class="{ 'image-popup_open': isOpen }"
+    @pointerdown="onBackdropPointerDown"
+  >
     <div class="image-popup-inner">
       <div class="image-container">
+        <!-- Невидимый перехватчик над медиа: ловит и закрывает клики по image/video/iframe -->
+        <div class="media-backdrop" @pointerdown="onMediaBackdropPointerDown" />
+
         <!-- Изображение -->
         <img v-if="!isVideo && !isVimeo" class="image" :src="imageSrc" alt="" />
 
@@ -134,7 +153,9 @@ onUnmounted(() => {
   justify-content: center;
 }
 
+/* Добавил только position:relative чтобы media-backdrop корректно располагался поверх медиа */
 .image-container {
+  position: relative;
   flex: 1 1 auto;
   overflow: hidden;
   display: flex;
@@ -148,13 +169,26 @@ onUnmounted(() => {
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
+/* Невидимый перехватчик кликов — визуально не меняет дизайн */
+.media-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  /* прозрачный, но принимает события */
+  background: transparent;
+}
+
+/* Задал z-index чтобы медиа было под перехватчиком */
 .image,
 .iframe {
   width: 100%;
-  height: 100%;
+  aspect-ratio: 16 / 9;
   object-fit: contain;
   display: block;
+  position: relative;
+  z-index: 1;
 }
+
 
 .description {
   display: block;
@@ -177,12 +211,11 @@ onUnmounted(() => {
   .description { flex: 0 0 86px; padding: 35px 0 0; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
 @media (max-width: 768px) {
-  .image-popup { padding: 170px var(--popup-x-padding) 0; }
-  .description { flex: 0 0 130px; padding-top: 50px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
+  .image-popup-inner { width: 324px; }
+  .image-popup { padding: 170px 33px 0; }
+  .description { flex: 0 0 130px; padding-top: 50px; padding-left: 33px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
 @media (max-width: 500px) {
   .description { padding-top: 45px; }
 }
-
-
 </style>

@@ -49,7 +49,6 @@ function toVimeoEmbed(src) {
   const id = m[1];
   const params = new URLSearchParams({
     autoplay: "1",
-    muted: "1",
     loop: "1",
     background: "1",
   });
@@ -354,7 +353,6 @@ onUnmounted(() => {
   margin: 22px 0;
   padding-right: 10px;
   width: 100%;
-  max-width: 461px;
 }
 .info-text_title {
   color: var(--clr-black);
@@ -379,11 +377,9 @@ onUnmounted(() => {
     padding-bottom: 193px;
   }
   .info-text {
-    max-width: 287px;
     height: 169px;
   }
   .info-text_extra {
-    max-width: 575px;
     height: 25px;
   }
   .info-video.info-video_appear {
@@ -468,10 +464,13 @@ onUnmounted(() => {
 
   .info-text {
     grid-column: 2 / 10;
+    width: 259px;
   }
 
   .info-text_extra {
     grid-column: 2 / 12;
+    width: 324px;
+    max-width: none;
   }
 
   .info-image, .info-video {
