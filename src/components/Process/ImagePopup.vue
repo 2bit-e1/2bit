@@ -211,11 +211,12 @@ onUnmounted(() => {
   .description { flex: 0 0 86px; padding: 35px 0 0; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
 @media (max-width: 768px) {
-  .image-popup-inner { width: 324px; }
+  
   .image-popup { padding: 170px 33px 0; }
   .description { flex: 0 0 130px; padding-top: 50px; padding-left: 33px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
 }
 @media (max-width: 500px) {
+  
   .description { padding-top: 45px; }
 }
 </style>
