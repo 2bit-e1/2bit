@@ -223,19 +223,32 @@ onBeforeUnmount(() => {
 }
 
 .image-wrapper img,
-.image-wrapper video,
-.image-wrapper iframe {
+.image-wrapper video {
   position: relative;
   z-index: 1;
   width: 100%;
   height: 100%;
-  max-width: calc(100% - 40px);
+  max-width: calc(100% - 66px);
   object-fit: cover;
   object-position: center;
   transform: scale(1.2);
   transition: transform 0.8s ease;
   will-change: transform;
 }
+
+.image-wrapper iframe {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  max-width: calc(100% - 66px);
+  aspect-ratio: 16 / 9; /* 💡 важный момент */
+  transform: scale(1.2);
+  transition: transform 0.8s ease;
+  will-change: transform;
+  display: block;
+}
+
 
 .image-box.in-view .mask {
   transform: translateY(-100%);
@@ -247,16 +260,4 @@ onBeforeUnmount(() => {
   transform: scale(1);
 }
 
-@media (max-width: 1024px) {
-  .image-wrapper img,
-  .image-wrapper video,
-  .image-wrapper iframe {
-    width: 860px;
-    height: auto;
-  }
-
-  .image-wrapper iframe {
-    height: 60vh;
-  }
-}
 </style>
