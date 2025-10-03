@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onUnmounted, watchEffect } from "vue";
+import { computed, onUnmounted, watchEffect, ref } from "vue";
 import { useMediaPopupStore } from "@/stores/mediaPopup";
 import Video from "@/components/Video.vue";
 import AppearWord from "./Appear/AppearWord.vue";
@@ -42,6 +42,21 @@ onUnmounted(() => {
   window.removeEventListener("click", clickHandler);
   document.body.style.overflow = "";
 });
+
+const iframeRef = ref(null);
+const isMuted = ref(true);
+
+function toggleSound() {
+  if (!iframeRef.value) return;
+  const action = isMuted.value ? 'setVolume' : 'setVolume';
+  const value = isMuted.value ? 1 : 0;
+  iframeRef.value.contentWindow?.postMessage(
+    JSON.stringify({ method: action, value }),
+    '*'
+  );
+  isMuted.value = !isMuted.value;
+}
+
 </script>
 
 <template>
@@ -59,15 +74,21 @@ onUnmounted(() => {
       />
 
       <!-- Iframe (например Vimeo, YouTube) -->
-      <iframe
-        v-else-if="mediaPopupStore.popupData.type === 'iframe'"
-        :src="mediaPopupStore.popupData.src"
-        frameborder="0"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowfullscreen
-        loading="lazy"
-        class="video-iframe"
-      />
+     <div v-else-if="mediaPopupStore.popupData.type === 'iframe'" class="iframe-wrapper">
+        <iframe
+          ref="iframeRef"
+          :src="mediaPopupStore.popupData.src"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          loading="lazy"
+          class="video-iframe"
+        />
+        <!-- Кнопка звука -->
+        <button class="sound-btn" @click.stop="toggleSound">
+          {{ isMuted ? "🔇" : "🔊" }}
+        </button>
+      </div>
     </div>
 
     <h3 class="description">
@@ -88,6 +109,34 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+
+.iframe-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.video-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  object-fit: contain;
+}
+
+.sound-btn {
+  position: absolute;
+  top: 175px;
+  right: 10px;
+  z-index: 10; /* гарантированно поверх */
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 .video-popup {
   position: fixed;
   z-index: var(--media-popup-z-index);

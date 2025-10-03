@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onUnmounted, watchEffect } from 'vue';
+import { computed, onUnmounted, watchEffect, ref} from 'vue';
 import AppearBlocks from '../Info/AppearBlocks.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
 
@@ -39,6 +39,21 @@ function toVimeoEmbed(src) {
     controls: "1"
   });
   return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+}
+
+// === Vimeo звук ===
+const iframeRef = ref(null);
+const isMuted = ref(true);
+
+function toggleSound() {
+  if (!iframeRef.value) return;
+  const action = isMuted.value ? 'setVolume' : 'setVolume';
+  const value = isMuted.value ? 1 : 0;
+  iframeRef.value.contentWindow?.postMessage(
+    JSON.stringify({ method: action, value }),
+    '*'
+  );
+  isMuted.value = !isMuted.value;
 }
 
 // === Клавиши для закрытия (Escape) ===
@@ -102,15 +117,19 @@ onUnmounted(() => {
           playsinline
         />
 
-        <!-- Vimeo iframe -->
-        <iframe
-          v-else-if="isVimeo"
-          class="iframe"
-          :src="toVimeoEmbed(imageSrc)"
-          frameborder="0"
-          allow="autoplay; fullscreen; picture-in-picture"
-          allowfullscreen
-        />
+        <div v-else-if="isVimeo" class="iframe-wrapper">
+          <iframe
+            ref="iframeRef"
+            class="iframe"
+            :src="toVimeoEmbed(imageSrc)"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+          />
+          <button class="sound-btn" @click.stop="toggleSound">
+            {{ isMuted ? '🔇' : '🔊' }}
+          </button>
+        </div>
 
       </div>
 
@@ -127,6 +146,39 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+
+.iframe-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 3; /* выше iframe, но ниже media-backdrop */
+}
+
+.iframe-wrapper .iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+/* кнопка поверх */
+
+.sound-btn {
+  position: absolute;
+  top: 95px;
+  right: 10px;
+  z-index: 10; /* гарантированно поверх */
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 .image-popup {
   opacity: 0;
   pointer-events: none;
@@ -179,8 +231,9 @@ onUnmounted(() => {
 }
 
 /* Задал z-index чтобы медиа было под перехватчиком */
-.image,
-.iframe {
+.image
+/* .iframe */
+ {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: contain;

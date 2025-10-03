@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
             <video v-else-if="isVideo(src)" :src="src" autoplay muted loop playsinline />
             <iframe 
               v-else-if="isVimeo(src)"
-              :src="`${src}?autoplay=1&muted=1&loop=1&background=0&controls=1`"
+              :src="`${src}?autoplay=1&muted=1&loop=1&background=1`"
               frameborder="0"
               allow="autoplay; fullscreen; picture-in-picture"
               allowfullscreen

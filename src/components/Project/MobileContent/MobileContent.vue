@@ -11,6 +11,29 @@ const lazyObserver = ref(null);
 const isLoading = ref(true);
 const showPreloader = ref(false);
 
+const vimeoMuted = ref({}); // храню состояние по id
+
+function toggleVimeoSound(iframeId) {
+  const iframe = document.getElementById(iframeId);
+  if (!iframe) return;
+
+  const isMuted = vimeoMuted.value[iframeId] ?? true;
+
+  iframe.contentWindow?.postMessage(
+    JSON.stringify({
+      method: "setVolume",
+      value: isMuted ? 1 : 0
+    }),
+    "*"
+  );
+
+  // меняем кнопку (иконка)
+  const btn = iframe.nextElementSibling;
+  if (btn) btn.textContent = isMuted ? "🔊" : "🔇";
+
+  vimeoMuted.value[iframeId] = !isMuted;
+}
+
 function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
@@ -23,8 +46,9 @@ function toVimeoEmbed(src) {
   const match = src.match(/vimeo\.com\/(\d+)/);
   if (!match) return src;
   const id = match[1];
-  return `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&background=1`;
+  return `https://player.vimeo.com/video/${id}`;
 }
+
 
 function preloadAllMedia(srcArray) {
   const preloadLimit = 10;
@@ -169,14 +193,22 @@ onBeforeUnmount(() => {
             playsinline
           />
 
-          <!-- Vimeo iframe -->
+        <!-- Vimeo iframe с кнопкой поверх -->
+        <div v-else-if="isVimeo(src)" class="iframe-wrapper">
           <iframe
-            v-else-if="isVimeo(src)"
-            :src="toVimeoEmbed(src)"
+            :id="`vimeo-${ind}`"
+            :src="`${toVimeoEmbed(src)}?autoplay=1&muted=1&loop=1&background=1`"
             frameborder="0"
             allow="autoplay; fullscreen; picture-in-picture"
             allowfullscreen
           />
+          <button
+            class="sound-btn"
+            @click="toggleVimeoSound(`vimeo-${ind}`)"
+          >
+            🔇
+          </button>
+        </div>
 
           <div class="mask" />
         </div>
@@ -186,6 +218,35 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+
+.iframe-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: calc(100% - 66px);
+  display: inline-block; /* важный момент */
+}
+
+.iframe-wrapper iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+}
+
+.sound-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10; /* гарантированно поверх */
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+
 .scroller-vertical {
   display: flex;
   flex-direction: column;
@@ -236,19 +297,11 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-.image-wrapper iframe {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  max-width: calc(100% - 66px);
-  aspect-ratio: 16 / 9; /* 💡 важный момент */
-  transform: scale(1.2);
-  transition: transform 0.8s ease;
-  will-change: transform;
-  display: block;
-}
 
+
+iframe::-webkit-media-controls {
+  display: none !important;
+}
 
 .image-box.in-view .mask {
   transform: translateY(-100%);
