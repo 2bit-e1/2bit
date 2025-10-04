@@ -1,16 +1,20 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { useProjectStore } from "@/stores/project";
 import Preloader from "@/components/Preloader.vue";
 
 const projectStore = useProjectStore();
-
 const { imagesSrc } = defineProps({ imagesSrc: Array });
 
 const activeIndex = ref(0);
 const direction = ref(0);
 const scrollerRef = ref(null);
 let isThrottled = false;
+
+const isMuted = ref(true);                 // состояние mute (true = сейчас выключено)
+const currentIsVimeo = ref(false);         // показывать ли кнопку mute
+const iframeRef = ref(null);               // текущий активный iframe (DOM element)
+const iframeEls = [];                      // хранит все DOM iframe по индексу
 
 const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
@@ -19,7 +23,6 @@ const showPreloader = ref(false);
 let touchStartY = 0;
 let touchEndY = 0;
 
-// Определяем Vimeo и локальные видео
 function isVimeo(src) {
   return /vimeo\.com/i.test(src);
 }
@@ -28,7 +31,37 @@ function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
 
-// Скролл/тач обработчики
+// Преобразуем любую vimeo-ссылку в корректный embed URL (player.vimeo.com)
+function toVimeoEmbedUrl(src) {
+  if (!src) return src;
+  const cleaned = String(src).split(/[?#]/)[0];
+  const m = cleaned.match(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i);
+  if (!m) return src;
+  const id = m[1];
+  const params = new URLSearchParams({
+    autoplay: "1",
+    muted: "1",      // начально muted, т.к. иначе autoplay часто блокируется
+    loop: "1",
+    background: "1",
+    controls: "1",
+    api: "1",
+    player_id: "vimeo_player"
+  });
+  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+}
+
+// --- управление рефами iframe в v-for ---
+// В шаблоне используем :ref="el => setIframe(el, ind)"
+function setIframe(el, idx) {
+  // el может быть null при удалении — сохраняем/удаляем
+  iframeEls[idx] = el || null;
+  // если это активный индекс — обновляем iframeRef
+  if (idx === activeIndex.value) {
+    iframeRef.value = el || null;
+  }
+}
+
+// Скролл/тач
 function handleTouchStart(e) { touchStartY = e.touches[0].clientY; }
 function handleTouchMove(e) { touchEndY = e.touches[0].clientY; }
 function handleTouchEnd() {
@@ -61,22 +94,49 @@ function handleScroll(event) {
 
 function addScrollListeners() {
   if (!scrollerRef.value) return;
-  scrollerRef.value.removeEventListener("wheel", handleScroll);
-  scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
-  scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
-  scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
-
   scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
   scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
   scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
   scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
 }
 
-// Прелоад картинок/видео
+// Когда меняется активный слайд — обновляем iframeRef и currentIsVimeo
+watch(activeIndex, (newIndex) => {
+  currentIsVimeo.value = isVimeo(imagesSrc[newIndex]);
+  // Обновляем iframeRef на элемент с тем же индексом, если он есть
+  iframeRef.value = iframeEls[newIndex] || null;
+});
+
+// toggle sound для Vimeo (через postMessage)
+// целевой origin указываем правильно для безопасности
+function toggleSound() {
+  const iframe = iframeRef.value;
+  if (!iframe || !iframe.contentWindow) return;
+
+  const newVolume = isMuted.value ? 1 : 0;
+
+  try {
+    // Vimeo ожидает сообщения в формате { method: "setVolume", value: 1 }
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ method: "setVolume", value: newVolume }),
+      "https://player.vimeo.com"
+    );
+    isMuted.value = !isMuted.value;
+  } catch (e) {
+    // fallback на '*'
+    iframe.contentWindow.postMessage(
+      JSON.stringify({ method: "setVolume", value: newVolume }),
+      "*"
+    );
+    isMuted.value = !isMuted.value;
+  }
+}
+
+// Прелоад
 function preloadAllMedia(srcArray) {
   return Promise.all(
-    srcArray.map(src => {
-      return new Promise(resolve => {
+    srcArray.map((src) => {
+      return new Promise((resolve) => {
         if (isVideo(src)) {
           const video = document.createElement("video");
           video.src = src;
@@ -87,7 +147,7 @@ function preloadAllMedia(srcArray) {
           img.src = src;
           img.onload = resolve;
           img.onerror = resolve;
-        } else resolve(); // Vimeo iframe загружается асинхронно
+        } else resolve();
       });
     })
   );
@@ -100,21 +160,12 @@ onMounted(async () => {
   await nextTick();
   projectStore.setCurrentImage(0);
 
-  let preloaderStartTime = null;
   const delay = setTimeout(() => {
     showPreloader.value = true;
-    preloaderStartTime = performance.now();
   }, 300);
 
   await preloadAllMedia(imagesSrc);
   clearTimeout(delay);
-
-  if (preloaderStartTime) {
-    const now = performance.now();
-    const timeShown = now - preloaderStartTime;
-    const timeToWait = 3000 - timeShown;
-    if (timeToWait > 0) await new Promise(r => setTimeout(r, timeToWait));
-  }
 
   isLoading.value = false;
   direction.value = 1;
@@ -158,9 +209,10 @@ onBeforeUnmount(() => {
           <div class="media">
             <img v-if="!isVideo(src) && !isVimeo(src)" :src="src" />
             <video v-else-if="isVideo(src)" :src="src" autoplay muted loop playsinline />
-            <iframe 
+            <iframe
               v-else-if="isVimeo(src)"
-              :src="`${src}?autoplay=1&muted=1&loop=1&background=1`"
+              :ref="el => setIframe(el, ind)"
+              :src="toVimeoEmbedUrl(src)"
               frameborder="0"
               allow="autoplay; fullscreen; picture-in-picture"
               allowfullscreen
@@ -170,10 +222,41 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
+
+    <!-- Кнопка mute — отображаем только если активный слайд Vimeo -->
+    <button
+      v-if="currentIsVimeo"
+      class="mute-btn"
+      @click="toggleSound"
+      :aria-pressed="!isMuted"
+    >
+      {{ isMuted ? "🔇" : "🔊" }}
+    </button>
   </div>
 </template>
 
 <style scoped>
+
+.mute-btn {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 9999;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mute-btn:hover {
+  background: rgba(0,0,0,0.8);
+}
 
 /* оставляем все стили как у тебя, iframe тоже растягивается по media */
 .media iframe {
