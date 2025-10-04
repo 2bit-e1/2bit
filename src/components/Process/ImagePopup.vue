@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onUnmounted, watchEffect, ref} from 'vue';
+import { computed, onUnmounted, watchEffect, ref, watch} from 'vue';
 import AppearBlocks from '../Info/AppearBlocks.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
 
@@ -80,6 +80,17 @@ watchEffect(() => {
     window.addEventListener('keydown', keydownHandler);
   } else {
     window.removeEventListener('keydown', keydownHandler);
+  }
+});
+
+// === Отключаем звук и ставим Vimeo на паузу при закрытии попапа ===
+watch(() => props.isOpen, (newVal) => {
+  if (!newVal && iframeRef.value) {
+    const win = iframeRef.value.contentWindow;
+    // Выключаем звук
+    win?.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
+    // Сбрасываем локальное состояние
+    isMuted.value = true;
   }
 });
 
