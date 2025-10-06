@@ -157,13 +157,6 @@ onMounted(async () => {
   showPreloader.value = true;
   document.body.style.overflow = "hidden";
 
-  window.addEventListener("wheel", (e) => {
-    if (scrollerRef.value && scrollerRef.value.contains(document.elementFromPoint(e.clientX, e.clientY))) {
-      e.preventDefault();
-      handleScroll(e);
-    }
-  }, { passive: false });
-
   await nextTick();
   projectStore.setCurrentImage(0);
 
@@ -182,6 +175,33 @@ onMounted(async () => {
     shouldShowFirstImage.value = true;
     addScrollListeners();
   });
+
+  // 🛠️ Safari + Magic Mouse фиксы:
+  const globalWheelHandler = (e) => {
+    // Игнорируем, если не в пределах нашего скроллера
+    if (!scrollerRef.value) return;
+    const elUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
+    if (scrollerRef.value.contains(elUnderCursor)) {
+      e.preventDefault();
+      handleScroll(e);
+    }
+  };
+
+  window.addEventListener("wheel", globalWheelHandler, { passive: false });
+  window.addEventListener("mousewheel", globalWheelHandler, { passive: false });
+  window.addEventListener("DOMMouseScroll", globalWheelHandler, { passive: false });
+
+  // 🧠 Magic Mouse иногда использует gesture события
+  window.addEventListener("gesturechange", (e) => {
+    e.preventDefault();
+  }, { passive: false });
+
+  // 📱 iOS Safari — fallback на touchmove, если wheel не срабатывает
+  window.addEventListener("touchmove", (e) => {
+    if (scrollerRef.value && scrollerRef.value.contains(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY))) {
+      e.preventDefault();
+    }
+  }, { passive: false });
 });
 
 onBeforeUnmount(() => {
