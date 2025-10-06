@@ -157,6 +157,13 @@ onMounted(async () => {
   showPreloader.value = true;
   document.body.style.overflow = "hidden";
 
+  window.addEventListener("wheel", (e) => {
+    if (scrollerRef.value && scrollerRef.value.contains(document.elementFromPoint(e.clientX, e.clientY))) {
+      e.preventDefault();
+      handleScroll(e);
+    }
+  }, { passive: false });
+
   await nextTick();
   projectStore.setCurrentImage(0);
 
@@ -243,16 +250,12 @@ onBeforeUnmount(() => {
   right: 40px;
   z-index: 9999;
   background: rgba(0,0,0,0.6);
-  color: white;
   border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  font-size: 24px;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 14px;
 }
 .mute-btn:hover {
   background: rgba(0,0,0,0.8);
@@ -288,6 +291,8 @@ onBeforeUnmount(() => {
   height: 100dvh;
   overflow: hidden;
   background: #f8f8f8;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .image-box {
