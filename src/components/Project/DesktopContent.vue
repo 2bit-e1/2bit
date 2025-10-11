@@ -236,14 +236,17 @@ onBeforeUnmount(() => {
           <div class="media">
             <img v-if="!isVideo(src) && !isVimeo(src)" :src="src" />
             <video v-else-if="isVideo(src)" :src="src" autoplay muted loop playsinline />
-            <iframe
-              v-else-if="isVimeo(src)"
-              :ref="el => setIframe(el, ind)"
-              :src="toVimeoEmbedUrl(src)"
-              frameborder="0"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowfullscreen
-            />
+            <div v-else-if="isVimeo(src)" class="iframe-wrapper">
+              <iframe
+                :ref="el => setIframe(el, ind)"
+                :src="toVimeoEmbedUrl(src)"
+                frameborder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+              />
+              <!-- вот этот слой блокирует скролл внутри iframe -->
+              <div class="iframe-overlay"></div>
+            </div>
           </div>
           <div class="mask" />
         </div>
@@ -279,6 +282,28 @@ onBeforeUnmount(() => {
 }
 .mute-btn:hover {
   background: rgba(0,0,0,0.8);
+}
+
+.iframe-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.iframe-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: none;
+}
+
+.iframe-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: transparent;
+  /* включаем pointer-events, чтобы события шли не в iframe */
+  pointer-events: auto;
 }
 
 /* оставляем все стили как у тебя, iframe тоже растягивается по media */
