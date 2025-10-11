@@ -125,7 +125,7 @@ function toggleSound() {
 
 .sound-btn {
   position: absolute;
-  top: 175px;
+  bottom: 0;
   right: 10px;
   z-index: 10; /* гарантированно поверх */
   background: rgba(0,0,0,0.6);
