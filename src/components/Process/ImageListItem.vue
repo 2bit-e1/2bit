@@ -30,31 +30,51 @@ onMounted(() => {
 // === Определение типа медиа ===
 const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.src));
 const isVimeo = computed(() => /vimeo\.com/i.test(props.src));
+const isKinescope = computed(() => /kinescope\.io/i.test(props.src));
 
+/**
+ * Преобразует ссылку Vimeo в embed-формат
+ */
 function toVimeoEmbed(src) {
   if (!src) return src;
-  // убираем query/hash, если они есть
   const cleaned = String(src).split(/[?#]/)[0];
-
-  // ловим id в формах:
-  // player.vimeo.com/video/ID
-  // vimeo.com/ID
-  // vimeo.com/channels/.../ID
   const m = cleaned.match(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i);
-  if (!m) return src; // fallback — возвращаем как есть
+  if (!m) return src;
 
   const id = m[1];
-  // нужные параметры (autoplay только будет работать если muted=1)
   const params = new URLSearchParams({
     autoplay: "1",
     muted: "1",
     loop: "1",
-    background: "1",    
+    background: "1",
     controls: "1",
   });
   return `https://player.vimeo.com/video/${id}?${params.toString()}`;
 }
 
+/**
+ * Преобразует ссылку Kinescope.io в embed-формат
+ * Примеры входа:
+ *   https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau
+ *   https://kinescope.io/xfiUFyVMNiH34SjjBgiLau
+ */
+function toKinescopeEmbed(src) {
+  if (!src) return src;
+
+  const cleaned = String(src).split(/[?#]/)[0];
+  const m = cleaned.match(/kinescope\.io\/(?:embed\/)?([a-zA-Z0-9_-]+)/i);
+  if (!m) return src;
+
+  const id = m[1];
+  const params = new URLSearchParams({
+    autoplay: "1",
+    muted: "1",
+    loop: "1",
+    playsinline: "1",
+  });
+
+  return `https://kinescope.io/embed/${id}?${params.toString()}`;
+}
 </script>
 
 <template>
@@ -69,7 +89,7 @@ function toVimeoEmbed(src) {
     >
       <!-- Изображение -->
       <img
-        v-if="!isVideo && !isVimeo"
+        v-if="!isVideo && !isVimeo && !isKinescope"
         :src="src"
         :alt="alt || ''"
         :ref="(ref) => $emit('setImageRef', ref)"
@@ -95,7 +115,18 @@ function toVimeoEmbed(src) {
           allowfullscreen
           loading="lazy"
         />
-        <!-- прозрачный слой поверх iframe, который кликается -->
+        <div class="iframe-overlay"></div>
+      </div>
+
+      <!-- 🆕 Kinescope iframe -->
+      <div v-else-if="isKinescope" class="iframe-wrapper">
+        <iframe
+          :src="toKinescopeEmbed(src)"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          loading="lazy"
+        />
         <div class="iframe-overlay"></div>
       </div>
     </div>
@@ -132,7 +163,7 @@ function toVimeoEmbed(src) {
   display: block;
 }
 
-/* фикс для Vimeo player */
+/* фикс для Vimeo и Kinescope player */
 .item-image iframe {
   min-height: 100%;
 }
@@ -155,7 +186,7 @@ function toVimeoEmbed(src) {
 
 .iframe-overlay {
   position: absolute;
-  inset: 0; /* top:0; right:0; bottom:0; left:0 */
+  inset: 0;
   cursor: pointer;
   background: transparent;
 }

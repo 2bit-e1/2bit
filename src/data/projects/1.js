@@ -22,11 +22,8 @@ export default {
     },
   ],
   images: [
-    "/3.0.mp4",
-    "/3.1.webp",
-    "https://player.vimeo.com/video/1020358245", // пример Vimeo
-    "/3.2.mp4",
-    "/3.4.webp",
+    
+    "https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau", // пример Vimeo
   ],
   media: [
     { type: "video", src: "/1.mp4" }, 

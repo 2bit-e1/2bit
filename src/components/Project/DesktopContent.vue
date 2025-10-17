@@ -11,10 +11,10 @@ const direction = ref(0);
 const scrollerRef = ref(null);
 let isThrottled = false;
 
-const isMuted = ref(true);                 // состояние mute (true = сейчас выключено)
-const currentIsVimeo = ref(false);         // показывать ли кнопку mute
-const iframeRef = ref(null);               // текущий активный iframe (DOM element)
-const iframeEls = [];                      // хранит все DOM iframe по индексу
+const isMuted = ref(true);                 // состояние mute (true = выключено)
+const currentIsIframeWithSound = ref(false); // показывать ли кнопку mute
+const iframeRef = ref(null);               // текущий iframe
+const iframeEls = [];                      // все iframe DOM-элементы
 
 const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
@@ -23,45 +23,72 @@ const showPreloader = ref(false);
 let touchStartY = 0;
 let touchEndY = 0;
 
-function isVimeo(src) {
-  return /vimeo\.com/i.test(src);
+// ---------------------------
+// Определение типа контента
+// ---------------------------
+function getMediaType(src) {
+  if (!src) return "unknown";
+  if (/\.(mp4|webm|ogg)$/i.test(src)) return "video";
+  if (/vimeo\.com/i.test(src)) return "vimeo";
+  if (/kinescope\.io/i.test(src)) return "kinescope";
+  return "image";
 }
 
-function isVideo(src) {
-  return /\.(mp4|webm|ogg)$/i.test(src);
-}
-
-// Преобразуем любую vimeo-ссылку в корректный embed URL (player.vimeo.com)
-function toVimeoEmbedUrl(src) {
+// ---------------------------
+// Преобразование ссылок в embed
+// ---------------------------
+function toEmbedUrl(src) {
+  const type = getMediaType(src);
   if (!src) return src;
-  const cleaned = String(src).split(/[?#]/)[0];
-  const m = cleaned.match(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i);
-  if (!m) return src;
-  const id = m[1];
-  const params = new URLSearchParams({
-    autoplay: "1",
-    muted: "1",      // начально muted, т.к. иначе autoplay часто блокируется
-    loop: "1",
-    background: "1",
-    controls: "1",
-    api: "1",
-    player_id: "vimeo_player"
-  });
-  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+
+  switch (type) {
+    case "vimeo": {
+      const m = src.match(/(?:vimeo\.com\/(?:.*\/)?)(\d+)/);
+      if (!m) return src;
+      const id = m[1];
+      const params = new URLSearchParams({
+        autoplay: "1",
+        muted: "1",
+        loop: "1",
+        background: "1",
+        controls: "1",
+        api: "1",
+      });
+      return `https://player.vimeo.com/video/${id}?${params}`;
+    }
+
+    case "kinescope": {
+      // Пример: https://kinescope.io/embed/<id>?autoplay=1&muted=1&loop=1
+      const idMatch = src.match(/kinescope\.io\/(?:embed\/|)([\w-]+)/);
+      const id = idMatch ? idMatch[1] : null;
+      if (!id) return src;
+      const params = new URLSearchParams({
+        autoplay: "1",
+        muted: "1",
+        loop: "1",
+        controls: "1",
+      });
+      return `https://kinescope.io/embed/${id}?${params}`;
+    }
+
+    default:
+      return src;
+  }
 }
 
-// --- управление рефами iframe в v-for ---
-// В шаблоне используем :ref="el => setIframe(el, ind)"
+// ---------------------------
+// Рефы для iframe
+// ---------------------------
 function setIframe(el, idx) {
-  // el может быть null при удалении — сохраняем/удаляем
   iframeEls[idx] = el || null;
-  // если это активный индекс — обновляем iframeRef
   if (idx === activeIndex.value) {
     iframeRef.value = el || null;
   }
 }
 
-// Скролл/тач
+// ---------------------------
+// Управление скроллом и свайпами
+// ---------------------------
 function handleTouchStart(e) { touchStartY = e.touches[0].clientY; }
 function handleTouchMove(e) { touchEndY = e.touches[0].clientY; }
 function handleTouchEnd() {
@@ -100,49 +127,59 @@ function addScrollListeners() {
   scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
 }
 
-// Когда меняется активный слайд — обновляем iframeRef и currentIsVimeo
-watch(activeIndex, (newIndex) => {
-  currentIsVimeo.value = isVimeo(imagesSrc[newIndex]);
-  // Обновляем iframeRef на элемент с тем же индексом, если он есть
-  iframeRef.value = iframeEls[newIndex] || null;
-});
+// ---------------------------
+// Следим за изменением активного слайда
+// ---------------------------
+watch(
+  activeIndex,
+  (newIndex) => {
+    const type = getMediaType(imagesSrc[newIndex]);
+    currentIsIframeWithSound.value = ["vimeo", "kinescope"].includes(type);
+    iframeRef.value = iframeEls[newIndex] || null;
+  },
+  { immediate: true }
+);
 
-// toggle sound для Vimeo (через postMessage)
-// целевой origin указываем правильно для безопасности
+// ---------------------------
+// Mute/unmute (Vimeo + Kinescope)
+// ---------------------------
 function toggleSound() {
   const iframe = iframeRef.value;
   if (!iframe || !iframe.contentWindow) return;
 
-  const newVolume = isMuted.value ? 1 : 0;
+  const type = getMediaType(imagesSrc[activeIndex.value]);
+  const newMuted = !isMuted.value;
 
-  try {
-    // Vimeo ожидает сообщения в формате { method: "setVolume", value: 1 }
+  if (type === "vimeo") {
     iframe.contentWindow.postMessage(
-      JSON.stringify({ method: "setVolume", value: newVolume }),
+      JSON.stringify({ method: "setVolume", value: newMuted ? 0 : 1 }),
       "https://player.vimeo.com"
     );
-    isMuted.value = !isMuted.value;
-  } catch (e) {
-    // fallback на '*'
+  } else if (type === "kinescope") {
+    // API Kinescope поддерживает postMessage setMuted
     iframe.contentWindow.postMessage(
-      JSON.stringify({ method: "setVolume", value: newVolume }),
-      "*"
+      JSON.stringify({ method: "setMuted", value: newMuted }),
+      "https://kinescope.io"
     );
-    isMuted.value = !isMuted.value;
   }
+
+  isMuted.value = newMuted;
 }
 
-// Прелоад
+// ---------------------------
+// Прелоадер
+// ---------------------------
 function preloadAllMedia(srcArray) {
   return Promise.all(
     srcArray.map((src) => {
       return new Promise((resolve) => {
-        if (isVideo(src)) {
+        const type = getMediaType(src);
+        if (type === "video") {
           const video = document.createElement("video");
           video.src = src;
           video.onloadeddata = resolve;
           video.onerror = resolve;
-        } else if (!isVimeo(src)) {
+        } else if (type === "image") {
           const img = new Image();
           img.src = src;
           img.onload = resolve;
@@ -153,12 +190,19 @@ function preloadAllMedia(srcArray) {
   );
 }
 
+// ---------------------------
+// Lifecycle
+// ---------------------------
 onMounted(async () => {
   showPreloader.value = true;
   document.body.style.overflow = "hidden";
 
   await nextTick();
   projectStore.setCurrentImage(0);
+
+  const type = getMediaType(imagesSrc[0]);
+  currentIsIframeWithSound.value = ["vimeo", "kinescope"].includes(type);
+  iframeRef.value = iframeEls[0] || null;
 
   const delay = setTimeout(() => {
     showPreloader.value = true;
@@ -176,9 +220,8 @@ onMounted(async () => {
     addScrollListeners();
   });
 
-  // 🛠️ Safari + Magic Mouse фиксы:
+  // Safari / Magic Mouse фиксы
   const globalWheelHandler = (e) => {
-    // Игнорируем, если не в пределах нашего скроллера
     if (!scrollerRef.value) return;
     const elUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
     if (scrollerRef.value.contains(elUnderCursor)) {
@@ -190,15 +233,12 @@ onMounted(async () => {
   window.addEventListener("wheel", globalWheelHandler, { passive: false });
   window.addEventListener("mousewheel", globalWheelHandler, { passive: false });
   window.addEventListener("DOMMouseScroll", globalWheelHandler, { passive: false });
-
-  // 🧠 Magic Mouse иногда использует gesture события
-  window.addEventListener("gesturechange", (e) => {
-    e.preventDefault();
-  }, { passive: false });
-
-  // 📱 iOS Safari — fallback на touchmove, если wheel не срабатывает
+  window.addEventListener("gesturechange", (e) => e.preventDefault(), { passive: false });
   window.addEventListener("touchmove", (e) => {
-    if (scrollerRef.value && scrollerRef.value.contains(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY))) {
+    if (
+      scrollerRef.value &&
+      scrollerRef.value.contains(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY))
+    ) {
       e.preventDefault();
     }
   }, { passive: false });
@@ -234,17 +274,19 @@ onBeforeUnmount(() => {
       >
         <div class="image-wrapper">
           <div class="media">
-            <img v-if="!isVideo(src) && !isVimeo(src)" :src="src" />
-            <video v-else-if="isVideo(src)" :src="src" autoplay muted loop playsinline />
-            <div v-else-if="isVimeo(src)" class="iframe-wrapper">
+            <img v-if="getMediaType(src) === 'image'" :src="src" />
+            <video v-else-if="getMediaType(src) === 'video'" :src="src" autoplay muted loop playsinline />
+            <div
+              v-else-if="['vimeo', 'kinescope'].includes(getMediaType(src))"
+              class="iframe-wrapper"
+            >
               <iframe
                 :ref="el => setIframe(el, ind)"
-                :src="toVimeoEmbedUrl(src)"
+                :src="toEmbedUrl(src)"
                 frameborder="0"
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowfullscreen
               />
-              <!-- вот этот слой блокирует скролл внутри iframe -->
               <div class="iframe-overlay"></div>
             </div>
           </div>
@@ -253,9 +295,9 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <!-- Кнопка mute — отображаем только если активный слайд Vimeo -->
+    <!-- mute -->
     <button
-      v-if="currentIsVimeo"
+      v-if="currentIsIframeWithSound"
       class="mute-btn"
       @click="toggleSound"
       :aria-pressed="!isMuted"
@@ -266,7 +308,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-
 .mute-btn {
   position: fixed;
   bottom: 40px;
@@ -289,24 +330,19 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
 }
-
 .iframe-wrapper iframe {
   width: 100%;
   height: 100%;
   display: block;
   border: none;
 }
-
 .iframe-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
   background: transparent;
-  /* включаем pointer-events, чтобы события шли не в iframe */
   pointer-events: auto;
 }
-
-/* оставляем все стили как у тебя, iframe тоже растягивается по media */
 .media iframe {
   width: 100%;
   height: 100%;
@@ -321,13 +357,10 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
 }
-
 .media img,
 .media video {
   width: 100%;
   height: 100%;
-  max-width: 100%;
-  max-height: 100%;
   object-fit: contain;
 }
 
@@ -337,7 +370,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: #f8f8f8;
   overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .image-box {
@@ -348,37 +380,25 @@ onBeforeUnmount(() => {
   align-items: center;
   opacity: 0;
   transition: opacity 0.8s ease, translate 0.8s ease;
-  will-change: transform, opacity, translate;
   pointer-events: none;
-  z-index: 1;
 }
-
 .image-box.in-view {
   opacity: 1;
   pointer-events: auto;
   z-index: 2;
 }
-
 .image-box.from-top {
   translate: 0 -100%;
 }
-
 .image-box.from-bottom {
   translate: 0 100%;
 }
-
 .image-box.in-view.from-top,
 .image-box.in-view.from-bottom {
   translate: 0 0;
 }
-
-.image-box.above {
-  translate: 0 -100%;
-}
-
-.image-box.below {
-  translate: 0 100%;
-}
+.image-box.above { translate: 0 -100%; }
+.image-box.below { translate: 0 100%; }
 
 .image-wrapper {
   position: relative;
@@ -398,9 +418,7 @@ onBeforeUnmount(() => {
   object-fit: contain;
   transform: scale(1.2);
   transition: transform 1s ease;
-  will-change: transform;
 }
-
 .image-box.in-view img,
 .image-box.in-view video {
   transform: scale(1);
@@ -413,20 +431,8 @@ onBeforeUnmount(() => {
   z-index: 2;
   transform: translateY(0%);
   transition: transform 1s ease;
-  will-change: transform;
 }
-
 .image-box.in-view .mask {
   transform: translateY(-100%);
-}
-
-@media (max-width: 1368px) {
-  .image-wrapper {
-    width: 90vw;
-  }
-}
-
-@media (max-width: 1366px) and (max-height: 950px) {
-
 }
 </style>

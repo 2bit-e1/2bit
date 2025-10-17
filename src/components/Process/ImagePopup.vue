@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onUnmounted, watchEffect, ref, watch} from 'vue';
+import { computed, onUnmounted, watchEffect, ref, watch } from 'vue';
 import AppearBlocks from '../Info/AppearBlocks.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
 
@@ -16,65 +16,80 @@ const isPopupOpen = computed(() => props.isOpen);
 // === Определение типа медиа ===
 const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.imageSrc));
 const isVimeo = computed(() => /vimeo\.com/i.test(props.imageSrc));
+const isKinescope = computed(() => /kinescope\.io/i.test(props.imageSrc));
 
-function toVimeoEmbed(src) {
+/**
+ * Универсальный embed-конструктор для Vimeo и Kinescope
+ */
+function toEmbed(src) {
   if (!src) return src;
-  // убираем query/hash, если они есть
   const cleaned = String(src).split(/[?#]/)[0];
 
-  // ловим id в формах:
-  // player.vimeo.com/video/ID
-  // vimeo.com/ID
-  // vimeo.com/channels/.../ID
-  const m = cleaned.match(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i);
-  if (!m) return src; // fallback — возвращаем как есть
+  // Vimeo
+  const vimeoMatch = cleaned.match(/(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i);
+  if (vimeoMatch) {
+    const id = vimeoMatch[1];
+    const params = new URLSearchParams({
+      autoplay: '1',
+      muted: '1',
+      loop: '1',
+      background: '1',
+      controls: '1'
+    });
+    return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+  }
 
-  const id = m[1];
-  // нужные параметры (autoplay только будет работать если muted=1)
-  const params = new URLSearchParams({
-    autoplay: "1",
-    muted: "1",
-    loop: "1",
-    background: "1",
-    controls: "1"
-  });
-  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+  // Kinescope
+  const kineMatch = cleaned.match(/(?:kinescope\.io\/)(?:embed\/)?([a-zA-Z0-9_-]+)/i);
+  if (kineMatch) {
+    const id = kineMatch[1];
+    const params = new URLSearchParams({
+      autoplay: '1',
+      muted: '1',
+      loop: '1',
+      controls: '1'
+    });
+    return `https://kinescope.io/embed/${id}?${params.toString()}`;
+  }
+
+  return src;
 }
 
-// === Vimeo звук ===
+// === Управление звуком ===
 const iframeRef = ref(null);
 const isMuted = ref(true);
 
 function toggleSound() {
   if (!iframeRef.value) return;
-  const action = isMuted.value ? 'setVolume' : 'setVolume';
-  const value = isMuted.value ? 1 : 0;
-  iframeRef.value.contentWindow?.postMessage(
-    JSON.stringify({ method: action, value }),
-    '*'
-  );
+  const win = iframeRef.value.contentWindow;
+  if (!win) return;
+
+  if (isVimeo.value) {
+    win.postMessage(JSON.stringify({ method: 'setVolume', value: isMuted.value ? 1 : 0 }), '*');
+  } else if (isKinescope.value) {
+    win.postMessage(JSON.stringify({ event: 'setVolume', data: isMuted.value ? 1 : 0 }), '*');
+  }
+
   isMuted.value = !isMuted.value;
 }
 
-// === Клавиши для закрытия (Escape) ===
+// === Клавиша Escape для закрытия ===
 const keydownHandler = (event) => {
   if (event.key === 'Escape') emits('closePopup');
 };
 
-// === Обработчики кликов/пойнтеров ===
-// Клик по бэкдропу (вне .image-popup-inner)
+// === Клик по фону для закрытия ===
 const onBackdropPointerDown = (e) => {
-  // срабатывает только если клик был по самому бэкдропу (не по внутренним элементам)
   if (e.target === e.currentTarget) emits('closePopup');
 };
 
-// "Невидимый" перехватчик над медиа (чтобы поймать клики по iframe)
+// Клик по медиаблоку (перехват iframe)
 const onMediaBackdropPointerDown = (e) => {
-  // останавливаем всплытие чтобы не доходило до onBackdropPointerDown дважды
   e.stopPropagation();
   emits('closePopup');
 };
 
+// === Watch ===
 watchEffect(() => {
   if (props.isOpen) {
     window.addEventListener('keydown', keydownHandler);
@@ -83,13 +98,15 @@ watchEffect(() => {
   }
 });
 
-// === Отключаем звук и ставим Vimeo на паузу при закрытии попапа ===
+// === При закрытии сбрасываем звук ===
 watch(() => props.isOpen, (newVal) => {
   if (!newVal && iframeRef.value) {
     const win = iframeRef.value.contentWindow;
-    // Выключаем звук
-    win?.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
-    // Сбрасываем локальное состояние
+    if (isVimeo.value) {
+      win?.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
+    } else if (isKinescope.value) {
+      win?.postMessage(JSON.stringify({ event: 'setVolume', data: 0 }), '*');
+    }
     isMuted.value = true;
   }
 });
@@ -111,13 +128,18 @@ onUnmounted(() => {
   >
     <div class="image-popup-inner">
       <div class="image-container">
-        <!-- Невидимый перехватчик над медиа: ловит и закрывает клики по image/video/iframe -->
+        <!-- Перехватчик кликов по медиа -->
         <div class="media-backdrop" @pointerdown="onMediaBackdropPointerDown" />
 
         <!-- Изображение -->
-        <img v-if="!isVideo && !isVimeo" class="image" :src="imageSrc" alt="" />
+        <img
+          v-if="!isVideo && !isVimeo && !isKinescope"
+          class="image"
+          :src="imageSrc"
+          alt=""
+        />
 
-        <!-- Видео -->
+        <!-- Видео-файл -->
         <video
           v-else-if="isVideo"
           class="image"
@@ -128,11 +150,12 @@ onUnmounted(() => {
           playsinline
         />
 
-        <div v-else-if="isVimeo" class="iframe-wrapper">
+        <!-- Vimeo / Kinescope -->
+        <div v-else-if="isVimeo || isKinescope" class="iframe-wrapper">
           <iframe
             ref="iframeRef"
             class="iframe"
-            :src="toVimeoEmbed(imageSrc)"
+            :src="toEmbed(imageSrc)"
             frameborder="0"
             allow="autoplay; fullscreen; picture-in-picture"
             allowfullscreen
@@ -141,7 +164,6 @@ onUnmounted(() => {
             {{ isMuted ? '🔇' : '🔊' }}
           </button>
         </div>
-
       </div>
 
       <p class="description">
@@ -157,13 +179,12 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-
 .iframe-wrapper {
   position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
-  z-index: 3; /* выше iframe, но ниже media-backdrop */
+  z-index: 3;
 }
 
 .iframe-wrapper .iframe {
@@ -175,13 +196,12 @@ onUnmounted(() => {
 }
 
 /* кнопка поверх */
-
 .sound-btn {
   position: absolute;
   bottom: 0;
   right: 10px;
-  z-index: 10; /* гарантированно поверх */
-  background: rgba(0,0,0,0.6);
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
   border: none;
   color: #fff;
   padding: 6px 10px;
@@ -216,7 +236,6 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-/* Добавил только position:relative чтобы media-backdrop корректно располагался поверх медиа */
 .image-container {
   position: relative;
   flex: 1 1 auto;
@@ -232,19 +251,14 @@ onUnmounted(() => {
   clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
-/* Невидимый перехватчик кликов — визуально не меняет дизайн */
 .media-backdrop {
   position: absolute;
   inset: 0;
   z-index: 2;
-  /* прозрачный, но принимает события */
   background: transparent;
 }
 
-/* Задал z-index чтобы медиа было под перехватчиком */
-.image
-/* .iframe */
- {
+.image {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: contain;
@@ -252,7 +266,6 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
 }
-
 
 .description {
   display: block;
@@ -265,22 +278,46 @@ onUnmounted(() => {
   text-indent: var(--text-indent);
 }
 
-/* Медиазапросы оставляем как было */
 @media (max-width: 1024px) {
-  .image-popup { padding: 120px var(--popup-x-padding) 0; }
-  .description { flex: 0 0 130px; padding-top: 55px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
+  .image-popup {
+    padding: 120px var(--popup-x-padding) 0;
+  }
+  .description {
+    flex: 0 0 130px;
+    padding-top: 55px;
+    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
+    width: calc(var(--column-width) * 10);
+  }
 }
+
 @media (max-width: 820px) {
-  .image-popup { padding: 86px var(--popup-x-padding) 0; }
-  .description { flex: 0 0 86px; padding: 35px 0 0; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
+  .image-popup {
+    padding: 86px var(--popup-x-padding) 0;
+  }
+  .description {
+    flex: 0 0 86px;
+    padding: 35px 0 0;
+    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
+    width: calc(var(--column-width) * 10);
+  }
 }
+
 @media (max-width: 768px) {
-  
-  .image-popup { padding: 170px 33px 0; }
-  .description { flex: 0 0 130px; padding-top: 50px; padding-left: 33px; margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width)); width: calc(var(--column-width) * 10); }
+  .image-popup {
+    padding: 170px 33px 0;
+  }
+  .description {
+    flex: 0 0 130px;
+    padding-top: 50px;
+    padding-left: 33px;
+    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
+    width: calc(var(--column-width) * 10);
+  }
 }
+
 @media (max-width: 500px) {
-  
-  .description { padding-top: 45px; }
+  .description {
+    padding-top: 45px;
+  }
 }
 </style>

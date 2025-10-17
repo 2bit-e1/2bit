@@ -1,6 +1,6 @@
 export const processImagesData = [
   {
-    name: 'https://player.vimeo.com/video/1020358245',
+    name: 'https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau',
     description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
   {
