@@ -4,7 +4,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Mad beer",
   slug: "mad-beer",
-  roles: ["Упаковка", "Визуальная идентификация", "Анимация"],
+  roles: ["Исследование", "Визуальная идентификация", "Анимация"],
   year: 21,
   number: 2,
   content: [
