@@ -25,6 +25,6 @@ export default {
     "https://player.vimeo.com/1020314626",
   ],
   media: [
-    { type: "img", src: "/6.webp" }, 
+    { type: "img", src: "/6.jpg" }, 
   ]
 };
