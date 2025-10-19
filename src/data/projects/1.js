@@ -4,20 +4,22 @@ export default {
   name: "Refmodel",
   slug: "refmodel",
   roles: ["Веб", "Анимация", "3D"],
-  year: 28,
+  year: 24,
   number: 1,
-  link: "https://www.youtube.com/",
+  link: "https://model.rubytech.ru",
   content: [
     {
       type: CONTENT_TYPES.paragraph,
       text: `
-        In 2021 we were approached by a founder of uprising hedge fund to help him develop branding. The client's main request was to create a trusted image for the fund with deep expertise.
+        Референсная модель Rubytech –  набор аппаратных и программных продуктов, структурированных в соответствии с метамоделью базового ИТ-ландшафта.
+Главной задачей работы стало устранение эффекта «визуальной слепоты» пользователя и создание логичной структуры перемещения между страницами.
+
       `,
     },
     {
       type: CONTENT_TYPES.extraParagraph,
       text: `
-        A closed club for experienced investors,  A closed club for experienced investors providing personal solutions with maximum benefit in all market situations.
+        С помощью метафоры единого модуля  мы создали понятную и ясную карту путешествия пользователя, обеспечив плавное погружение и ясное восприятие информации.
       `,
     },
   ],
