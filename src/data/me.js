@@ -12,18 +12,18 @@ export default {
         text: "Instagram",
       },
       {
-        link: "/",
+        link: "https://t.me/Stoneandecho",
         text: "Telegram",
       },
     ],
     press: [
       {
         link: "/",
-        text: "C-news",
+        text: "/",
       },
       {
         link: "/",
-        text: "Sostav",
+        text: "/",
       },
     ],
     services: [
@@ -31,7 +31,6 @@ export default {
       "Идентификация",
       "Web",
       "Guidline",
-      "Артдирекшн",
       "Анимация",
       "3D",
     ],
