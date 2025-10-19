@@ -21,7 +21,7 @@ export default {
     },
   ],
   images: [
-    "/3.1.webp",
+    "/7.1.mp4",
   ],
   media: [
     { type: "video", src: "/7.mp4" }, 
