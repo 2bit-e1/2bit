@@ -3,20 +3,20 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Sasha Slepchuk",
   slug: "sasha-slepchuk",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
+  roles: ["Анимация", "Визуальная идентификация", "Web"],
   year: 23,
   number: 5,
   content: [
     {
       type: CONTENT_TYPES.paragraph,
       text: `
-        In 2020 we were approached by a founder of uprising hedge fund to help him develop branding. The client's main request was to create a trusted image for the fund with deep expertise.
+        С самого начала проекта Саша стремилась влить искусство в коммерческую жизнеспособность, органично сочетая творчество с коммерцией. Создание привлекательного образа, синхронного с ее творческой сущностью, было ключевым, как и определение эффективных каналов распространения.
       `,
     },
     {
       type: CONTENT_TYPES.extraParagraph,
       text: `
-        A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.
+        Чувствительное исследование трансформации, где метаморфоза встречается с эмоциями, опытом, нарушением границ и вдохновением для приема изменений.
       `,
     },
   ],
