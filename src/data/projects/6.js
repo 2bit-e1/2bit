@@ -3,7 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Xellon",
   slug: "xellon",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
+  roles: ["Исследование", " Анимация", "Визуальная идентификация", "3д"],
   year: 28,
   number: 6,
   content: [
