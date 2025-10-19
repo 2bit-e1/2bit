@@ -3,7 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Sasha Slepchuk",
   slug: "sasha-slepchuk",
-  roles: ["Анимация", "Визуальная идентификация", "Web"],
+  roles: ["Исследование", "Анимация", "Визуальная идентификация", "Web"],
   year: 23,
   number: 5,
   content: [
