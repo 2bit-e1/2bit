@@ -4,7 +4,7 @@ export default {
   name: "Xellon",
   slug: "xellon",
   roles: ["Исследование", " Анимация", "Визуальная идентификация", "3д"],
-  year: 28,
+  year: 24,
   number: 6,
   content: [
     {
