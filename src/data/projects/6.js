@@ -10,13 +10,14 @@ export default {
     {
       type: CONTENT_TYPES.paragraph,
       text: `
-        In 2020 we were approached by a founder of uprising hedge fund to help him develop branding. The client's main request was to create a trusted image for the fund with deep expertise.
+        XELLON — IT-компания, лидер рынка в адаптации бизнеса к изменениям инфраструктуры в IT-сфере через индивидуальные услуги локализации. В 2023 году компания реализовала стратегию корпоративного бренда.
+Архитектурные планы с их особой эстетикой графических элементов и композиционной организацией информации стали основой стиля. 
       `,
     },
     {
       type: CONTENT_TYPES.extraParagraph,
       text: `
-        A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.
+        Архитектурное бюро по проектированию IT-инфраструктуры для бизнеса.
       `,
     },
   ],
