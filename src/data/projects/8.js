@@ -1,10 +1,10 @@
 import { CONTENT_TYPES } from "@/utils/constants";
 
 export default {
-  name: "Глубина",
-  slug: "glubina",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
-  year: 30,
+  name: "Enroute",
+  slug: "Enroute",
+  roles: ["Исследование", "Визуальная идентификация", "Гайдлайн"],
+  year: 24,
   number: 8,
   content: [
     {
