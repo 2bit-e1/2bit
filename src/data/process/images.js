@@ -1,114 +1,24 @@
 export const processImagesData = [
   {
     name: 'https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'grid transformation'
   },
   {
     name: 'Pr2.jpeg',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: '3d logo concept'
   },
   {
     name: 'Pr3.mp4',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'metaball simulation'
   },
   {
     name: 'Pr4.webp',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'main page visualisation'
   },
   {
     name: 'Pr5.mp4',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
+    description: 'projects concept animation'
+
   {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
-  },
-  {
-    name: 'image-1.png',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
   },
 ]
