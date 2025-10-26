@@ -3,7 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Artiqua",
   slug: "Artiqua",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
+  roles: ["Исследование", "Визуальная идентификация", "Гайдлайн"],
   year: 25,
   number: 9,
   content: [
