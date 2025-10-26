@@ -25,18 +25,18 @@ export const processImagesData = [
   },
   {
     name: 'Pr6.mp4',
-    description: 'dcdc'
+    description: 'animation''
   },
   {
     name: 'Pr7.mp4',
-    description: 'metaball simulation'
+    description: 'model'
   },
   {
     name: 'Pr8.png',
-    description: 'main page visualisation'
+    description: 'Enroute logo process'
   },
   {
     name: 'Pr9.jpg',
-    description: 'Serotonin projects animation'
+    description: 'SSerotonin''
   },
 ]
