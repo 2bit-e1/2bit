@@ -38,7 +38,7 @@ export default {
   content: [
     {
       type: CONTENT_TYPES.iframe,
-      link: "https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau", //3.1.webp / 3.2.mp4
+      link: "bio.png", //3.1.webp / 3.2.mp4
     },
     {
       type: CONTENT_TYPES.paragraph,
