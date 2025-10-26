@@ -3,7 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Krondstadt Asset Managment",
   slug: "KAM",
-  roles: ["Дизайн", "Визуальная идентификация", "Гайдлайн"],
+  roles: ["Исследование", "Визуальная идентификация", "Гайдлайн", "Веб"],
   year: 22,
   number: 3,
    link: "https://www.behance.net/gallery/188124693/Investment-Fund-BrandingCorporate-Identity-and-Website",
