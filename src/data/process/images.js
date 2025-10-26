@@ -37,6 +37,6 @@ export const processImagesData = [
   },
   {
     name: 'Pr9.jpg',
-    description: 'Serotonin''
+    description: 'Serotonin'
   },
 ]
