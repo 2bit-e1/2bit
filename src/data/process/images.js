@@ -1,23 +1,39 @@
 export const processImagesData = [
   {
     name: 'https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'grid system'
   },
   {
     name: 'Pr2.jpeg',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: '3d logo'
   },
   {
     name: 'Pr3.mp4',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'metaball simulation'
   },
   {
     name: 'Pr4.webp',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'main page visualisation'
   },
   {
     name: 'Pr5.mp4',
-    description: 'lorem lorem lorem lorem lorem lorem lorem lorem lorem lorem'
+    description: 'Serotonin projects animation'
+  },
+  {
+    name: 'Pr6.mp4',
+    description: 'animation'
+  },
+  {
+    name: 'Pr7.mov',
+    description: 'model'
+  },
+  {
+    name: 'Pr8.png',
+    description: 'Enroute logo process'
+  },
+  {
+    name: 'Pr9.jpg',
+    description: 'Serotonin'
   },
   {
   },
