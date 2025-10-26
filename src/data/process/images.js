@@ -28,7 +28,7 @@ export const processImagesData = [
     description: 'dcdc'
   },
   {
-    name: 'Pr7.mov',
+    name: 'Pr7.mp4',
     description: 'metaball simulation'
   },
   {
