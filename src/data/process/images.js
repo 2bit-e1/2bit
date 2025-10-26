@@ -25,7 +25,7 @@ export const processImagesData = [
   },
   {
     name: 'Pr6.mp4',
-    description: 'animation''
+    description: 'animation'
   },
   {
     name: 'Pr7.mp4',
