@@ -43,13 +43,15 @@ export default {
     {
       type: CONTENT_TYPES.paragraph,
       text: `
-        is a design studio centered on new ideas and defining experiences, partnering with our generation’s leading brands and innovators to influence culture. Our approach challenges industry standards, adopts new technologies, and has a lasting positive impact on ourselves and others. Over time, the work has naturally led us toward industry leaders across Art, Architecture, Fashion, Sustainability, Technology, and beyond.
+        Концептуальный дизайнер. Создаю уникальные образы и ощущения. 
+Уникальное видение помогает выходить за границы категорий и формировать дифференциирующий образ бренда: более выразительный, осмысленый и вдохновляющий.
       `,
     },
     {
       type: CONTENT_TYPES.extraParagraph,
       text: `
-        A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.
+        Каждый проект начинается как открытое исследование и развивается через процесс,формуриующий новую реальность бренда. 
+Такой подход привел к сотрудничеству с представителями индустрии — с теми, кто разделяет это стремление.
       `,
     },
   ],
