@@ -30,11 +30,9 @@ export const processImagesData = [
   {
     name: 'Pr8.png',
     description: 'Enroute logo process'
-  },
+ },
   {
     name: 'Pr9.jpg',
     description: 'Serotonin'
-  },
-  {
   },
 ]
