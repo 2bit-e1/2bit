@@ -20,23 +20,23 @@ export const processImagesData = [
     description: 'Serotonin projects animation'
   },
   {
-    name: 'https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau',
-    description: 'grid system'
+    name: 'Pr1.jpeg',
+    description: 'character'
   },
   {
-    name: 'Pr2.jpeg',
-    description: '3d logo'
+    name: 'Pr6.mp4',
+    description: 'dcdc'
   },
   {
-    name: 'Pr3.mp4',
+    name: 'Pr7.mov',
     description: 'metaball simulation'
   },
   {
-    name: 'Pr4.webp',
+    name: 'Pr8.png',
     description: 'main page visualisation'
   },
   {
-    name: 'Pr5.mp4',
+    name: 'Pr9.jpg',
     description: 'Serotonin projects animation'
   },
 ]
