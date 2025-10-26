@@ -3,7 +3,7 @@ import { CONTENT_TYPES } from "@/utils/constants";
 export default {
   name: "Gitlife",
   slug: "gitlife",
-  roles: ["3D", "Визуальная идентификация", "Веб" "Анимация"],
+  roles: ["3D", "Визуальная идентификация", "Веб", "Анимация"],
   year: 24,
   number: 7,
   content: [
