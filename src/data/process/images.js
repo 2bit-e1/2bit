@@ -18,7 +18,6 @@ export const processImagesData = [
   {
     name: 'Pr5.mp4',
     description: 'projects concept animation'
-
   {
   },
 ]
