@@ -21,7 +21,7 @@ export default {
     },
   ],
   images: [
-    "/3.1.webp",
+    "/8.2.jpg",
   ],
   media: [
     { type: "img", src: "/8.webp" }, 
