@@ -26,6 +26,7 @@ export default {
   images: [
     "https://player.vimeo.com/1020358245",
     "https://kinescope.io/embed/xfiUFyVMNiH34SjjBgiLau", // пример Vimeo
+    "https://kinescope.io/embed/mz7Qf4sb5aFAgCwfoFPnjt", // пример Vimeo
   ],
   media: [
     { type: "video", src: "/1.mp4" }, 
