@@ -4,10 +4,6 @@ export const processImagesData = [
     description: 'I.C.D.D.'
   },
   {
-    name: 'https://kinescope.io/embed/mz7Qf4sb5aFAgCwfoFPnjt',
-    description: 'ARM sans.'
-  },
-  {
     name: 'Pr11.mp4',
     description: 'just form'
   },
