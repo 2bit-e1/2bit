@@ -1,5 +1,9 @@
 export const processImagesData = [
   {
+    name: 'https://kinescope.io/embed/mz7Qf4sb5aFAgCwfoFPnjt',
+    description: 'I.C.D.D.'
+  },
+  {
     name: 'Pr12.mp4',
     description: 'I.C.D.D.'
   },
