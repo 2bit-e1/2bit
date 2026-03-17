@@ -18,8 +18,8 @@ export default {
     ],
     press: [
       {
-        link: "/",
-        text: "/",
+        link: "https://www.tadviser.ru/index.php/Статья:Rubytech_и_enDesign_улучшили_витрину_референсной_модели._Теперь_это_обширный_справочник_российских_ИТ-решений",
+        text: "tadviser",
       },
       {
         link: "/",
