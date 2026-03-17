@@ -1,7 +1,7 @@
 import { CONTENT_TYPES } from "@/utils/constants";
 
 export default {
-  name: "Krondstadt Asset Managment",
+  name: "Krondstadt Asset Management",
   slug: "KAM",
   roles: ["Исследование", "Визуальная идентификация", "Гайдлайн", "Веб"],
   year: 22,
