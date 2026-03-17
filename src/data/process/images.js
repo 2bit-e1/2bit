@@ -1,7 +1,7 @@
 export const processImagesData = [
   {
     name: 'https://kinescope.io/embed/mz7Qf4sb5aFAgCwfoFPnjt',
-    description: 'I.C.D.D.'
+    description: 'Custom font ARM SANS'
   },
   {
     name: 'Pr12.mp4',
