@@ -1,7 +1,11 @@
 export const processImagesData = [
   {
+    name: 'Pr10.png',
+    description: 'Arm'
+  },
+  {
     name: 'https://kinescope.io/embed/3eYbrhJvAY13jdci4aJu8x',
-    description: 'Custom font ARM SANS'
+    description: 'YM Web animation'
   },
   {
     name: 'https://kinescope.io/embed/mz7Qf4sb5aFAgCwfoFPnjt',
