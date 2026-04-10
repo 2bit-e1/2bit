@@ -1,5 +1,9 @@
 export const processImagesData = [
   {
+    name: 'https://kinescope.io/embed/rFbQd7g9bh4h9UYk1CtBPE',
+    description: 'Mons logo animation'
+  },
+  {
     name: 'Pr10.png',
     description: 'Arm'
   },
