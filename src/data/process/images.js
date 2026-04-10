@@ -1,6 +1,6 @@
 export const processImagesData = [
   {
-    name: 'Pr21.jpg',
+    name: 'Pr21.JPG',
     description: 'bag'
   }, 
   {
@@ -24,7 +24,7 @@ export const processImagesData = [
     description: 'Gitlife icons'
   },
   {
-    name: 'Pr15.jpg',
+    name: 'Pr15.JPG',
     description: 'screen test'
   }, 
   {
