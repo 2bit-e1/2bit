@@ -11,13 +11,13 @@ export default {
     {
       type: CONTENT_TYPES.paragraph,
       text: `
-        In 2020 we were approached by a founder of uprising hedge fund to help him develop branding. The client's main request was to create a trusted image for the fund with deep expertise.
+        В основу взяли местные легенды, но убрали из них музейность и туристический тон. Мифы стали работать как городские слухи: странные, живучие, понятные не всем. Упаковка, графика и названия собирают вокруг бренда ощущение локального подполья.
       `,
     },
     {
       type: CONTENT_TYPES.extraParagraph,
       text: `
-        A closed club for experienced investors, providing personal solutions with maximum benefit in all market situations.
+        Не пиво про Сибирь. Пиво, которое само стало ее городской легендой.
       `,
     },
   ],
