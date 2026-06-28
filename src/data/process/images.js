@@ -1,5 +1,21 @@
 export const processImagesData = [
   {
+    name: 'pr25.JPG',
+    description: 'label'
+  }, 
+  {
+    name: 'pr24.mp4',
+    description: 'sign'
+  }, 
+  {
+    name: 'Pr23.png',
+    description: 'Interaction'
+  },  
+  {
+    name: 'pr22.mp4',
+    description: 'test'
+  }, 
+  {
     name: 'Pr21.JPG',
     description: 'bag'
   }, 
