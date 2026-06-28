@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onUnmounted, watchEffect, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, watchEffect, ref, watch } from 'vue';
 import AppearBlocks from '../Info/AppearBlocks.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
 
@@ -57,7 +57,9 @@ function toEmbed(src) {
 
 // === Управление звуком ===
 const iframeRef = ref(null);
+const popupRef = ref(null);
 const isMuted = ref(true);
+const popupTop = ref('0px');
 
 function toggleSound() {
   if (!iframeRef.value) return;
@@ -99,7 +101,15 @@ watchEffect(() => {
 });
 
 // === При закрытии сбрасываем звук ===
-watch(() => props.isOpen, (newVal) => {
+watch(() => props.isOpen, async (newVal) => {
+  popupTop.value = '0px';
+
+  if (newVal) {
+    await nextTick();
+    const offsetTop = popupRef.value?.getBoundingClientRect().y || 0;
+    popupTop.value = offsetTop ? `${-offsetTop}px` : '0px';
+  }
+
   if (!newVal && iframeRef.value) {
     const win = iframeRef.value.contentWindow;
     if (isVimeo.value) {
@@ -120,75 +130,82 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- pointerdown на бэкдроп — закроет при клике по фону -->
-  <div
-    class="image-popup"
-    :class="{ 'image-popup_open': isOpen }"
-    @pointerdown="onBackdropPointerDown"
-  >
-    <div class="image-popup-inner">
-      <div class="image-container">
-        <!-- Перехватчик кликов по медиа -->
-        <div class="media-backdrop" @pointerdown="onMediaBackdropPointerDown" />
+  <Teleport to="body">
+    <!-- pointerdown на бэкдроп — закроет при клике по фону -->
+    <div
+      ref="popupRef"
+      class="image-popup"
+      :class="{ 'image-popup_open': isOpen }"
+      :style="{ top: popupTop }"
+      @pointerdown="onBackdropPointerDown"
+    >
+      <div class="image-popup-inner">
+        <div class="image-container">
+          <!-- Перехватчик кликов по медиа -->
+          <div class="media-backdrop" @pointerdown="onMediaBackdropPointerDown" />
 
-        <!-- Изображение -->
-        <img
-          v-if="!isVideo && !isVimeo && !isKinescope"
-          class="image"
-          :src="imageSrc"
-          alt=""
-        />
-
-        <!-- Видео-файл -->
-        <video
-          v-else-if="isVideo"
-          class="image"
-          :src="imageSrc"
-          autoplay
-          muted
-          loop
-          playsinline
-        />
-
-        <!-- Vimeo / Kinescope -->
-        <div v-else-if="isVimeo || isKinescope" class="iframe-wrapper">
-          <iframe
-            ref="iframeRef"
-            class="iframe"
-            :src="toEmbed(imageSrc)"
-            frameborder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen
+          <!-- Изображение -->
+          <img
+            v-if="!isVideo && !isVimeo && !isKinescope"
+            class="image"
+            :src="imageSrc"
+            alt=""
           />
-          <button class="sound-btn" @click.stop="toggleSound">
-            {{ isMuted ? '🔇' : '🔊' }}
-          </button>
-        </div>
-      </div>
 
-      <p class="description">
-        <AppearBlocks
-          @setDelay="() => {}"
-          :initialDelay="100"
-          :isAppearReady="isOpen"
-        />
-        {{ imageDescription }}
-      </p>
+          <!-- Видео-файл -->
+          <video
+            v-else-if="isVideo"
+            class="image"
+            :src="imageSrc"
+            autoplay
+            muted
+            loop
+            playsinline
+          />
+
+          <!-- Vimeo / Kinescope -->
+          <div v-else-if="isVimeo || isKinescope" class="iframe-wrapper">
+            <iframe
+              ref="iframeRef"
+              class="iframe"
+              :src="toEmbed(imageSrc)"
+              frameborder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+            />
+            <button class="sound-btn" @click.stop="toggleSound">
+              {{ isMuted ? '🔇' : '🔊' }}
+            </button>
+          </div>
+        </div>
+
+        <p class="description">
+          <AppearBlocks
+            @setDelay="() => {}"
+            :initialDelay="100"
+            :isAppearReady="isOpen"
+          />
+          {{ imageDescription }}
+        </p>
+      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <style scoped>
 .iframe-wrapper {
   position: relative;
   width: 100%;
-  display: flex;
-  justify-content: center;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  container-type: size;
   z-index: 3;
 }
 
 .iframe-wrapper .iframe {
-  width: 100%;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  height: min(100cqh, calc(100cqw * 9 / 16));
   aspect-ratio: 16 / 9;
   display: block;
   position: relative;
@@ -219,6 +236,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100dvh;
   background-color: var(--bg-clr-white);
+  z-index: 1000;
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;
   transition: opacity 300ms var(--timing-func-2);
@@ -260,7 +278,9 @@ onUnmounted(() => {
 
 .image {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   display: block;
   position: relative;
