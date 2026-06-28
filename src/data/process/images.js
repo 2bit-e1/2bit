@@ -1,6 +1,6 @@
 export const processImagesData = [
   {
-    name: 'pr25.JPG',
+    name: 'pr25.jpg',
     description: 'label'
   }, 
   {
