@@ -236,7 +236,7 @@ onUnmounted(() => {
   width: 100%;
   height: 100dvh;
   background-color: var(--bg-clr-white);
-  z-index: 1000;
+  z-index: var(--media-popup-z-index);
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;
   transition: opacity 300ms var(--timing-func-2);
