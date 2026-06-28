@@ -33,11 +33,13 @@ export const processImagesData = [
   },
   {
     name: 'https://kinescope.io/embed/jNFnMtJYGX4xxuDaydeVp5',
-    description: 'pack'
+    description: 'pack',
+    orientation: 'portrait'
   },
   {
     name: 'https://kinescope.io/embed/nQA8NUcwPQSxRf1RaTAdsN',
-    description: 'Gitlife icons'
+    description: 'Gitlife icons',
+    orientation: 'portrait'
   },
   {
     name: 'Pr15.JPG',
@@ -49,7 +51,8 @@ export const processImagesData = [
   },
   {
     name: 'https://kinescope.io/embed/2CXWGbmbuWZ1qzp15N5eRx',
-    description: 'filter'
+    description: 'filter',
+    orientation: 'portrait'
   },
   {
     name: 'https://kinescope.io/embed/rFbQd7g9bh4h9UYk1CtBPE',

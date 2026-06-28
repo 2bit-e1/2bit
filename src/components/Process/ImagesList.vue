@@ -30,7 +30,12 @@ const getColumnsCount = () => {
 const columnCount = ref(getColumnsCount());
 
 const handleImageClick = (imageData) => {
-  emits("openPopup", getImageSrc(imageData.name), imageData.description);
+  emits(
+    "openPopup",
+    getImageSrc(imageData.name),
+    imageData.description,
+    imageData.orientation
+  );
 };
 
 const handleParallax = (scrollY) => {
@@ -137,6 +142,7 @@ useWaitingImagesToLoad(
             :src="getImageSrc(imageData.name)"
             :isHide="!isImagesLoaded"
             :ind="ind"
+            :orientation="imageData.orientation"
             :timeForLoadAllImages="timeForLoadAllImages"
             @setImageRef="(ref) => (imagesRefs[ind] = ref)"
             @click.stop="handleImageClick(imageData)"

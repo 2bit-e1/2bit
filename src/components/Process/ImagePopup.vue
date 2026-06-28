@@ -6,6 +6,7 @@ import { useDisableScroll } from '@/utils/useDisableScroll';
 const props = defineProps({
   imageSrc: String,
   imageDescription: String,
+  imageOrientation: String,
   isOpen: Boolean
 });
 
@@ -164,7 +165,11 @@ onUnmounted(() => {
           />
 
           <!-- Vimeo / Kinescope -->
-          <div v-else-if="isVimeo || isKinescope" class="iframe-wrapper">
+          <div
+            v-else-if="isVimeo || isKinescope"
+            class="iframe-wrapper"
+            :class="{ 'iframe-wrapper_portrait': imageOrientation === 'portrait' }"
+          >
             <iframe
               ref="iframeRef"
               class="iframe"
@@ -210,6 +215,12 @@ onUnmounted(() => {
   display: block;
   position: relative;
   z-index: 1;
+}
+
+.iframe-wrapper_portrait .iframe {
+  width: min(100cqw, calc(100cqh * 9 / 16));
+  height: min(100cqh, calc(100cqw * 16 / 9));
+  aspect-ratio: 9 / 16;
 }
 
 /* кнопка поверх */
@@ -300,44 +311,80 @@ onUnmounted(() => {
 
 @media (max-width: 1024px) {
   .image-popup {
-    padding: 120px var(--popup-x-padding) 0;
+    --popup-mobile-side-padding: 33px;
+    --popup-mobile-top-offset: 102px;
+    --popup-mobile-description-height: 86px;
+    padding: var(--popup-mobile-top-offset) 0 0;
   }
+
+  .image-popup-inner {
+    height: calc(100dvh - var(--popup-mobile-top-offset));
+    justify-content: flex-start;
+  }
+
+  .image-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .image {
+    width: auto;
+    height: auto;
+    max-width: calc(100% - var(--popup-mobile-side-padding) * 2);
+    max-height: 100%;
+  }
+
+  .iframe-wrapper {
+    width: calc(100% - var(--popup-mobile-side-padding) * 2);
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .iframe-wrapper .iframe {
+    width: min(100cqw, calc(100cqh * 16 / 9));
+    height: min(100cqh, calc(100cqw * 9 / 16));
+  }
+
+  .iframe-wrapper_portrait .iframe {
+    width: min(100cqw, calc(100cqh * 9 / 16));
+    height: min(100cqh, calc(100cqw * 16 / 9));
+  }
+
   .description {
-    flex: 0 0 130px;
-    padding-top: 55px;
-    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 10);
+    flex: 0 0 var(--popup-mobile-description-height);
+    padding: 35px 0 0;
+    margin-left: var(--popup-mobile-side-padding);
+    width: calc(100% - var(--popup-mobile-side-padding) * 2);
   }
 }
 
 @media (max-width: 820px) {
   .image-popup {
-    padding: 86px var(--popup-x-padding) 0;
+    padding: var(--popup-mobile-top-offset) 0 0;
   }
   .description {
-    flex: 0 0 86px;
-    padding: 35px 0 0;
-    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 10);
+    flex-basis: var(--popup-mobile-description-height);
+    margin-left: var(--popup-mobile-side-padding);
+    width: calc(100% - var(--popup-mobile-side-padding) * 2);
   }
 }
 
 @media (max-width: 768px) {
   .image-popup {
-    padding: 170px 33px 0;
+    padding: var(--popup-mobile-top-offset) 0 0;
   }
   .description {
-    flex: 0 0 130px;
-    padding-top: 50px;
-    padding-left: 33px;
-    margin-left: calc(-1 * var(--popup-x-padding) + var(--column-width));
-    width: calc(var(--column-width) * 10);
+    flex-basis: var(--popup-mobile-description-height);
+    padding: 35px 0 0;
+    margin-left: var(--popup-mobile-side-padding);
+    width: calc(100% - var(--popup-mobile-side-padding) * 2);
   }
 }
 
 @media (max-width: 500px) {
   .description {
-    padding-top: 45px;
+    padding-top: 35px;
   }
 }
 </style>

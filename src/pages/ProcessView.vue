@@ -16,6 +16,7 @@ const processStore = useProcessStore();
   <ImagePopup
     :imageSrc="processStore.popupData.imageInfo?.src"
     :imageDescription="processStore.popupData.imageInfo?.description"
+    :imageOrientation="processStore.popupData.imageInfo?.orientation"
     :isOpen="processStore.popupData.isOpen"
     @closePopup="processStore.closePopup"
   />
