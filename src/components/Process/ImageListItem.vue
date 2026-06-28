@@ -8,6 +8,7 @@ const props = defineProps({
   src: String,
   alt: String,
   isHide: Boolean,
+  orientation: String,
 });
 
 const elemRef = ref(null);
@@ -107,7 +108,11 @@ function toKinescopeEmbed(src) {
       />
 
       <!-- Vimeo iframe -->
-      <div v-else-if="isVimeo" class="iframe-wrapper">
+      <div
+        v-else-if="isVimeo"
+        class="iframe-wrapper"
+        :class="{ 'iframe-wrapper_portrait': orientation === 'portrait' }"
+      >
         <iframe
           :src="toVimeoEmbed(src)"
           frameborder="0"
@@ -119,7 +124,11 @@ function toKinescopeEmbed(src) {
       </div>
 
       <!-- 🆕 Kinescope iframe -->
-      <div v-else-if="isKinescope" class="iframe-wrapper">
+      <div
+        v-else-if="isKinescope"
+        class="iframe-wrapper"
+        :class="{ 'iframe-wrapper_portrait': orientation === 'portrait' }"
+      >
         <iframe
           :src="toKinescopeEmbed(src)"
           frameborder="0"
@@ -185,12 +194,22 @@ function toKinescopeEmbed(src) {
   position: relative;
   width: 100%;
   height: 100%;
+  display: grid;
+  place-items: center;
+  container-type: size;
 }
 
 .iframe-wrapper iframe {
-  width: 100%;
-  height: 100%;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  height: min(100cqh, calc(100cqw * 9 / 16));
+  aspect-ratio: 16 / 9;
   display: block;
+}
+
+.iframe-wrapper_portrait iframe {
+  width: min(100cqw, calc(100cqh * 9 / 16));
+  height: min(100cqh, calc(100cqw * 16 / 9));
+  aspect-ratio: 9 / 16;
 }
 
 .iframe-overlay {
