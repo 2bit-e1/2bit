@@ -2,6 +2,7 @@
 import { computed, nextTick, onUnmounted, watchEffect, ref, watch } from 'vue';
 import AppearBlocks from '../Info/AppearBlocks.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
+import { getVideoMimeType, isVideoFile } from '@/utils/media';
 
 const props = defineProps({
   imageSrc: String,
@@ -15,7 +16,7 @@ const emits = defineEmits(['closePopup']);
 const isPopupOpen = computed(() => props.isOpen);
 
 // === Определение типа медиа ===
-const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.imageSrc));
+const isVideo = computed(() => isVideoFile(props.imageSrc));
 const isVimeo = computed(() => /vimeo\.com/i.test(props.imageSrc));
 const isKinescope = computed(() => /kinescope\.io/i.test(props.imageSrc));
 
@@ -157,12 +158,13 @@ onUnmounted(() => {
           <video
             v-else-if="isVideo"
             class="image"
-            :src="imageSrc"
             autoplay
             muted
             loop
             playsinline
-          />
+          >
+            <source :src="imageSrc" :type="getVideoMimeType(imageSrc)" />
+          </video>
 
           <!-- Vimeo / Kinescope -->
           <div

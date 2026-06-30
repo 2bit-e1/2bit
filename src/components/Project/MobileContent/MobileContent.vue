@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import Preloader from "@/components/Preloader.vue";
+import { getVideoMimeType, isVideoFile } from "@/utils/media";
 
 const { imagesSrc } = defineProps({
   imagesSrc: Array
@@ -35,7 +36,7 @@ function toggleVimeoSound(iframeId) {
 }
 
 function isVideo(src) {
-  return /\.(mp4|webm|ogg)$/i.test(src);
+  return isVideoFile(src);
 }
 
 function isVimeo(src) {
@@ -61,7 +62,10 @@ function preloadAllMedia(srcArray) {
           video.autoplay = false;
           video.playsInline = true;
           video.preload = "auto";
-          video.src = src;
+          const source = document.createElement("source");
+          source.src = src;
+          source.type = getVideoMimeType(src);
+          video.appendChild(source);
 
           video.onloadeddata = resolve;
           video.onerror = resolve;
@@ -128,7 +132,15 @@ onMounted(async () => {
       if (entry.isIntersecting) {
         const videoEl = entry.target.querySelector("video[data-src]");
         if (videoEl && !videoEl.src) {
-          videoEl.src = videoEl.dataset.src;
+          const sourceEl = videoEl.querySelector("source");
+          if (sourceEl) {
+            sourceEl.src = videoEl.dataset.src;
+            sourceEl.type = videoEl.dataset.type || "";
+            videoEl.load();
+            videoEl.play?.().catch(() => {});
+          } else {
+            videoEl.src = videoEl.dataset.src;
+          }
         }
         lazyObserver.value.unobserve(entry.target);
       }
@@ -178,20 +190,24 @@ onBeforeUnmount(() => {
           <!-- Видео -->
           <video
             v-else-if="isVideo(src) && ind < 5"
-            :src="src"
             autoplay
             muted
             loop
             playsinline
-          />
+          >
+            <source :src="src" :type="getVideoMimeType(src)" />
+          </video>
           <video
             v-else-if="isVideo(src) && ind >= 5"
             :data-src="src"
+            :data-type="getVideoMimeType(src)"
             autoplay
             muted
             loop
             playsinline
-          />
+          >
+            <source :type="getVideoMimeType(src)" />
+          </video>
 
         <!-- Vimeo iframe с кнопкой поверх -->
         <div v-else-if="isVimeo(src)" class="iframe-wrapper">

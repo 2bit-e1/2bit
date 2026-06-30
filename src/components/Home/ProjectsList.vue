@@ -6,6 +6,7 @@ import { useHomeStore } from "@/stores/home";
 import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
 import Preloader from "@/components/Preloader.vue";
+import { getVideoMimeType } from "@/utils/media";
 
 const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
@@ -36,12 +37,16 @@ const preloadMedia = () => {
         link.rel = "preload";
         link.as = "video";
         link.href = media.src;
+        link.type = getVideoMimeType(media.src);
         document.head.appendChild(link);
 
         promises.push(
           new Promise((resolve) => {
             const video = document.createElement("video");
-            video.src = media.src;
+            const source = document.createElement("source");
+            source.src = media.src;
+            source.type = getVideoMimeType(media.src);
+            video.appendChild(source);
             video.preload = "auto";
             video.muted = true;
             video.playsInline = true;
@@ -144,14 +149,15 @@ const allPreviewMedia = computed(() =>
     <template v-for="media in allPreviewMedia" :key="media.src">
       <video
         v-if="media.type === 'video'"
-        :src="media.src"
         autoplay
         muted
         loop
         playsinline
         class="preview-item"
         :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
-      />
+      >
+        <source :src="media.src" :type="getVideoMimeType(media.src)" />
+      </video>
       <div
         v-else
         class="fullscreen-preview-image preview-item"
