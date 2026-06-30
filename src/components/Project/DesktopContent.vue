@@ -2,7 +2,6 @@
 import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { useProjectStore } from "@/stores/project";
 import Preloader from "@/components/Preloader.vue";
-import { getVideoMimeType, isVideoFile } from "@/utils/media";
 
 const projectStore = useProjectStore();
 const { imagesSrc } = defineProps({ imagesSrc: Array });
@@ -29,7 +28,7 @@ let touchEndY = 0;
 // ---------------------------
 function getMediaType(src) {
   if (!src) return "unknown";
-  if (isVideoFile(src)) return "video";
+  if (/\.(mp4|webm|ogg)$/i.test(src)) return "video";
   if (/vimeo\.com/i.test(src)) return "vimeo";
   if (/kinescope\.io/i.test(src)) return "kinescope";
   return "image";
@@ -177,10 +176,7 @@ function preloadAllMedia(srcArray) {
         const type = getMediaType(src);
         if (type === "video") {
           const video = document.createElement("video");
-          const source = document.createElement("source");
-          source.src = src;
-          source.type = getVideoMimeType(src);
-          video.appendChild(source);
+          video.src = src;
           video.onloadeddata = resolve;
           video.onerror = resolve;
         } else if (type === "image") {
@@ -279,9 +275,7 @@ onBeforeUnmount(() => {
         <div class="image-wrapper">
           <div class="media">
             <img v-if="getMediaType(src) === 'image'" :src="src" />
-            <video v-else-if="getMediaType(src) === 'video'" autoplay muted loop playsinline>
-              <source :src="src" :type="getVideoMimeType(src)" />
-            </video>
+            <video v-else-if="getMediaType(src) === 'video'" :src="src" autoplay muted loop playsinline />
             <div
               v-else-if="['vimeo', 'kinescope'].includes(getMediaType(src))"
               class="iframe-wrapper"

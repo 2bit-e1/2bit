@@ -2,7 +2,6 @@
 import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
 import { computed, onMounted, ref } from "vue";
 import { timeForLoadAllImages } from "./utils";
-import { getVideoMimeType, isVideoFile } from "@/utils/media";
 
 const props = defineProps({
   ind: Number,
@@ -30,7 +29,7 @@ onMounted(() => {
 });
 
 // === Определение типа медиа ===
-const isVideo = computed(() => isVideoFile(props.src));
+const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.src));
 const isVimeo = computed(() => /vimeo\.com/i.test(props.src));
 const isKinescope = computed(() => /kinescope\.io/i.test(props.src));
 
@@ -100,14 +99,13 @@ function toKinescopeEmbed(src) {
       <!-- Видео -->
       <video
         v-else-if="isVideo"
+        :src="src"
         autoplay
         muted
         loop
         playsinline
         :ref="(ref) => $emit('setImageRef', ref)"
-      >
-        <source :src="src" :type="getVideoMimeType(src)" />
-      </video>
+      />
 
       <!-- Vimeo iframe -->
       <div

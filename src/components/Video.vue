@@ -1,7 +1,6 @@
 <script setup>
 import { ref } from "vue";
 import { onMounted, watchEffect } from "vue";
-import { getVideoMimeType } from "@/utils/media";
 
 const props = defineProps({
   videoSrc: String,
@@ -37,6 +36,7 @@ onMounted(() => {
 
 <template>
   <video
+    :src="videoSrc"
     ref="videoElem"
     muted
     playsInline
@@ -45,7 +45,6 @@ onMounted(() => {
     :class="{ 'video_loaded': isVideoLoaded }"
     :controls="false"
   >
-    <source :src="videoSrc" :type="getVideoMimeType(videoSrc)" />
   </video>
 </template>
 
