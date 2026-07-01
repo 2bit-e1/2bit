@@ -22,7 +22,7 @@ export default {
     },
   ],
   images: [
-    "https://player.vimeo.com/1020314626",
+    "https://player.vimeo.com/video/1020314626",
   ],
   media: [
     { type: "img", src: "/6.jpg" }, 
