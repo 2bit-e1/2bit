@@ -43,17 +43,22 @@ function toEmbedUrl(src) {
 
   switch (type) {
     case "vimeo": {
-      const m = src.match(/(?:vimeo\.com\/(?:.*\/)?)(\d+)/);
+      const cleaned = src.replace(/&amp;/g, "&");
+      const m = cleaned.match(/(?:player\.vimeo\.com\/(?:video\/)?|vimeo\.com\/(?:.*\/)?)(\d+)/i);
       if (!m) return src;
       const id = m[1];
-      const params = new URLSearchParams({
-        autoplay: "1",
-        muted: "1",
-        loop: "1",
-        background: "1",
-        controls: "1",
-        api: "1",
-      });
+      const params = new URLSearchParams();
+      try {
+        const url = new URL(cleaned);
+        url.searchParams.forEach((value, key) => params.set(key, value));
+      } catch {}
+      params.set("autoplay", "1");
+      params.set("muted", "1");
+      params.set("loop", "1");
+      params.set("background", "1");
+      params.set("controls", "1");
+      params.set("playsinline", "1");
+      params.set("api", "1");
       return `https://player.vimeo.com/video/${id}?${params}`;
     }
 
@@ -284,8 +289,9 @@ onBeforeUnmount(() => {
                 :ref="el => setIframe(el, ind)"
                 :src="toEmbedUrl(src)"
                 frameborder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                 allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
               />
               <div class="iframe-overlay"></div>
             </div>

@@ -24,7 +24,7 @@ function toggleVimeoSound(iframeId) {
       method: "setVolume",
       value: isMuted ? 1 : 0
     }),
-    "*"
+    "https://player.vimeo.com"
   );
 
   // меняем кнопку (иконка)
@@ -43,10 +43,29 @@ function isVimeo(src) {
 }
 
 function toVimeoEmbed(src) {
-  const match = src.match(/vimeo\.com\/(\d+)/);
+  const cleaned = src.replace(/&amp;/g, "&");
+  const match = cleaned.match(/(?:player\.vimeo\.com\/(?:video\/)?|vimeo\.com\/(?:.*\/)?)(\d+)/i);
   if (!match) return src;
   const id = match[1];
-  return `https://player.vimeo.com/video/${id}`;
+  const params = new URLSearchParams();
+  try {
+    const url = new URL(cleaned);
+    url.searchParams.forEach((value, key) => params.set(key, value));
+  } catch {}
+  params.set("autoplay", "1");
+  params.set("muted", "1");
+  params.set("loop", "1");
+  params.set("background", "1");
+  params.set("playsinline", "1");
+  params.set("api", "1");
+  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+}
+
+function handleVimeoLoad(event) {
+  event.target.contentWindow?.postMessage(
+    JSON.stringify({ method: "play" }),
+    "https://player.vimeo.com"
+  );
 }
 
 
@@ -144,7 +163,7 @@ onMounted(async () => {
     iframe.addEventListener("load", () => {
       iframe.contentWindow?.postMessage(
         JSON.stringify({ method: "play" }),
-        "*"
+        "https://player.vimeo.com"
       );
     });
   });
@@ -197,12 +216,15 @@ onBeforeUnmount(() => {
         <div v-else-if="isVimeo(src)" class="iframe-wrapper">
           <iframe
             :id="`vimeo-${ind}`"
-            :src="`${toVimeoEmbed(src)}?autoplay=1&muted=1&loop=1&background=1`"
+            :src="toVimeoEmbed(src)"
             frameborder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+            @load="handleVimeoLoad"
           />
           <button
+            type="button"
             class="sound-btn"
             @click="toggleVimeoSound(`vimeo-${ind}`)"
           >
@@ -221,15 +243,19 @@ onBeforeUnmount(() => {
 
 .iframe-wrapper {
   position: relative;
-  width: 100%;
+  width: calc(100% - 66px);
   max-width: calc(100% - 66px);
-  display: inline-block; /* важный момент */
+  height: calc((100vw - 66px) * 9 / 16);
+  display: block;
 }
 
 .iframe-wrapper iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   display: block;
+  border: none;
 }
 
 .sound-btn {
