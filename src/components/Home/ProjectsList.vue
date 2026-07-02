@@ -8,11 +8,13 @@ import { onBeforeRouteLeave } from 'vue-router';
 import Preloader from "@/components/Preloader.vue";
 
 const isDesktop = ref(false);
-const isMediaLoaded = ref(false);
-const shouldShowPreloader = ref(false);
+const shouldShowInitialPreloader =
+  typeof window !== "undefined" &&
+  window.innerWidth > 1024 &&
+  !sessionStorage.getItem("hasVisited");
+const isMediaLoaded = ref(!shouldShowInitialPreloader);
+const shouldShowPreloader = ref(shouldShowInitialPreloader);
 let preloaderTimeout = null;
-let previewLoadId = 0;
-const loadedPreviewMedia = new Set();
 
 const checkIsDesktop = () => {
   isDesktop.value = window.innerWidth > 1024;
@@ -22,22 +24,36 @@ const preloadMedia = () => {
   const promises = [];
 
   allProjects.forEach((project) => {
-    const preview = project.media.find((media) => media.type === "image");
-    if (!preview) return;
+    project.media.forEach((media) => {
+      if (media.type === "image") {
+        const img = new Image();
+        img.src = media.src;
+        img.loading = 'eager';
+        img.decoding = 'async';
+        promises.push(
+          new Promise((resolve) => {
+            img.onload = img.onerror = resolve;
+          })
+        );
+      } else if (media.type === "video") {
+        const link = document.createElement("link");
+        link.rel = "preload";
+        link.as = "video";
+        link.href = media.src;
+        document.head.appendChild(link);
 
-    const img = new Image();
-    img.src = preview.src;
-    img.loading = "eager";
-    img.decoding = "async";
-    promises.push(
-      new Promise((resolve) => {
-        img.onload = () => {
-          loadedPreviewMedia.add(preview.src);
-          resolve();
-        };
-        img.onerror = resolve;
-      })
-    );
+        promises.push(
+          new Promise((resolve) => {
+            const video = document.createElement("video");
+            video.src = media.src;
+            video.preload = "auto";
+            video.muted = true;
+            video.playsInline = true;
+            video.onloadeddata = video.onerror = resolve;
+          })
+        );
+      }
+    });
   });
 
   return Promise.all(promises);
@@ -48,11 +64,8 @@ onMounted(() => {
   checkIsDesktop();
   window.addEventListener("resize", checkIsDesktop);
 
-  const hasVisited = sessionStorage.getItem("hasVisited");
-
-  if (isDesktop.value && !hasVisited) {
+  if (shouldShowInitialPreloader) {
     sessionStorage.setItem("hasVisited", "true");
-    shouldShowPreloader.value = true;
 
     // Стартуем загрузку, но не ждём её завершения
     preloadMedia();
@@ -62,7 +75,6 @@ onMounted(() => {
       isMediaLoaded.value = true;
     }, 3000);
   } else {
-    preloadMedia();
     isMediaLoaded.value = true;
   }
 });
@@ -71,70 +83,17 @@ onMounted(() => {
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
-const displayedMedia = ref(null);
-
-const getMediaBySrc = (src) => {
-  return allProjects
-    .flatMap((project) => project.media)
-    .find((media) => media.src === src);
-};
-
-const waitForMedia = (media) => {
-  if (!media) return Promise.resolve(false);
-
-  if (media.type === "video") {
-    return new Promise((resolve) => {
-      const video = document.createElement("video");
-      video.muted = true;
-      video.playsInline = true;
-      video.preload = "auto";
-      video.src = media.src;
-      video.onloadeddata = () => resolve(true);
-      video.onerror = () => resolve(false);
-      video.load();
-    });
-  }
-
-  if (loadedPreviewMedia.has(media.src)) return Promise.resolve(true);
-
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => {
-      loadedPreviewMedia.add(media.src);
-      resolve(true);
-    };
-    img.onerror = () => resolve(false);
-    img.src = media.src;
-  });
-};
-
 const isPreviewVisible = ref(false);
 let hideTimeout;
 
-watch(activeImage, async (newVal) => {
-  const currentLoadId = ++previewLoadId;
+watch(activeImage, (newVal) => {
   clearTimeout(hideTimeout);
-
   if (newVal) {
-    document.body.classList.add("inverted");
-
-    const nextMedia = getMediaBySrc(newVal);
-    if (!nextMedia) return;
-
-    if (displayedMedia.value) {
-      isPreviewVisible.value = true;
-    }
-
-    await waitForMedia(nextMedia);
-    if (currentLoadId !== previewLoadId || !activeImage.value) return;
-
-    displayedMedia.value = nextMedia;
     isPreviewVisible.value = true;
+    document.body.classList.add("inverted");
   } else {
     hideTimeout = setTimeout(() => {
       isPreviewVisible.value = false;
-      displayedMedia.value = null;
     }, 300);
     document.body.classList.remove("inverted");
   }
@@ -161,6 +120,9 @@ onBeforeRouteLeave(() => {
   document.body.classList.remove("inverted");
 });
 
+const allPreviewMedia = computed(() =>
+  allProjects.flatMap((project) => project.media)
+);
 </script>
 
 <template>
@@ -180,23 +142,24 @@ onBeforeRouteLeave(() => {
   </ul>
 
   <div class="fullscreen-preview" aria-hidden="true">
-    <video
-      v-if="displayedMedia?.type === 'video'"
-      :key="displayedMedia.src"
-      :src="displayedMedia.src"
-      autoplay
-      muted
-      loop
-      playsinline
-      class="preview-item"
-      :class="{ active: isPreviewVisible }"
-    />
-    <div
-      v-else-if="displayedMedia"
-      class="fullscreen-preview-image preview-item"
-      :class="{ active: isPreviewVisible }"
-      :style="{ backgroundImage: `url(${displayedMedia.src})` }"
-    />
+    <template v-for="media in allPreviewMedia" :key="media.src">
+      <video
+        v-if="media.type === 'video'"
+        :src="media.src"
+        autoplay
+        muted
+        loop
+        playsinline
+        class="preview-item"
+        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+      />
+      <div
+        v-else
+        class="fullscreen-preview-image preview-item"
+        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+        :style="{ backgroundImage: `url(${media.src})` }"
+      />
+    </template>
   </div>
 </template>
 
