@@ -70,7 +70,7 @@ function handleVimeoLoad(event) {
 
 
 function preloadAllMedia(srcArray) {
-  const preloadLimit = 10;
+  const preloadLimit = 3;
   return Promise.all(
     srcArray.slice(0, preloadLimit).map(src => {
       return new Promise(resolve => {
@@ -79,10 +79,10 @@ function preloadAllMedia(srcArray) {
           video.muted = true;
           video.autoplay = false;
           video.playsInline = true;
-          video.preload = "auto";
+          video.preload = "metadata";
           video.src = src;
 
-          video.onloadeddata = resolve;
+          video.onloadedmetadata = resolve;
           video.onerror = resolve;
 
           video.load();

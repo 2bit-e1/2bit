@@ -174,16 +174,26 @@ function toggleSound() {
 // ---------------------------
 // Прелоадер
 // ---------------------------
-function preloadAllMedia(srcArray) {
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function preloadInitialMedia(srcArray) {
+  const preloadLimit = 3;
+
   return Promise.all(
-    srcArray.map((src) => {
+    srcArray.slice(0, preloadLimit).map((src) => {
       return new Promise((resolve) => {
         const type = getMediaType(src);
         if (type === "video") {
           const video = document.createElement("video");
+          video.muted = true;
+          video.playsInline = true;
+          video.preload = "metadata";
           video.src = src;
-          video.onloadeddata = resolve;
+          video.onloadedmetadata = resolve;
           video.onerror = resolve;
+          video.load();
         } else if (type === "image") {
           const img = new Image();
           img.src = src;
@@ -213,7 +223,7 @@ onMounted(async () => {
     showPreloader.value = true;
   }, 300);
 
-  await preloadAllMedia(imagesSrc);
+  await Promise.race([preloadInitialMedia(imagesSrc), wait(2500)]);
   clearTimeout(delay);
 
   isLoading.value = false;
@@ -280,7 +290,7 @@ onBeforeUnmount(() => {
         <div class="image-wrapper">
           <div class="media">
             <img v-if="getMediaType(src) === 'image'" :src="src" />
-            <video v-else-if="getMediaType(src) === 'video'" :src="src" autoplay muted loop playsinline />
+            <video v-else-if="getMediaType(src) === 'video'" :src="src" autoplay muted loop playsinline preload="metadata" />
             <div
               v-else-if="['vimeo', 'kinescope'].includes(getMediaType(src))"
               class="iframe-wrapper"
