@@ -20,36 +20,18 @@ const preloadMedia = () => {
   const promises = [];
 
   allProjects.forEach((project) => {
-    project.media.forEach((media) => {
-      if (media.type === "image") {
-        const img = new Image();
-        img.src = media.src;
-        img.loading = 'eager';
-        img.decoding = 'async';
-        promises.push(
-          new Promise((resolve) => {
-            img.onload = img.onerror = resolve;
-          })
-        );
-      } else if (media.type === "video") {
-        const link = document.createElement("link");
-        link.rel = "preload";
-        link.as = "video";
-        link.href = media.src;
-        document.head.appendChild(link);
+    const preview = project.media.find((media) => media.type === "image");
+    if (!preview) return;
 
-        promises.push(
-          new Promise((resolve) => {
-            const video = document.createElement("video");
-            video.src = media.src;
-            video.preload = "auto";
-            video.muted = true;
-            video.playsInline = true;
-            video.onloadeddata = video.onerror = resolve;
-          })
-        );
-      }
-    });
+    const img = new Image();
+    img.src = preview.src;
+    img.loading = "eager";
+    img.decoding = "async";
+    promises.push(
+      new Promise((resolve) => {
+        img.onload = img.onerror = resolve;
+      })
+    );
   });
 
   return Promise.all(promises);
@@ -82,6 +64,13 @@ onMounted(() => {
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
+const activeMedia = computed(() => {
+  if (!activeImage.value) return null;
+
+  return allProjects
+    .flatMap((project) => project.media)
+    .find((media) => media.src === activeImage.value);
+});
 const isPreviewVisible = ref(false);
 let hideTimeout;
 
@@ -119,9 +108,6 @@ onBeforeRouteLeave(() => {
   document.body.classList.remove("inverted");
 });
 
-const allPreviewMedia = computed(() =>
-  allProjects.flatMap((project) => project.media)
-);
 </script>
 
 <template>
@@ -141,24 +127,23 @@ const allPreviewMedia = computed(() =>
   </ul>
 
   <div class="fullscreen-preview" aria-hidden="true">
-    <template v-for="media in allPreviewMedia" :key="media.src">
-      <video
-        v-if="media.type === 'video'"
-        :src="media.src"
-        autoplay
-        muted
-        loop
-        playsinline
-        class="preview-item"
-        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
-      />
-      <div
-        v-else
-        class="fullscreen-preview-image preview-item"
-        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
-        :style="{ backgroundImage: `url(${media.src})` }"
-      />
-    </template>
+    <video
+      v-if="activeMedia?.type === 'video'"
+      :key="activeMedia.src"
+      :src="activeMedia.src"
+      autoplay
+      muted
+      loop
+      playsinline
+      class="preview-item"
+      :class="{ active: isPreviewVisible }"
+    />
+    <div
+      v-else-if="activeMedia"
+      class="fullscreen-preview-image preview-item"
+      :class="{ active: isPreviewVisible }"
+      :style="{ backgroundImage: `url(${activeMedia.src})` }"
+    />
   </div>
 </template>
 
