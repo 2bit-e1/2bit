@@ -11,6 +11,8 @@ const isDesktop = ref(false);
 const isMediaLoaded = ref(false);
 const shouldShowPreloader = ref(false);
 let preloaderTimeout = null;
+let previewLoadId = 0;
+const loadedPreviewMedia = new Set();
 
 const checkIsDesktop = () => {
   isDesktop.value = window.innerWidth > 1024;
@@ -29,7 +31,11 @@ const preloadMedia = () => {
     img.decoding = "async";
     promises.push(
       new Promise((resolve) => {
-        img.onload = img.onerror = resolve;
+        img.onload = () => {
+          loadedPreviewMedia.add(preview.src);
+          resolve();
+        };
+        img.onerror = resolve;
       })
     );
   });
@@ -56,6 +62,7 @@ onMounted(() => {
       isMediaLoaded.value = true;
     }, 3000);
   } else {
+    preloadMedia();
     isMediaLoaded.value = true;
   }
 });
@@ -64,24 +71,70 @@ onMounted(() => {
 
 const homeStore = useHomeStore();
 const activeImage = computed(() => homeStore.activeProjectImage);
-const activeMedia = computed(() => {
-  if (!activeImage.value) return null;
+const displayedMedia = ref(null);
 
+const getMediaBySrc = (src) => {
   return allProjects
     .flatMap((project) => project.media)
-    .find((media) => media.src === activeImage.value);
-});
+    .find((media) => media.src === src);
+};
+
+const waitForMedia = (media) => {
+  if (!media) return Promise.resolve(false);
+
+  if (media.type === "video") {
+    return new Promise((resolve) => {
+      const video = document.createElement("video");
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = "auto";
+      video.src = media.src;
+      video.onloadeddata = () => resolve(true);
+      video.onerror = () => resolve(false);
+      video.load();
+    });
+  }
+
+  if (loadedPreviewMedia.has(media.src)) return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      loadedPreviewMedia.add(media.src);
+      resolve(true);
+    };
+    img.onerror = () => resolve(false);
+    img.src = media.src;
+  });
+};
+
 const isPreviewVisible = ref(false);
 let hideTimeout;
 
-watch(activeImage, (newVal) => {
+watch(activeImage, async (newVal) => {
+  const currentLoadId = ++previewLoadId;
   clearTimeout(hideTimeout);
+
   if (newVal) {
-    isPreviewVisible.value = true;
     document.body.classList.add("inverted");
+
+    const nextMedia = getMediaBySrc(newVal);
+    if (!nextMedia) return;
+
+    if (displayedMedia.value) {
+      isPreviewVisible.value = true;
+    }
+
+    await waitForMedia(nextMedia);
+    if (currentLoadId !== previewLoadId || !activeImage.value) return;
+
+    displayedMedia.value = nextMedia;
+    isPreviewVisible.value = true;
   } else {
     hideTimeout = setTimeout(() => {
       isPreviewVisible.value = false;
+      displayedMedia.value = null;
     }, 300);
     document.body.classList.remove("inverted");
   }
@@ -128,9 +181,9 @@ onBeforeRouteLeave(() => {
 
   <div class="fullscreen-preview" aria-hidden="true">
     <video
-      v-if="activeMedia?.type === 'video'"
-      :key="activeMedia.src"
-      :src="activeMedia.src"
+      v-if="displayedMedia?.type === 'video'"
+      :key="displayedMedia.src"
+      :src="displayedMedia.src"
       autoplay
       muted
       loop
@@ -139,10 +192,10 @@ onBeforeRouteLeave(() => {
       :class="{ active: isPreviewVisible }"
     />
     <div
-      v-else-if="activeMedia"
+      v-else-if="displayedMedia"
       class="fullscreen-preview-image preview-item"
       :class="{ active: isPreviewVisible }"
-      :style="{ backgroundImage: `url(${activeMedia.src})` }"
+      :style="{ backgroundImage: `url(${displayedMedia.src})` }"
     />
   </div>
 </template>
