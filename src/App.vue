@@ -14,7 +14,6 @@ const pageName = ref(null);
 const scrollPosition = ref(0); // Храним текущую позицию прокрутки
 
 onMounted(async () => {
-  await import('@/components/Preloader.vue')
   await router.isReady();
   isRouterReady.value = true;
 });

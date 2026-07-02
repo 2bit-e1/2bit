@@ -5,6 +5,7 @@
       loop
       muted
       playsinline
+      preload="auto"
       class="preloader-video"
     >
       <source src="@/assets/preloadanim.mp4" type="video/mp4" />
