@@ -7,73 +7,71 @@ import { useDebounce } from "@/utils/useDebounce";
 import { onBeforeRouteLeave } from 'vue-router';
 import Preloader from "@/components/Preloader.vue";
 
-const isDesktop = ref(false);
+const PRELOADER_MIN_DURATION = 3000;
+const PRELOADER_MAX_DURATION = 30000;
+const allPreviewMedia = allProjects.flatMap((project) => project.media);
+const readyPreviewMedia = new Set();
+
+const hasVisited = () => {
+  try {
+    return sessionStorage.getItem("hasVisited") === "true";
+  } catch {
+    return false;
+  }
+};
+
+const rememberVisit = () => {
+  try {
+    sessionStorage.setItem("hasVisited", "true");
+  } catch {
+    // The page still works when session storage is unavailable.
+  }
+};
+
 const shouldShowInitialPreloader =
   typeof window !== "undefined" &&
   window.innerWidth > 1024 &&
-  !sessionStorage.getItem("hasVisited");
+  !hasVisited();
 const isMediaLoaded = ref(!shouldShowInitialPreloader);
 const shouldShowPreloader = ref(shouldShowInitialPreloader);
-let preloaderTimeout = null;
+let minimumDurationElapsed = !shouldShowInitialPreloader;
+let minimumDurationTimeout = null;
+let maximumDurationTimeout = null;
 
-const checkIsDesktop = () => {
-  isDesktop.value = window.innerWidth > 1024;
+const revealProjects = () => {
+  if (isMediaLoaded.value) return;
+
+  isMediaLoaded.value = true;
+  shouldShowPreloader.value = false;
+  rememberVisit();
+  clearTimeout(minimumDurationTimeout);
+  clearTimeout(maximumDurationTimeout);
 };
 
-const preloadMedia = () => {
-  const promises = [];
+const revealProjectsWhenReady = () => {
+  if (
+    shouldShowInitialPreloader &&
+    minimumDurationElapsed &&
+    readyPreviewMedia.size >= allPreviewMedia.length
+  ) {
+    revealProjects();
+  }
+};
 
-  allProjects.forEach((project) => {
-    project.media.forEach((media) => {
-      if (media.type === "image") {
-        const img = new Image();
-        img.src = media.src;
-        img.loading = 'eager';
-        img.decoding = 'async';
-        promises.push(
-          new Promise((resolve) => {
-            img.onload = img.onerror = resolve;
-          })
-        );
-      } else if (media.type === "video") {
-        const link = document.createElement("link");
-        link.rel = "preload";
-        link.as = "video";
-        link.href = media.src;
-        document.head.appendChild(link);
-
-        promises.push(
-          new Promise((resolve) => {
-            const video = document.createElement("video");
-            video.src = media.src;
-            video.preload = "auto";
-            video.muted = true;
-            video.playsInline = true;
-            video.onloadeddata = video.onerror = resolve;
-          })
-        );
-      }
-    });
-  });
-
-  return Promise.all(promises);
+const markPreviewReady = (src) => {
+  readyPreviewMedia.add(src);
+  revealProjectsWhenReady();
 };
 
 
 onMounted(() => {
-  checkIsDesktop();
-  window.addEventListener("resize", checkIsDesktop);
-
   if (shouldShowInitialPreloader) {
-    sessionStorage.setItem("hasVisited", "true");
+    minimumDurationTimeout = setTimeout(() => {
+      minimumDurationElapsed = true;
+      revealProjectsWhenReady();
+    }, PRELOADER_MIN_DURATION);
 
-    // Стартуем загрузку, но не ждём её завершения
-    preloadMedia();
-
-    // Показываем прелоадер ровно 3 секунды
-    preloaderTimeout = setTimeout(() => {
-      isMediaLoaded.value = true;
-    }, 3000);
+    maximumDurationTimeout = setTimeout(revealProjects, PRELOADER_MAX_DURATION);
   } else {
     isMediaLoaded.value = true;
   }
@@ -112,7 +110,8 @@ const clearActiveProjectData = useDebounce(() => {
 
 onUnmounted(() => {
   clearTimeout(hideTimeout);
-  clearTimeout(preloaderTimeout);
+  clearTimeout(minimumDurationTimeout);
+  clearTimeout(maximumDurationTimeout);
   clearActiveProjectData();
 });
 
@@ -120,9 +119,6 @@ onBeforeRouteLeave(() => {
   document.body.classList.remove("inverted");
 });
 
-const allPreviewMedia = computed(() =>
-  allProjects.flatMap((project) => project.media)
-);
 </script>
 
 <template>
@@ -150,14 +146,22 @@ const allPreviewMedia = computed(() =>
         muted
         loop
         playsinline
+        preload="auto"
         class="preview-item"
         :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+        @loadeddata="markPreviewReady(media.src)"
+        @error="markPreviewReady(media.src)"
       />
-      <div
+      <img
         v-else
+        :src="media.src"
+        alt=""
+        loading="eager"
+        decoding="async"
         class="fullscreen-preview-image preview-item"
         :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
-        :style="{ backgroundImage: `url(${media.src})` }"
+        @load="markPreviewReady(media.src)"
+        @error="markPreviewReady(media.src)"
       />
     </template>
   </div>
