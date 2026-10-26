@@ -1,7 +1,6 @@
 <script setup>
 import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
-import { computed, onMounted, ref } from "vue";
-import { timeForLoadAllImages } from "./utils";
+import { computed, ref } from "vue";
 
 const props = defineProps({
   ind: Number,
@@ -13,20 +12,14 @@ const props = defineProps({
 
 const elemRef = ref(null);
 const isIntersected = ref(false);
-const appearDelayStep = 50;
-const appearDelay = ref(props.ind * appearDelayStep + "ms");
+const columns = window.innerWidth <= 600 ? 2 : window.innerWidth <= 1024 ? 3 : 4;
+const appearDelay = `${(props.ind % columns) * 45}ms`;
 
 const handleIntersect = (entries) => {
   if (entries[0].isIntersecting) isIntersected.value = true;
 };
 
 useIntersectionObserver(elemRef, handleIntersect);
-
-onMounted(() => {
-  setTimeout(() => {
-    appearDelay.value = ((props.ind % 4) - 1) * appearDelayStep + "ms";
-  }, timeForLoadAllImages);
-});
 
 // === Определение типа медиа ===
 const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.src));
@@ -158,12 +151,24 @@ function toKinescopeEmbed(src) {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  transition: clip-path 450ms v-bind(appearDelay) ease;
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(0.975);
+  transition:
+    transform var(--motion-media-duration) var(--motion-ease-reveal),
+    opacity var(--motion-fade-duration) var(--motion-ease-out);
+  transition-delay: v-bind(appearDelay);
 }
 
 .item-image_intersected:not(.item-image_hide) {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item-image {
+    transform: none;
+    transition: none;
+  }
 }
 
 .item-image img,

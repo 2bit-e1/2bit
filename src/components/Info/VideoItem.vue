@@ -1,18 +1,17 @@
 <script setup>
 import { useIntersectionObserver } from '@/utils/useIntersectionObserver'
-import { ref, watchEffect } from 'vue'
+import { ref } from 'vue'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
 import Video from '@/components/Video.vue'
 
 const props = defineProps({
   src: String,
   isAppear: Boolean,
-  initialDelay: String,
+  initialDelay: { type: Number, default: 0 },
 })
 
 const mediaPopupStore = useMediaPopupStore()
 
-const appearDelay = ref(null)
 const elemRef = ref(null)
 const isIntersected = ref(false)
 
@@ -28,20 +27,13 @@ const handleVideoClick = () => {
   mediaPopupStore.openPopup(props.src, 'Showreel', '2bit ‘24', 'video')
 }
 
-watchEffect(() => {
-  if (props.isAppear) {
-    setTimeout(() => {
-      appearDelay.value = '200ms'
-    }, 1000)
-  }
-})
 </script>
 
 <template>
   <div
     class="info-video"
     :class="(isAppear && isIntersected) ? 'info-video_appear' : '' "
-    :style="{ 'animation-delay': (appearDelay == null ? initialDelay : appearDelay) }"
+    :style="{ '--reveal-delay': `${initialDelay}ms` }"
     ref="elemRef"
     tabindex="0"
     @click="handleVideoClick"

@@ -37,8 +37,8 @@ export default {
   },
   content: [
     {
-      type: CONTENT_TYPES.iframe,
-      link: "bio.jpg"
+      type: CONTENT_TYPES.image,
+      link: "/Bio.jpg"
     },
     {
       type: CONTENT_TYPES.paragraph,

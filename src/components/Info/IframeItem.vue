@@ -1,18 +1,17 @@
 <script setup>
 import { useIntersectionObserver } from '@/utils/useIntersectionObserver'
-import { ref, watchEffect } from 'vue'
+import { ref } from 'vue'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
 
 const props = defineProps({
   src: String,
   isAppear: Boolean,
-  initialDelay: String,
+  initialDelay: { type: Number, default: 0 },
   name: { type: String, default: 'Iframe project' },
   author: { type: String, default: '2bit' }
 })
 
 const mediaPopupStore = useMediaPopupStore()
-const appearDelay = ref(null)
 const elemRef = ref(null)
 const isIntersected = ref(false)
 
@@ -37,20 +36,13 @@ const handleKey = (e) => {
   }
 }
 
-watchEffect(() => {
-  if (props.isAppear) {
-    setTimeout(() => {
-      appearDelay.value = '200ms'
-    }, 1000)
-  }
-})
 </script>
 
 <template>
   <div
     class="info-video"
     :class="(isAppear && isIntersected) ? 'info-video_appear' : '' "
-    :style="{ 'animation-delay': (appearDelay == null ? initialDelay : appearDelay) }"
+    :style="{ '--reveal-delay': `${initialDelay}ms` }"
     ref="elemRef"
     >
     <div class="iframe-wrapper">

@@ -147,8 +147,7 @@ function toggleSound() {
   background-color: #0f0f0f;
   opacity: 0;
   pointer-events: none;
-  --opacity-delay: 150ms;
-  transition: opacity 300ms var(--opacity-delay) var(--timing-func-2);
+  transition: opacity var(--motion-exit-duration) ease-out;
   --video-popup-x-padding: 107px;
   padding: var(--header-height) var(--video-popup-x-padding) 70px;
 }
@@ -162,14 +161,26 @@ function toggleSound() {
 .video-container {
   overflow: hidden;
   height: 100%;
-  transition: clip-path 400ms ease;
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(1.025);
+  transition:
+    transform var(--motion-media-duration) var(--motion-ease-reveal),
+    opacity var(--motion-fade-duration) var(--motion-ease-out);
   display: flex;
   align-items: center;
 }
 
 .video-popup_open .video-container {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-container,
+  .video-popup_open .video-container {
+    transform: none;
+    transition: none;
+  }
 }
 
 .video-container:deep(video) {

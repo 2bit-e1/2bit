@@ -135,7 +135,7 @@ onMounted(async () => {
         observer.value.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.3 });
+  }, { threshold: 0.08 });
 
   document.querySelectorAll(".image-box").forEach(el => {
     observer.value.observe(el);
@@ -232,7 +232,6 @@ onBeforeUnmount(() => {
           </button>
         </div>
 
-          <div class="mask" />
         </div>
       </div>
     </div>
@@ -299,16 +298,6 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-.mask {
-  position: absolute;
-  inset: 0;
-  background: #f8f8f8;
-  z-index: 2;
-  transform: translateY(0%);
-  transition: transform 0.8s ease;
-  will-change: transform;
-}
-
 .image-wrapper img,
 .image-wrapper video {
   position: relative;
@@ -318,9 +307,16 @@ onBeforeUnmount(() => {
   max-width: calc(100% - 66px);
   object-fit: cover;
   object-position: center;
-  transform: scale(1.2);
-  transition: transform 0.8s ease;
-  will-change: transform;
+}
+
+.image-wrapper img,
+.image-wrapper video,
+.image-wrapper > .iframe-wrapper {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(1.025);
+  transition:
+    transform var(--motion-media-duration) var(--motion-ease-reveal),
+    opacity var(--motion-fade-duration) var(--motion-ease-out);
 }
 
 
@@ -329,14 +325,24 @@ iframe::-webkit-media-controls {
   display: none !important;
 }
 
-.image-box.in-view .mask {
-  transform: translateY(-100%);
-}
-
 .image-box.in-view img,
 .image-box.in-view video,
-.image-box.in-view iframe {
-  transform: scale(1);
+.image-box.in-view > .image-wrapper > .iframe-wrapper {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-wrapper img,
+  .image-wrapper video,
+  .image-wrapper > .iframe-wrapper,
+  .image-box.in-view img,
+  .image-box.in-view video,
+  .image-box.in-view > .image-wrapper > .iframe-wrapper {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 </style>

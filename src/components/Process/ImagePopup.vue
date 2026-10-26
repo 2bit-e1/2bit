@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onUnmounted, watchEffect, ref, watch } from 'vue';
-import AppearBlocks from '../Info/AppearBlocks.vue';
+import RevealText from '../Appear/RevealText.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
 
 const props = defineProps({
@@ -185,12 +185,11 @@ onUnmounted(() => {
         </div>
 
         <p class="description">
-          <AppearBlocks
-            @setDelay="() => {}"
-            :initialDelay="100"
-            :isAppearReady="isOpen"
+          <RevealText
+            :text="imageDescription || ''"
+            :delay="100"
+            :isAppear="isOpen"
           />
-          {{ imageDescription }}
         </p>
       </div>
     </div>
@@ -250,7 +249,7 @@ onUnmounted(() => {
   z-index: var(--media-popup-z-index);
   --popup-x-padding: 60px;
   padding: var(--header-height) var(--popup-x-padding) 0;
-  transition: opacity 300ms var(--timing-func-2);
+  transition: opacity var(--motion-exit-duration) ease-out;
 }
 
 .image-popup_open {
@@ -272,12 +271,24 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  transition: clip-path 400ms ease;
+  opacity: 0;
+  transform: translate3d(0, 16px, 0) scale(1.025);
+  transition:
+    transform var(--motion-media-duration) var(--motion-ease-reveal),
+    opacity var(--motion-fade-duration) var(--motion-ease-out);
 }
 
 .image-popup_open .image-container {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image-container,
+  .image-popup_open .image-container {
+    transform: none;
+    transition: none;
+  }
 }
 
 .media-backdrop {

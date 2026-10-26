@@ -10,7 +10,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isRouterReady = ref(false);
-const pageName = ref(null);
+const pageName = ref(getPageNameByPath(route.path));
 const scrollPosition = ref(0); // Храним текущую позицию прокрутки
 
 onMounted(async () => {

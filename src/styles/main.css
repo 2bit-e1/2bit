@@ -2,6 +2,7 @@
 @import url("./fonts.css");
 @import url("./typography.css");
 @import url("./utils.css");
+@import url("./motion.css");
 
 :root {
   --clr-black: #000000;
@@ -11,8 +12,8 @@
 
   --text-indent: 30px;
 
-  --timing-func-1: cubic-bezier(0.68, -0.6, 0.32, 1.6);
-  --timing-func-2: cubic-bezier(0.85, 0, 0.15, 1);
+  --timing-func-1: var(--motion-ease-out);
+  --timing-func-2: var(--motion-ease-reveal);
 
   /* --header-height: max(calc((100vh - min(100vw, 231px * 3)) / 2), 62px); */
   --header-height: 60px;
@@ -53,32 +54,13 @@ body {
 }
 
 .hoverable .appear-word-inner {
-  transition: background-position 400ms ease;
-  background-position: 0px 0px;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  background: currentColor;
-  /* font-weight: 700; */
+  -webkit-text-fill-color: currentColor;
 }
 
-.hoverable:is(.hoverable-from-gray, :has(.hoverable-from-gray)) .appear-word-inner {
-  background: url("./hover-text-bg-gray.svg");
-}
-
-.hoverable:is(.hoverable-from-black, :has(.hoverable-from-black)) .appear-word-inner {
-  background: url("./hover-text-bg-black.svg");
-}
-
-.hoverable:is(.hoverable-from-white, :has(.hoverable-from-white)) .appear-word-inner {
-  background: url("./hover-text-bg-white.svg");
-}
-
-.hoverable:not(:disabled):hover .appear-word-inner {
-  background-position: 0px -22px;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .hoverable:not(:disabled):hover .appear-word-inner {
+    color: var(--clr-gray);
+  }
 }
 
 

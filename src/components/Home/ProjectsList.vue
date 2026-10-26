@@ -1,16 +1,19 @@
 <script setup>
 import allProjects from "@/data/projects/index.js";
 import ProjectItem from "@/components/Home/ProjectItem.vue";
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, reactive, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
-import { useDebounce } from "@/utils/useDebounce";
-import { onBeforeRouteLeave } from 'vue-router';
+import { onBeforeRouteLeave } from "vue-router";
 import Preloader from "@/components/Preloader.vue";
 
 const PRELOADER_MIN_DURATION = 3000;
 const PRELOADER_MAX_DURATION = 30000;
+const previewQuery = window.matchMedia("(min-width: 1025px) and (hover: hover) and (pointer: fine)");
+const canPreview = ref(previewQuery.matches);
 const allPreviewMedia = allProjects.flatMap((project) => project.media);
-const readyPreviewMedia = new Set();
+const readyPreviewMedia = reactive(new Set());
+const settledPreviewMedia = new Set();
+const previewVideos = new Map();
 
 const hasVisited = () => {
   try {
@@ -24,105 +27,134 @@ const rememberVisit = () => {
   try {
     sessionStorage.setItem("hasVisited", "true");
   } catch {
-    // The page still works when session storage is unavailable.
+    // Session storage is optional in private or restricted browser contexts.
   }
 };
 
-const shouldShowInitialPreloader =
-  typeof window !== "undefined" &&
-  window.innerWidth > 1024 &&
-  !hasVisited();
+const shouldShowInitialPreloader = canPreview.value && !hasVisited();
 const isMediaLoaded = ref(!shouldShowInitialPreloader);
 const shouldShowPreloader = ref(shouldShowInitialPreloader);
 let minimumDurationElapsed = !shouldShowInitialPreloader;
-let minimumDurationTimeout = null;
-let maximumDurationTimeout = null;
+let minimumDurationTimeout;
+let maximumDurationTimeout;
+let leaveTimeout;
 
-const revealProjects = () => {
+function revealProjects() {
   if (isMediaLoaded.value) return;
-
   isMediaLoaded.value = true;
   shouldShowPreloader.value = false;
   rememberVisit();
   clearTimeout(minimumDurationTimeout);
   clearTimeout(maximumDurationTimeout);
-};
+}
 
-const revealProjectsWhenReady = () => {
-  if (
-    shouldShowInitialPreloader &&
-    minimumDurationElapsed &&
-    readyPreviewMedia.size >= allPreviewMedia.length
-  ) {
+function revealProjectsWhenReady() {
+  if (minimumDurationElapsed && settledPreviewMedia.size >= allPreviewMedia.length) {
     revealProjects();
   }
-};
+}
 
-const markPreviewReady = (src) => {
+function markPreviewReady(src) {
   readyPreviewMedia.add(src);
+  settledPreviewMedia.add(src);
   revealProjectsWhenReady();
-};
+}
 
+function markPreviewFailed(src) {
+  settledPreviewMedia.add(src);
+  revealProjectsWhenReady();
+}
+
+function setPreviewVideo(src, element) {
+  if (element) previewVideos.set(src, element);
+  else previewVideos.delete(src);
+}
+
+const homeStore = useHomeStore();
+const activeImage = computed(() => homeStore.activeProjectImage);
+const displayedSource = ref(null);
+const isPreviewVisible = ref(false);
+
+watch(
+  () => [activeImage.value, readyPreviewMedia.has(activeImage.value), canPreview.value],
+  ([src, isReady, enabled]) => {
+    if (src && enabled) {
+      if (isReady) {
+        displayedSource.value = src;
+        isPreviewVisible.value = true;
+        document.body.classList.add("inverted");
+      }
+    } else {
+      isPreviewVisible.value = false;
+      document.body.classList.remove("inverted");
+    }
+  }
+);
+
+function syncPreviewPlayback() {
+  previewVideos.forEach((video, src) => {
+    if (src === displayedSource.value && isPreviewVisible.value && !document.hidden) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  });
+}
+
+watch([displayedSource, isPreviewVisible], syncPreviewPlayback, { flush: "post" });
+
+function setActiveProjectData(name, year, link, image) {
+  clearTimeout(leaveTimeout);
+  homeStore.setActiveProjectData(name, year, link, image);
+}
+
+function clearActiveProjectData() {
+  clearTimeout(leaveTimeout);
+  leaveTimeout = setTimeout(() => homeStore.clearActiveProjectData(), 80);
+}
+
+function updatePreviewMode(event) {
+  canPreview.value = event.matches;
+  if (!event.matches) {
+    homeStore.clearActiveProjectData();
+    revealProjects();
+  }
+}
 
 onMounted(() => {
+  previewQuery.addEventListener("change", updatePreviewMode);
+  document.addEventListener("visibilitychange", syncPreviewPlayback);
   if (shouldShowInitialPreloader) {
     minimumDurationTimeout = setTimeout(() => {
       minimumDurationElapsed = true;
       revealProjectsWhenReady();
     }, PRELOADER_MIN_DURATION);
-
     maximumDurationTimeout = setTimeout(revealProjects, PRELOADER_MAX_DURATION);
-  } else {
-    isMediaLoaded.value = true;
   }
 });
 
-
-
-const homeStore = useHomeStore();
-const activeImage = computed(() => homeStore.activeProjectImage);
-const isPreviewVisible = ref(false);
-let hideTimeout;
-
-watch(activeImage, (newVal) => {
-  clearTimeout(hideTimeout);
-  if (newVal) {
-    isPreviewVisible.value = true;
-    document.body.classList.add("inverted");
-  } else {
-    hideTimeout = setTimeout(() => {
-      isPreviewVisible.value = false;
-    }, 300);
-    document.body.classList.remove("inverted");
-  }
-});
-
-const setActiveProjectData = useDebounce(
-  (name, year, link, image) => {
-    homeStore.setActiveProjectData(name, year, link, image);
-  },
-  100
-);
-
-const clearActiveProjectData = useDebounce(() => {
+function resetPreview() {
+  clearTimeout(leaveTimeout);
   homeStore.clearActiveProjectData();
-}, 100);
+  document.body.classList.remove("inverted");
+  previewVideos.forEach((video) => video.pause());
+}
+
+onBeforeRouteLeave(resetPreview);
 
 onUnmounted(() => {
-  clearTimeout(hideTimeout);
+  resetPreview();
   clearTimeout(minimumDurationTimeout);
   clearTimeout(maximumDurationTimeout);
-  clearActiveProjectData();
+  previewQuery.removeEventListener("change", updatePreviewMode);
+  document.removeEventListener("visibilitychange", syncPreviewPlayback);
 });
-
-onBeforeRouteLeave(() => {
-  document.body.classList.remove("inverted");
-});
-
 </script>
 
 <template>
-  <Preloader v-if="shouldShowPreloader && !isMediaLoaded" class="preloader"/>
+  <Transition name="preloader-fade">
+    <Preloader v-if="shouldShowPreloader && !isMediaLoaded" class="preloader" />
+  </Transition>
   <ul class="projects-list" v-show="isMediaLoaded">
     <ProjectItem
       v-for="project in allProjects"
@@ -137,20 +169,20 @@ onBeforeRouteLeave(() => {
     />
   </ul>
 
-  <div class="fullscreen-preview" aria-hidden="true">
+  <div v-if="canPreview" class="fullscreen-preview" aria-hidden="true">
     <template v-for="media in allPreviewMedia" :key="media.src">
       <video
         v-if="media.type === 'video'"
+        :ref="(element) => setPreviewVideo(media.src, element)"
         :src="media.src"
-        autoplay
         muted
         loop
         playsinline
         preload="auto"
         class="preview-item"
-        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+        :class="{ active: isPreviewVisible && media.src === displayedSource }"
         @loadeddata="markPreviewReady(media.src)"
-        @error="markPreviewReady(media.src)"
+        @error="markPreviewFailed(media.src)"
       />
       <img
         v-else
@@ -159,9 +191,9 @@ onBeforeRouteLeave(() => {
         loading="eager"
         decoding="async"
         class="fullscreen-preview-image preview-item"
-        :class="{ active: isPreviewVisible && media.src === activeImage, inactive: media.src !== activeImage }"
+        :class="{ active: isPreviewVisible && media.src === displayedSource }"
         @load="markPreviewReady(media.src)"
-        @error="markPreviewReady(media.src)"
+        @error="markPreviewFailed(media.src)"
       />
     </template>
   </div>
@@ -171,6 +203,8 @@ onBeforeRouteLeave(() => {
 
 
 .projects-list {
+  position: relative;
+  z-index: 1;
   display: grid;
   --item-size: var(--column-width);
   grid-template-columns: repeat(3, var(--item-size));
@@ -179,14 +213,10 @@ onBeforeRouteLeave(() => {
   align-content: center;
 }
 
-.fullscreen-preview-image.preview-item.inactive {
-filter: invert(1) hue-rotate(180deg);
-}
-
 .fullscreen-preview {
   position: fixed;
   inset: 0;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   display: flex;
   justify-content: center;
@@ -203,14 +233,25 @@ filter: invert(1) hue-rotate(180deg);
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transform: scale(1.035);
+  transition:
+    opacity var(--motion-preview-fade) ease-out,
+    transform var(--motion-media-duration) var(--motion-ease-reveal);
   z-index: 0;
 }
 
 .preview-item.active {
   opacity: 1;
   z-index: 1;
-  filter: invert(1) hue-rotate(180deg);
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preview-item,
+  .preview-item.active {
+    transform: none;
+    transition: none;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -294,13 +335,17 @@ filter: invert(1) hue-rotate(180deg);
 <style>
 @media (min-width: 1025px) {
   body {
-    transition: filter 0s ease;
-    will-change: filter;
+    transition: background-color var(--motion-exit-duration) ease-out;
   }
 
   body.inverted {
-    filter: invert(1) hue-rotate(180deg);
-    transition: filter 0.1s ease;
+    --clr-black: #f8f8f8;
+    --clr-gray: #b8b8b8;
+    background-color: #080808;
+  }
+
+  body.inverted .home-eyes {
+    filter: invert(1);
   }
 }
 

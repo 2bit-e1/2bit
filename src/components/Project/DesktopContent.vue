@@ -306,7 +306,6 @@ onBeforeUnmount(() => {
               <div class="iframe-overlay"></div>
             </div>
           </div>
-          <div class="mask" />
         </div>
       </div>
     </div>
@@ -395,7 +394,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   opacity: 0;
-  transition: opacity 0.8s ease, translate 0.8s ease;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity var(--motion-fade-duration) var(--motion-ease-out),
+    transform var(--motion-media-duration) var(--motion-ease-reveal);
   pointer-events: none;
 }
 .image-box.in-view {
@@ -404,17 +406,17 @@ onBeforeUnmount(() => {
   z-index: 2;
 }
 .image-box.from-top {
-  translate: 0 -100%;
+  transform: translate3d(0, -28px, 0);
 }
 .image-box.from-bottom {
-  translate: 0 100%;
+  transform: translate3d(0, 28px, 0);
 }
 .image-box.in-view.from-top,
 .image-box.in-view.from-bottom {
-  translate: 0 0;
+  transform: translate3d(0, 0, 0);
 }
-.image-box.above { translate: 0 -100%; }
-.image-box.below { translate: 0 100%; }
+.image-box.above { transform: translate3d(0, -28px, 0); }
+.image-box.below { transform: translate3d(0, 28px, 0); }
 
 .image-wrapper {
   position: relative;
@@ -432,23 +434,28 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(1.2);
-  transition: transform 1s ease;
+  transform: scale(1.025);
+  transition: transform var(--motion-media-duration) var(--motion-ease-reveal);
 }
 .image-box.in-view img,
 .image-box.in-view video {
   transform: scale(1);
 }
 
-.mask {
-  position: absolute;
-  inset: 0;
-  background: #f8f8f8;
-  z-index: 2;
-  transform: translateY(0%);
-  transition: transform 1s ease;
-}
-.image-box.in-view .mask {
-  transform: translateY(-100%);
+@media (prefers-reduced-motion: reduce) {
+  .image-box,
+  .image-box.above,
+  .image-box.below,
+  .image-box.from-top,
+  .image-box.from-bottom,
+  .image-box.in-view.from-top,
+  .image-box.in-view.from-bottom,
+  .image-wrapper img,
+  .image-wrapper video,
+  .image-box.in-view img,
+  .image-box.in-view video {
+    transform: none;
+    transition: none;
+  }
 }
 </style>
