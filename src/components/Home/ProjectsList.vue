@@ -5,6 +5,7 @@ import { ref, reactive, onMounted, onUnmounted, computed, watch } from "vue";
 import { useHomeStore } from "@/stores/home";
 import { onBeforeRouteLeave } from "vue-router";
 import Preloader from "@/components/Preloader.vue";
+import { createPreviewContrast } from "@/utils/previewContrast";
 
 const PRELOADER_MIN_DURATION = 3000;
 const PRELOADER_MAX_DURATION = 30000;
@@ -13,7 +14,10 @@ const canPreview = ref(previewQuery.matches);
 const allPreviewMedia = allProjects.flatMap((project) => project.media);
 const readyPreviewMedia = reactive(new Set());
 const settledPreviewMedia = new Set();
-const previewVideos = new Map();
+const previewElements = new Map();
+const previewContrast = createPreviewContrast();
+let contrastTimer;
+let contrastFrame;
 
 const hasVisited = () => {
   try {
@@ -58,6 +62,7 @@ function markPreviewReady(src) {
   readyPreviewMedia.add(src);
   settledPreviewMedia.add(src);
   revealProjectsWhenReady();
+  if (src === displayedSource.value && isPreviewVisible.value) updatePreviewContrast();
 }
 
 function markPreviewFailed(src) {
@@ -65,9 +70,9 @@ function markPreviewFailed(src) {
   revealProjectsWhenReady();
 }
 
-function setPreviewVideo(src, element) {
-  if (element) previewVideos.set(src, element);
-  else previewVideos.delete(src);
+function setPreviewElement(src, element) {
+  if (element) previewElements.set(src, element);
+  else previewElements.delete(src);
 }
 
 const homeStore = useHomeStore();
@@ -92,13 +97,32 @@ watch(
 );
 
 function syncPreviewPlayback() {
-  previewVideos.forEach((video, src) => {
+  clearInterval(contrastTimer);
+  previewElements.forEach((video, src) => {
+    if (video.tagName !== 'VIDEO') return;
     if (src === displayedSource.value && isPreviewVisible.value && !document.hidden) {
-      video.play().catch(() => {});
+      video.play().then(updatePreviewContrast).catch(() => {});
     } else {
       video.pause();
     }
   });
+  if (isPreviewVisible.value && !document.hidden) {
+    updatePreviewContrast();
+    if (previewElements.get(displayedSource.value)?.tagName === 'VIDEO') {
+      contrastTimer = setInterval(updatePreviewContrast, 500);
+    }
+  } else {
+    previewContrast.clear();
+  }
+}
+
+function updatePreviewContrast() {
+  if (isPreviewVisible.value && !document.hidden) previewContrast.update(previewElements.get(displayedSource.value));
+}
+
+function scheduleContrastUpdate() {
+  cancelAnimationFrame(contrastFrame);
+  contrastFrame = requestAnimationFrame(updatePreviewContrast);
 }
 
 watch([displayedSource, isPreviewVisible], syncPreviewPlayback, { flush: "post" });
@@ -122,6 +146,7 @@ function updatePreviewMode(event) {
 }
 
 onMounted(() => {
+  window.addEventListener("resize", scheduleContrastUpdate);
   previewQuery.addEventListener("change", updatePreviewMode);
   document.addEventListener("visibilitychange", syncPreviewPlayback);
   if (shouldShowInitialPreloader) {
@@ -135,9 +160,14 @@ onMounted(() => {
 
 function resetPreview() {
   clearTimeout(leaveTimeout);
+  clearInterval(contrastTimer);
+  cancelAnimationFrame(contrastFrame);
+  previewContrast.clear();
+  isPreviewVisible.value = false;
+  displayedSource.value = null;
   homeStore.clearActiveProjectData();
   document.body.classList.remove("inverted");
-  previewVideos.forEach((video) => video.pause());
+  previewElements.forEach((element) => { if (element.tagName === 'VIDEO') element.pause(); });
 }
 
 onBeforeRouteLeave(resetPreview);
@@ -148,6 +178,7 @@ onUnmounted(() => {
   clearTimeout(maximumDurationTimeout);
   previewQuery.removeEventListener("change", updatePreviewMode);
   document.removeEventListener("visibilitychange", syncPreviewPlayback);
+  window.removeEventListener("resize", scheduleContrastUpdate);
 });
 </script>
 
@@ -173,7 +204,7 @@ onUnmounted(() => {
     <template v-for="media in allPreviewMedia" :key="media.src">
       <video
         v-if="media.type === 'video'"
-        :ref="(element) => setPreviewVideo(media.src, element)"
+        :ref="(element) => setPreviewElement(media.src, element)"
         :src="media.src"
         muted
         loop
@@ -186,6 +217,7 @@ onUnmounted(() => {
       />
       <img
         v-else
+        :ref="(element) => setPreviewElement(media.src, element)"
         :src="media.src"
         alt=""
         loading="eager"
@@ -344,8 +376,20 @@ onUnmounted(() => {
     background-color: #080808;
   }
 
-  body.inverted .home-eyes {
-    filter: invert(1);
+  body.inverted .header_home .item_left .item-btn-text_home .appear-word-inner {
+    color: var(--preview-name-color, #fff) !important;
+  }
+
+  body.inverted .header_home .item_right .item-btn-text_home .appear-word-inner {
+    color: var(--preview-year-color, #fff) !important;
+  }
+
+  body.inverted .footer-item_home .home-btn:first-child .appear-word-inner {
+    color: var(--preview-footer-left-color, #fff) !important;
+  }
+
+  body.inverted .footer-item_home .home-btn:last-child .appear-word-inner {
+    color: var(--preview-footer-right-color, #fff) !important;
   }
 }
 

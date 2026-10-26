@@ -20,12 +20,13 @@ let minPreloaderDurationTimeout = null;
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
-const handleImageClick = (imageData) => {
+const handleImageClick = (imageData, index) => {
   emits(
     "openPopup",
     getImageSrc(imageData.name),
     imageData.description,
-    imageData.orientation
+    imageData.orientation,
+    index
   );
 };
 
@@ -108,7 +109,7 @@ useWaitingImagesToLoad(
             :orientation="imageData.orientation"
             :timeForLoadAllImages="timeForLoadAllImages"
             @setImageRef="(ref) => (imagesRefs[ind] = ref)"
-            @click.stop="handleImageClick(imageData)"
+            @click.stop="handleImageClick(imageData, ind)"
           />
         </li>
       </ul>

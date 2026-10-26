@@ -37,8 +37,11 @@ export default {
   },
   content: [
     {
-      type: CONTENT_TYPES.image,
-      link: "/Bio.jpg"
+      type: CONTENT_TYPES.video,
+      link: "/video-bio.mp4",
+      poster: "/video-bio.jpg",
+      name: "Видео био",
+      author: "2bit",
     },
     {
       type: CONTENT_TYPES.paragraph,

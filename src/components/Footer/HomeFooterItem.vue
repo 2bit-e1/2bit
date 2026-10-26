@@ -1,9 +1,9 @@
 <script setup>
 import { useHomeStore } from "@/stores/home";
-import { PAGE_NAMES, ROUTES } from "@/utils/constants";
+import { HOME_LOGO_ANIMATION, PAGE_NAMES, ROUTES } from "@/utils/constants";
 import { RouterLink } from "vue-router";
 import AppearWord from "../Appear/AppearWord.vue";
-import { ref } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import '@dotlottie/player-component';
 
 const props = defineProps({
@@ -13,16 +13,90 @@ const props = defineProps({
 
 const homeStore = useHomeStore();
 
-// Ссылка на компонент Lottie
 const lottiePlayer = ref(null);
+const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const activityEvents = ['pointermove', 'pointerdown', 'keydown', 'wheel'];
+let idleTimer;
+let lastActivityAt = 0;
 
-// Метод для запуска анимации
-const playAnimation = () => {
-  if (lottiePlayer.value) {
-    lottiePlayer.value.stop(); // Запускаем анимацию
-    lottiePlayer.value.play(); // Запускаем анимацию
+function canAnimate() {
+  return props.isActive && !document.hidden && !motionQuery.matches && lottiePlayer.value?.getLottie()?.isLoaded;
+}
+
+function clearIdleTimer() {
+  clearTimeout(idleTimer);
+  idleTimer = undefined;
+}
+
+function scheduleIdle(delay = HOME_LOGO_ANIMATION.idleDelayMs) {
+  clearIdleTimer();
+  if (HOME_LOGO_ANIMATION.idleEnabled && HOME_LOGO_ANIMATION.idleDelayMs > 0 && canAnimate()) {
+    idleTimer = setTimeout(checkIdle, delay);
   }
+}
+
+function resetIdleCountdown() {
+  lastActivityAt = performance.now();
+  scheduleIdle();
+}
+
+function recordActivity() {
+  lastActivityAt = performance.now();
+  // Keep one pending timeout instead of replacing it on every pointer movement.
+  if (idleTimer === undefined) scheduleIdle();
+}
+
+function checkIdle() {
+  idleTimer = undefined;
+  if (!canAnimate()) return;
+  const remaining = HOME_LOGO_ANIMATION.idleDelayMs - (performance.now() - lastActivityAt);
+  if (remaining > 0) {
+    scheduleIdle(remaining);
+  } else if (lottiePlayer.value.getLottie().isPaused === false) {
+    resetIdleCountdown();
+  } else {
+    playAnimation();
+  }
+}
+
+const playAnimation = () => {
+  if (!canAnimate()) return;
+  lottiePlayer.value.stop();
+  lottiePlayer.value.play();
+  resetIdleCountdown();
 };
+
+function removeActivityListeners() {
+  activityEvents.forEach(event => window.removeEventListener(event, recordActivity, true));
+}
+
+function syncAnimation() {
+  clearIdleTimer();
+  removeActivityListeners();
+  if (!canAnimate()) {
+    lottiePlayer.value?.stop();
+    return;
+  }
+  if (HOME_LOGO_ANIMATION.idleEnabled) {
+    activityEvents.forEach(event => window.addEventListener(event, recordActivity, { passive: true, capture: true }));
+  }
+  resetIdleCountdown();
+}
+
+watch(() => props.isActive, syncAnimation, { flush: 'post' });
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', syncAnimation);
+  motionQuery.addEventListener('change', syncAnimation);
+  syncAnimation();
+});
+
+onBeforeUnmount(() => {
+  clearIdleTimer();
+  removeActivityListeners();
+  document.removeEventListener('visibilitychange', syncAnimation);
+  motionQuery.removeEventListener('change', syncAnimation);
+});
 </script>
 
 <template>
@@ -55,7 +129,8 @@ const playAnimation = () => {
         style="width: 90px; height: 90px" 
         direction="1" 
         playMode="normal" 
-        @mouseover="playAnimation"
+        @ready="syncAnimation"
+        @mouseenter="playAnimation"
         @touchstart="playAnimation"
         @click="playAnimation"
       >
@@ -116,6 +191,7 @@ const playAnimation = () => {
   visibility: hidden;
   transition: opacity 0.5s ease, visibility 0.5s ease;
   display: flex;
+  filter: brightness(0) invert(var(--preview-logo-invert, 0));
   -webkit-tap-highlight-color: transparent;
 }
 

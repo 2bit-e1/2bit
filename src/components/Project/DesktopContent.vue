@@ -1,20 +1,45 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
+import { computed, ref, shallowRef, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { useProjectStore } from "@/stores/project";
 import Preloader from "@/components/Preloader.vue";
+import { getMotionDuration } from "@/utils/motion";
 
 const projectStore = useProjectStore();
-const { imagesSrc } = defineProps({ imagesSrc: Array });
+const props = defineProps({
+  imagesSrc: Array,
+  projectKey: String,
+  hasNextProject: Boolean,
+  hasPreviousProject: Boolean,
+  entryIndex: Number,
+  entryDirection: Number,
+  isLeaving: Boolean,
+});
+const emit = defineEmits(["navigateProject", "ready"]);
 
-const activeIndex = ref(0);
-const direction = ref(0);
+function makeFrame(index) {
+  return { key: `${props.projectKey}:${index}`, projectKey: props.projectKey, index, src: props.imagesSrc[index] };
+}
+
+const activeIndex = ref(props.entryIndex || 0);
+const currentFrame = shallowRef(makeFrame(activeIndex.value));
+const previousFrame = shallowRef(null);
+const direction = ref(props.entryDirection || 1);
+const frames = computed(() => {
+  const result = props.imagesSrc.map((_src, index) => makeFrame(index));
+  // Keep only the outgoing media node across a project boundary, not its gallery.
+  if (previousFrame.value && previousFrame.value.projectKey !== props.projectKey) result.push(previousFrame.value);
+  return result;
+});
 const scrollerRef = ref(null);
 let isThrottled = false;
+let scrollUnlockTimer;
+let revealFrame;
+let isDisposed = false;
 
 const isMuted = ref(true);                 // состояние mute (true = выключено)
-const currentIsIframeWithSound = ref(false); // показывать ли кнопку mute
+const currentIsIframeWithSound = computed(() => ["vimeo", "kinescope"].includes(getMediaType(currentFrame.value.src)));
 const iframeRef = ref(null);               // текущий iframe
-const iframeEls = [];                      // все iframe DOM-элементы
+const iframeEls = new Map();
 
 const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
@@ -84,9 +109,10 @@ function toEmbedUrl(src) {
 // ---------------------------
 // Рефы для iframe
 // ---------------------------
-function setIframe(el, idx) {
-  iframeEls[idx] = el || null;
-  if (idx === activeIndex.value) {
+function setIframe(el, key) {
+  if (el) iframeEls.set(key, el);
+  else iframeEls.delete(key);
+  if (key === currentFrame.value.key) {
     iframeRef.value = el || null;
   }
 }
@@ -94,56 +120,118 @@ function setIframe(el, idx) {
 // ---------------------------
 // Управление скроллом и свайпами
 // ---------------------------
-function handleTouchStart(e) { touchStartY = e.touches[0].clientY; }
-function handleTouchMove(e) { touchEndY = e.touches[0].clientY; }
+function canNavigate() {
+  return !isDisposed && !isLoading.value && scrollerRef.value && !projectStore.isInfoOpen && !projectStore.isLeavingProject;
+}
+
+function resetScrollLock() {
+  clearTimeout(scrollUnlockTimer);
+  isThrottled = false;
+  touchStartY = touchEndY = 0;
+}
+
+function lockTransition() {
+  clearTimeout(scrollUnlockTimer);
+  isThrottled = true;
+  scrollUnlockTimer = setTimeout(() => {
+    isThrottled = false;
+    previousFrame.value = null;
+  }, getMotionDuration('--motion-subject-duration', 1200));
+}
+
+function muteCurrentFrame() {
+  const iframe = iframeEls.get(currentFrame.value.key);
+  if (!iframe?.contentWindow) return;
+  const type = getMediaType(currentFrame.value.src);
+  iframe.contentWindow.postMessage(JSON.stringify(type === 'vimeo'
+    ? { method: 'setVolume', value: 0 }
+    : { method: 'setMuted', value: true }), type === 'vimeo' ? 'https://player.vimeo.com' : 'https://kinescope.io');
+}
+
+function changeSlide(dir) {
+  if (!canNavigate() || isThrottled) return;
+  const nextIndex = activeIndex.value + dir;
+  if ((nextIndex === props.imagesSrc.length && props.hasNextProject) ||
+      (nextIndex < 0 && props.hasPreviousProject)) {
+    lockTransition();
+    emit("navigateProject", dir);
+    return;
+  }
+  if (nextIndex < 0 || nextIndex >= props.imagesSrc.length) return;
+  muteCurrentFrame();
+  direction.value = dir;
+  previousFrame.value = currentFrame.value;
+  activeIndex.value = nextIndex;
+  currentFrame.value = makeFrame(nextIndex);
+  projectStore.setCurrentImage(nextIndex);
+  lockTransition();
+}
+
+function handleFrameExit(event, key) {
+  if (event.animationName === 'media-frame-out' && previousFrame.value?.key === key) previousFrame.value = null;
+}
+
+function handleTouchStart(e) {
+  if (!canNavigate()) return;
+  touchStartY = touchEndY = e.touches[0].clientY;
+}
+function handleTouchMove(e) {
+  if (canNavigate()) touchEndY = e.touches[0].clientY;
+}
 function handleTouchEnd() {
   const deltaY = touchStartY - touchEndY;
-  if (Math.abs(deltaY) < 20) return;
-  const dir = deltaY > 0 ? 1 : -1;
-  const nextIndex = activeIndex.value + dir;
-  if (nextIndex < 0 || nextIndex >= imagesSrc.length) return;
-  direction.value = dir;
-  activeIndex.value = nextIndex;
-  projectStore.setCurrentImage(nextIndex);
-  isThrottled = true;
-  setTimeout(() => isThrottled = false, 1000);
+  if (Math.abs(deltaY) >= 20) changeSlide(deltaY > 0 ? 1 : -1);
 }
 
 function handleScroll(event) {
+  if (!canNavigate() || event.ctrlKey) return;
   event.preventDefault();
-  if (isThrottled) return;
   const deltaY = event.deltaY;
   if (Math.abs(deltaY) < 20) return;
-  const dir = deltaY > 0 ? 1 : -1;
-  const nextIndex = activeIndex.value + dir;
-  if (nextIndex < 0 || nextIndex >= imagesSrc.length) return;
-  direction.value = dir;
-  activeIndex.value = nextIndex;
-  projectStore.setCurrentImage(nextIndex);
-  isThrottled = true;
-  setTimeout(() => isThrottled = false, 1000);
+  changeSlide(deltaY > 0 ? 1 : -1);
+}
+
+function preventGalleryGesture(event) {
+  if (canNavigate()) event.preventDefault();
+}
+
+function preventGalleryTouchScroll(event) {
+  if (canNavigate() && event.target instanceof Node && scrollerRef.value.contains(event.target)) {
+    event.preventDefault();
+  }
 }
 
 function addScrollListeners() {
   if (!scrollerRef.value) return;
-  scrollerRef.value.addEventListener("wheel", handleScroll, { passive: false });
+  // One wheel listener also covers the header/footer after closing Info.
+  window.addEventListener("wheel", handleScroll, { passive: false });
+  window.addEventListener("gesturechange", preventGalleryGesture, { passive: false });
+  window.addEventListener("touchmove", preventGalleryTouchScroll, { passive: false });
   scrollerRef.value.addEventListener("touchstart", handleTouchStart, { passive: true });
   scrollerRef.value.addEventListener("touchmove", handleTouchMove, { passive: true });
   scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
 }
 
+watch(() => projectStore.isInfoOpen, resetScrollLock, { flush: "sync" });
+
 // ---------------------------
 // Следим за изменением активного слайда
 // ---------------------------
-watch(
-  activeIndex,
-  (newIndex) => {
-    const type = getMediaType(imagesSrc[newIndex]);
-    currentIsIframeWithSound.value = ["vimeo", "kinescope"].includes(type);
-    iframeRef.value = iframeEls[newIndex] || null;
-  },
-  { immediate: true }
-);
+watch(() => props.projectKey, () => {
+  muteCurrentFrame();
+  previousFrame.value = shouldShowFirstImage.value ? currentFrame.value : null;
+  direction.value = props.entryDirection || 1;
+  activeIndex.value = props.entryIndex || 0;
+  currentFrame.value = makeFrame(activeIndex.value);
+  projectStore.setCurrentImage(activeIndex.value);
+  lockTransition();
+  if (!isLoading.value) emit('ready');
+});
+
+watch(currentFrame, frame => {
+  isMuted.value = true;
+  iframeRef.value = iframeEls.get(frame.key) || null;
+});
 
 // ---------------------------
 // Mute/unmute (Vimeo + Kinescope)
@@ -152,7 +240,7 @@ function toggleSound() {
   const iframe = iframeRef.value;
   if (!iframe || !iframe.contentWindow) return;
 
-  const type = getMediaType(imagesSrc[activeIndex.value]);
+  const type = getMediaType(currentFrame.value.src);
   const newMuted = !isMuted.value;
 
   if (type === "vimeo") {
@@ -209,60 +297,39 @@ function preloadInitialMedia(srcArray) {
 // Lifecycle
 // ---------------------------
 onMounted(async () => {
-  showPreloader.value = true;
   document.body.style.overflow = "hidden";
 
   await nextTick();
-  projectStore.setCurrentImage(0);
-
-  const type = getMediaType(imagesSrc[0]);
-  currentIsIframeWithSound.value = ["vimeo", "kinescope"].includes(type);
-  iframeRef.value = iframeEls[0] || null;
+  projectStore.setCurrentImage(activeIndex.value);
 
   const delay = setTimeout(() => {
     showPreloader.value = true;
   }, 300);
 
-  await Promise.race([preloadInitialMedia(imagesSrc), wait(2500)]);
+  await Promise.race([preloadInitialMedia(props.imagesSrc), wait(2500)]);
   clearTimeout(delay);
+  if (isDisposed) return;
 
   isLoading.value = false;
-  direction.value = 1;
 
   await nextTick();
-  requestAnimationFrame(() => {
+  revealFrame = requestAnimationFrame(() => {
+    if (isDisposed) return;
     shouldShowFirstImage.value = true;
+    emit('ready');
     addScrollListeners();
   });
-
-  // Safari / Magic Mouse фиксы
-  const globalWheelHandler = (e) => {
-    if (!scrollerRef.value) return;
-    const elUnderCursor = document.elementFromPoint(e.clientX, e.clientY);
-    if (scrollerRef.value.contains(elUnderCursor)) {
-      e.preventDefault();
-      handleScroll(e);
-    }
-  };
-
-  window.addEventListener("wheel", globalWheelHandler, { passive: false });
-  window.addEventListener("mousewheel", globalWheelHandler, { passive: false });
-  window.addEventListener("DOMMouseScroll", globalWheelHandler, { passive: false });
-  window.addEventListener("gesturechange", (e) => e.preventDefault(), { passive: false });
-  window.addEventListener("touchmove", (e) => {
-    if (
-      scrollerRef.value &&
-      scrollerRef.value.contains(document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY))
-    ) {
-      e.preventDefault();
-    }
-  }, { passive: false });
 });
 
 onBeforeUnmount(() => {
+  isDisposed = true;
+  resetScrollLock();
+  cancelAnimationFrame(revealFrame);
+  window.removeEventListener("wheel", handleScroll);
+  window.removeEventListener("gesturechange", preventGalleryGesture);
+  window.removeEventListener("touchmove", preventGalleryTouchScroll);
   document.body.style.overflow = "";
   if (scrollerRef.value) {
-    scrollerRef.value.removeEventListener("wheel", handleScroll);
     scrollerRef.value.removeEventListener("touchstart", handleTouchStart);
     scrollerRef.value.removeEventListener("touchmove", handleTouchMove);
     scrollerRef.value.removeEventListener("touchend", handleTouchEnd);
@@ -271,33 +338,37 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div>
-    <Preloader v-if="isLoading && showPreloader" />
+  <div class="project-gallery" :class="{ 'project-gallery_leaving': isLeaving }">
+    <Transition name="preloader-fade">
+      <Preloader v-if="isLoading && showPreloader" />
+    </Transition>
 
-    <div v-else class="scroller-vertical" ref="scrollerRef">
+    <div v-if="!isLoading" class="scroller-vertical" ref="scrollerRef">
       <div
-        v-for="(src, ind) in imagesSrc"
-        :key="ind"
-        class="image-box"
+        v-for="frame in frames"
+        :key="frame.key"
+        class="image-box media-reveal"
+        :data-project-key="frame.projectKey"
+        :data-frame-index="frame.index"
+        :data-reveal-direction="direction === -1 ? 'up' : 'down'"
+        @animationend="handleFrameExit($event, frame.key)"
         :class="{
-          'in-view': (ind === activeIndex) && (ind !== 0 || shouldShowFirstImage),
-          'above': ind < activeIndex,
-          'below': ind > activeIndex,
-          'from-top': direction === -1 && ind === activeIndex,
-          'from-bottom': direction === 1 && ind === activeIndex,
+          'in-view': frame.key === currentFrame.key && shouldShowFirstImage,
+          'media-reveal_visible': frame.key === currentFrame.key && shouldShowFirstImage,
+          'is-previous': frame.key === previousFrame?.key,
         }"
       >
-        <div class="image-wrapper">
-          <div class="media">
-            <img v-if="getMediaType(src) === 'image'" :src="src" />
-            <video v-else-if="getMediaType(src) === 'video'" :src="src" autoplay muted loop playsinline preload="metadata" />
+        <div class="image-wrapper media-reveal-content">
+          <div class="media media-reveal-subject">
+            <img v-if="getMediaType(frame.src) === 'image'" :src="frame.src" />
+            <video v-else-if="getMediaType(frame.src) === 'video'" :src="frame.src" autoplay muted loop playsinline preload="metadata" />
             <div
-              v-else-if="['vimeo', 'kinescope'].includes(getMediaType(src))"
+              v-else-if="['vimeo', 'kinescope'].includes(getMediaType(frame.src))"
               class="iframe-wrapper"
             >
               <iframe
-                :ref="el => setIframe(el, ind)"
-                :src="toEmbedUrl(src)"
+                :ref="el => setIframe(el, frame.key)"
+                :src="toEmbedUrl(frame.src)"
                 frameborder="0"
                 allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                 allowfullscreen
@@ -393,40 +464,32 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0;
-  transform: translate3d(0, 28px, 0);
-  transition:
-    opacity var(--motion-fade-duration) var(--motion-ease-out),
-    transform var(--motion-media-duration) var(--motion-ease-reveal);
+  padding: 60px;
   pointer-events: none;
 }
 .image-box.in-view {
-  opacity: 1;
   pointer-events: auto;
   z-index: 2;
 }
-.image-box.from-top {
-  transform: translate3d(0, -28px, 0);
+.image-box.is-previous {
+  z-index: 1;
 }
-.image-box.from-bottom {
-  transform: translate3d(0, 28px, 0);
+.image-box.is-previous > .media-reveal-content {
+  visibility: visible;
+  animation: media-frame-out var(--motion-frame-duration) var(--motion-ease-reveal) both;
 }
-.image-box.in-view.from-top,
-.image-box.in-view.from-bottom {
-  transform: translate3d(0, 0, 0);
+.image-box.is-previous > .media-reveal-content > .media-reveal-subject {
+  animation: media-subject-out var(--motion-subject-duration) var(--motion-ease-reveal) both;
 }
-.image-box.above { transform: translate3d(0, -28px, 0); }
-.image-box.below { transform: translate3d(0, 28px, 0); }
 
 .image-wrapper {
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f8f8f8;
-  padding: 60px;
 }
 
 .image-wrapper img,
@@ -434,28 +497,12 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  transform: scale(1.025);
-  transition: transform var(--motion-media-duration) var(--motion-ease-reveal);
-}
-.image-box.in-view img,
-.image-box.in-view video {
-  transform: scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .image-box,
-  .image-box.above,
-  .image-box.below,
-  .image-box.from-top,
-  .image-box.from-bottom,
-  .image-box.in-view.from-top,
-  .image-box.in-view.from-bottom,
-  .image-wrapper img,
-  .image-wrapper video,
-  .image-box.in-view img,
-  .image-box.in-view video {
-    transform: none;
-    transition: none;
+  .image-box.is-previous > .media-reveal-content,
+  .image-box.is-previous > .media-reveal-content > .media-reveal-subject {
+    animation: none;
   }
 }
 </style>

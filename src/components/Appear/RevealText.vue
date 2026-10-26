@@ -85,7 +85,7 @@ onBeforeUnmount(() => {
 .reveal-text-word {
   display: inline-block;
   opacity: 0;
-  transform: translate3d(0, 105%, 0);
+  transform: translate3d(0, var(--text-reveal-offset, 105%), 0);
   transition:
     transform var(--motion-text-duration) var(--motion-ease-reveal),
     opacity 400ms var(--motion-ease-out);

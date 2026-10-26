@@ -24,6 +24,11 @@ export const CONTENT_TYPES = {
 // 100ms задержка в появлинии слов
 export const wordAppearDelayStep = 35
 
+export const HOME_LOGO_ANIMATION = {
+  idleEnabled: true,
+  idleDelayMs: 10_000,
+};
+
 
 
 // Разделение текста на строки на основе ширины блока

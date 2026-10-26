@@ -1,6 +1,5 @@
 <script setup>
-import { useIntersectionObserver } from '@/utils/useIntersectionObserver'
-import { ref } from 'vue'
+import { vMediaReveal } from '@/utils/mediaReveal'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
 
 const props = defineProps({
@@ -12,17 +11,6 @@ const props = defineProps({
 })
 
 const mediaPopupStore = useMediaPopupStore()
-const elemRef = ref(null)
-const isIntersected = ref(false)
-
-const handleIntersect = (entries) => {
-  if (entries[0].isIntersecting || elemRef.value?.getBoundingClientRect().top < window.innerHeight) {
-    isIntersected.value = true
-  }
-}
-
-useIntersectionObserver(elemRef, handleIntersect)
-
 const handleIframeClick = (e) => {
   // prevent default just in case, then open popup
   e?.preventDefault?.()
@@ -41,12 +29,12 @@ const handleKey = (e) => {
 <template>
   <div
     class="info-video"
-    :class="(isAppear && isIntersected) ? 'info-video_appear' : '' "
+    v-media-reveal="isAppear"
     :style="{ '--reveal-delay': `${initialDelay}ms` }"
-    ref="elemRef"
     >
-    <div class="iframe-wrapper">
+    <div class="iframe-wrapper media-reveal-content">
       <iframe
+        class="media-reveal-subject"
         :src="src"
         frameborder="0"
         allow="autoplay; fullscreen; picture-in-picture"

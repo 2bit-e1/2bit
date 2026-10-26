@@ -4,30 +4,81 @@ import HomeFooterItem from './HomeFooterItem.vue';
 import MeFooterItem from './MeFooterItem/MeFooterItem.vue';
 import { PAGE_NAMES } from '@/utils/constants';
 import { useProjectStore } from '@/stores/project';
-import { onMounted } from 'vue';
+import { computed } from 'vue';
+import { getMotionDuration } from '@/utils/motion';
 
 const props = defineProps({
   pageName: String
 })
 
 const projectStore = useProjectStore();
+const projectPresentation = computed(() => ({
+  key: projectStore.slug || 'empty',
+  name: projectStore.name || '',
+  year: projectStore.year,
+  link: projectStore.link,
+  roles: [...projectStore.roles],
+  pagesCount: projectStore.images.length,
+  currentPage: projectStore.footerData.currentImageInd + 1,
+}));
+
+function hideOutgoingCopy(el) {
+  el.setAttribute('aria-hidden', 'true');
+  el.inert = true;
+}
 
 </script>
 
 <template>
-  <div class="footer" >
+  <div class="footer" :data-project-direction="projectStore.navigationDirection === -1 ? 'up' : 'down'">
     <HomeFooterItem :isActive="props.pageName == PAGE_NAMES.home" :pageName="pageName" />
-    <ProjectFooterItem
-      :isActive="props.pageName == PAGE_NAMES.project && projectStore.footerData.isVisible"
-      :pageName="pageName"
-    />
+    <Transition name="project-copy" :duration="getMotionDuration('--motion-text-duration', 720)" @before-leave="hideOutgoingCopy">
+      <ProjectFooterItem
+        :key="projectPresentation.key"
+        :presentation="projectPresentation"
+        :isActive="props.pageName == PAGE_NAMES.project && projectStore.footerData.isVisible && projectStore.isGalleryReady && !projectStore.isLeavingProject"
+        :pageName="pageName"
+      />
+    </Transition>
     <MeFooterItem :isActive="props.pageName == PAGE_NAMES.me" :pageName="pageName" /> 
   </div>
 </template>
 
 <style scoped>
 .footer {
-  
+  --project-copy-enter-offset: 105%;
+  --project-copy-exit-offset: -105%;
+}
+
+.footer[data-project-direction="up"] {
+  --project-copy-enter-offset: -105%;
+  --project-copy-exit-offset: 105%;
+}
+
+.project-copy-enter-active :deep(.appear-word_appear .appear-word-inner),
+.project-copy-enter-active :deep(.project-counter-window_active .project-counter-stack) {
+  animation: project-copy-in var(--motion-text-duration) var(--motion-ease-reveal) both;
+  transition: none;
+}
+
+.project-copy-leave-active {
+  pointer-events: none;
+}
+
+.project-copy-leave-active :deep(.appear-word_appear .appear-word-inner),
+.project-copy-leave-active :deep(.project-counter-window_active .project-counter-stack) {
+  animation: project-copy-out var(--motion-text-duration) var(--motion-ease-reveal) both;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-copy-enter-active :deep(.appear-word-inner),
+  .project-copy-enter-active :deep(.project-counter-stack),
+  .project-copy-leave-active :deep(.appear-word-inner),
+  .project-copy-leave-active :deep(.project-counter-stack) {
+    animation: none;
+    transition: none;
+  }
 }
 
 .footer-item {

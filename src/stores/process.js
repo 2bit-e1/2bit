@@ -14,9 +14,10 @@ export const useProcessStore = defineStore('process', {
    * @param {string} src
    * @param {string} description
    * @param {'portrait' | 'landscape' | undefined} orientation
+   * @param {number | undefined} index
    */
-    openPopup(src, description, orientation) {
-      this.popupData.imageInfo = { src, description, orientation };
+    openPopup(src, description, orientation, index) {
+      this.popupData.imageInfo = { src, description, orientation, index };
       this.popupData.isOpen = true;
     },
     closePopup() {

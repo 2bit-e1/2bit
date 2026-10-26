@@ -1,15 +1,93 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import Preloader from "@/components/Preloader.vue";
+import { observeMediaReveal } from "@/utils/mediaReveal";
+import { useProjectStore } from "@/stores/project";
+import { videoAspectRatios } from "@/data/projects/videoAspectRatios";
 
-const { imagesSrc } = defineProps({
-  imagesSrc: Array
+const { imagesSrc, hasNextProject, hasPreviousProject, entryIndex, entryDirection } = defineProps({
+  imagesSrc: Array,
+  hasNextProject: Boolean,
+  hasPreviousProject: Boolean,
+  entryIndex: Number,
+  entryDirection: Number,
+  isLeaving: Boolean,
 });
+const emit = defineEmits(["navigateProject", "ready"]);
+const projectStore = useProjectStore();
 
-const observer = ref(null);
+const scrollerRef = ref(null);
+const mediaReveals = [];
 const lazyObserver = ref(null);
 const isLoading = ref(true);
 const showPreloader = ref(false);
+let isDisposed = false;
+let isNavigating = false;
+let navigationTimer;
+let lastWheelTime = -Infinity;
+let touchStart = null;
+let entryAnchorObserver;
+let revealDirectionTimer;
+
+function restoreEntryEnd() {
+  window.scrollTo({ top: document.scrollingElement.scrollHeight, behavior: 'instant' });
+}
+
+function stopEntryAnchor() {
+  entryAnchorObserver?.disconnect();
+  window.removeEventListener('resize', restoreEntryEnd);
+  window.visualViewport?.removeEventListener('resize', restoreEntryEnd);
+}
+
+watch(() => projectStore.isInfoOpen, isOpen => {
+  if (isOpen) stopEntryAnchor();
+});
+
+function atGalleryStart() {
+  const firstFrame = scrollerRef.value?.firstElementChild;
+  return firstFrame?.getBoundingClientRect().height > 0 && document.scrollingElement?.scrollTop <= 2;
+}
+
+function atGalleryEnd() {
+  const lastFrame = scrollerRef.value?.lastElementChild;
+  const page = document.scrollingElement;
+  return lastFrame?.getBoundingClientRect().height > 0 && page &&
+    page.scrollHeight - page.clientHeight - page.scrollTop <= 2;
+}
+
+function advanceProject(direction) {
+  const atBoundary = direction > 0 ? hasNextProject && atGalleryEnd() : hasPreviousProject && atGalleryStart();
+  if (isDisposed || isLoading.value || isNavigating || projectStore.isInfoOpen || projectStore.isLeavingProject || !atBoundary) return false;
+  isNavigating = true;
+  navigationTimer = setTimeout(() => isNavigating = false, 1000);
+  emit("navigateProject", direction);
+  return true;
+}
+
+function handleEndWheel(event) {
+  if (event.ctrlKey) return;
+  stopEntryAnchor();
+  const now = performance.now();
+  const newGesture = now - lastWheelTime > 220;
+  lastWheelTime = now;
+  if (newGesture && Math.abs(event.deltaY) > 20 && advanceProject(event.deltaY > 0 ? 1 : -1)) event.preventDefault();
+}
+
+function handleEndTouchStart(event) {
+  const touch = event.touches[0];
+  stopEntryAnchor();
+  touchStart = { x: touch.clientX, y: touch.clientY, atEnd: atGalleryEnd(), atStart: atGalleryStart() };
+}
+
+function handleEndTouchEnd(event) {
+  const touch = event.changedTouches[0];
+  if (touchStart && touch) {
+    const delta = touchStart.y - touch.clientY;
+    if (Math.abs(delta) > 50 && Math.abs(delta) > Math.abs(touchStart.x - touch.clientX) &&
+        (delta > 0 ? touchStart.atEnd : touchStart.atStart)) advanceProject(delta > 0 ? 1 : -1);
+  }
+  touchStart = null;
+}
 
 const vimeoMuted = ref({}); // храню состояние по id
 
@@ -27,15 +105,20 @@ function toggleVimeoSound(iframeId) {
     "https://player.vimeo.com"
   );
 
-  // меняем кнопку (иконка)
-  const btn = iframe.nextElementSibling;
-  if (btn) btn.textContent = isMuted ? "🔊" : "🔇";
-
   vimeoMuted.value[iframeId] = !isMuted;
 }
 
 function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
+}
+
+function isEager(index) {
+  return index < 5 || index === entryIndex;
+}
+
+function updateVideoRatio(event) {
+  const video = event.target;
+  if (video.videoWidth && video.videoHeight) video.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
 }
 
 function isVimeo(src) {
@@ -80,16 +163,18 @@ function preloadAllMedia(srcArray) {
           video.autoplay = false;
           video.playsInline = true;
           video.preload = "metadata";
+          const finish = () => {
+            clearTimeout(timeout);
+            video.onloadedmetadata = video.onerror = null;
+            video.removeAttribute('src');
+            video.load();
+            resolve();
+          };
+          const timeout = setTimeout(finish, 2500);
+          video.onloadedmetadata = video.onerror = finish;
+          // A body-mounted metadata probe expands the mobile viewport to the video's native width.
           video.src = src;
-
-          video.onloadedmetadata = resolve;
-          video.onerror = resolve;
-
           video.load();
-          document.body.appendChild(video);
-          setTimeout(() => {
-            document.body.removeChild(video);
-          }, 1000);
         } else if (!isVimeo(src)) {
           const img = new Image();
           img.onload = resolve;
@@ -104,42 +189,39 @@ function preloadAllMedia(srcArray) {
 }
 
 onMounted(async () => {
-  let preloaderStartTime = null;
-
   const delay = setTimeout(() => {
     showPreloader.value = true;
-    preloaderStartTime = performance.now();
   }, 300);
 
-  await preloadAllMedia(imagesSrc);
+  await Promise.race([
+    preloadAllMedia(entryDirection === -1 ? [imagesSrc[entryIndex]] : imagesSrc),
+    new Promise(resolve => setTimeout(resolve, 2500)),
+  ]);
   clearTimeout(delay);
-
-  if (preloaderStartTime) {
-    const now = performance.now();
-    const timeShown = now - preloaderStartTime;
-    const timeToWait = 3000 - timeShown;
-    if (timeToWait > 0) {
-      await new Promise(resolve => setTimeout(resolve, timeToWait));
-    }
-  }
+  if (isDisposed) return;
 
   isLoading.value = false;
 
   await nextTick();
+  if (!scrollerRef.value) return;
+  if (entryDirection === -1) {
+    // Hold the last frame in view as earlier lazy images acquire their height.
+    restoreEntryEnd();
+    entryAnchorObserver = new ResizeObserver(restoreEntryEnd);
+    entryAnchorObserver.observe(scrollerRef.value);
+    window.addEventListener('resize', restoreEntryEnd);
+    window.visualViewport?.addEventListener('resize', restoreEntryEnd);
+  }
+  emit('ready');
+  window.addEventListener("wheel", handleEndWheel, { passive: false });
+  window.addEventListener("touchstart", handleEndTouchStart, { passive: true });
+  window.addEventListener("touchend", handleEndTouchEnd, { passive: true });
 
-  // IntersectionObserver для появления
-  observer.value = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && !entry.target.classList.contains("in-view")) {
-        entry.target.classList.add("in-view");
-        observer.value.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.08 });
-
-  document.querySelectorAll(".image-box").forEach(el => {
-    observer.value.observe(el);
+  scrollerRef.value.querySelectorAll(".image-box").forEach((el, index) => {
+    const reveal = observeMediaReveal(el, true, entryDirection === -1 && index === entryIndex ? 'up' : undefined);
+    mediaReveals.push(reveal);
   });
+  revealDirectionTimer = setTimeout(() => mediaReveals.forEach(reveal => reveal.setDirection(undefined)), 1200);
 
   // Lazy load видео
   lazyObserver.value = new IntersectionObserver((entries) => {
@@ -154,7 +236,7 @@ onMounted(async () => {
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll(".image-box.lazy-video").forEach(el => {
+  scrollerRef.value.querySelectorAll(".image-box.lazy-video").forEach(el => {
     lazyObserver.value.observe(el);
   });
 
@@ -170,42 +252,59 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  observer.value?.disconnect();
+  isDisposed = true;
+  clearTimeout(navigationTimer);
+  clearTimeout(revealDirectionTimer);
+  stopEntryAnchor();
+  window.removeEventListener("wheel", handleEndWheel);
+  window.removeEventListener("touchstart", handleEndTouchStart);
+  window.removeEventListener("touchend", handleEndTouchEnd);
+  mediaReveals.forEach(reveal => reveal.disconnect());
   lazyObserver.value?.disconnect();
 });
 </script>
 
 <template>
-  <div>
-    <Preloader v-if="isLoading && showPreloader" />
+  <div class="project-gallery" :class="{ 'project-gallery_leaving': isLeaving }">
+    <Transition name="preloader-fade">
+      <Preloader v-if="isLoading && showPreloader" />
+    </Transition>
 
-    <div v-else class="scroller-vertical">
+    <div v-if="!isLoading" class="scroller-vertical" ref="scrollerRef">
       <div
         v-for="(src, ind) in imagesSrc"
         :key="ind"
-        class="image-box"
-        :class="{ 'lazy-video': isVideo(src) && ind >= 5 }"
+        class="image-box media-reveal"
+        :data-frame-index="ind"
+        :class="{ 'lazy-video': isVideo(src) && !isEager(ind) }"
       >
-        <div class="image-wrapper">
+        <div class="image-wrapper media-reveal-content">
           <!-- Картинки -->
           <img
+            class="media-reveal-subject"
             v-if="!isVideo(src) && !isVimeo(src)"
             :src="src"
-            :loading="ind < 5 ? 'eager' : 'lazy'"
+            :loading="isEager(ind) ? 'eager' : 'lazy'"
           />
 
           <!-- Видео -->
           <video
-            v-else-if="isVideo(src) && ind < 5"
+            class="media-reveal-subject"
+            v-else-if="isVideo(src) && isEager(ind)"
+            :style="{ aspectRatio: videoAspectRatios[src] || '16 / 9' }"
             :src="src"
+            @loadedmetadata="updateVideoRatio"
             autoplay
             muted
             loop
             playsinline
           />
           <video
-            v-else-if="isVideo(src) && ind >= 5"
+            class="media-reveal-subject"
+            v-else-if="isVideo(src) && !isEager(ind)"
+            :style="{ aspectRatio: videoAspectRatios[src] || '16 / 9' }"
             :data-src="src"
+            @loadedmetadata="updateVideoRatio"
             autoplay
             muted
             loop
@@ -213,7 +312,7 @@ onBeforeUnmount(() => {
           />
 
         <!-- Vimeo iframe с кнопкой поверх -->
-        <div v-else-if="isVimeo(src)" class="iframe-wrapper">
+        <div v-else-if="isVimeo(src)" class="iframe-wrapper media-reveal-subject">
           <iframe
             :id="`vimeo-${ind}`"
             :src="toVimeoEmbed(src)"
@@ -223,12 +322,14 @@ onBeforeUnmount(() => {
             referrerpolicy="strict-origin-when-cross-origin"
             @load="handleVimeoLoad"
           />
+          <div class="iframe-gesture-surface" aria-hidden="true" />
           <button
             type="button"
             class="sound-btn"
+            :aria-pressed="vimeoMuted[`vimeo-${ind}`] === false"
             @click="toggleVimeoSound(`vimeo-${ind}`)"
           >
-            🔇
+            {{ vimeoMuted[`vimeo-${ind}`] === false ? "🔊" : "🔇" }}
           </button>
         </div>
 
@@ -242,8 +343,8 @@ onBeforeUnmount(() => {
 
 .iframe-wrapper {
   position: relative;
-  width: calc(100% - 66px);
-  max-width: calc(100% - 66px);
+  width: 100%;
+  max-width: 100%;
   height: calc((100vw - 66px) * 9 / 16);
   display: block;
 }
@@ -255,6 +356,13 @@ onBeforeUnmount(() => {
   height: 100%;
   display: block;
   border: none;
+}
+
+.iframe-gesture-surface {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  touch-action: pan-y;
 }
 
 .sound-btn {
@@ -278,6 +386,7 @@ onBeforeUnmount(() => {
   gap: 10px;
   padding: 102px 0;
   background: #f8f8f8;
+  overflow-x: clip;
 }
 
 .image-box {
@@ -289,8 +398,9 @@ onBeforeUnmount(() => {
 
 .image-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 100%;
+  min-width: 0;
+  width: calc(100% - 66px);
+  max-width: calc(100% - 66px);
   height: auto;
   overflow: hidden;
   display: flex;
@@ -304,45 +414,17 @@ onBeforeUnmount(() => {
   z-index: 1;
   width: 100%;
   height: 100%;
-  max-width: calc(100% - 66px);
+  max-width: 100%;
   object-fit: cover;
   object-position: center;
 }
 
-.image-wrapper img,
-.image-wrapper video,
-.image-wrapper > .iframe-wrapper {
-  opacity: 0;
-  transform: translate3d(0, 16px, 0) scale(1.025);
-  transition:
-    transform var(--motion-media-duration) var(--motion-ease-reveal),
-    opacity var(--motion-fade-duration) var(--motion-ease-out);
+.image-wrapper video {
+  height: auto;
 }
-
-
 
 iframe::-webkit-media-controls {
   display: none !important;
-}
-
-.image-box.in-view img,
-.image-box.in-view video,
-.image-box.in-view > .image-wrapper > .iframe-wrapper {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .image-wrapper img,
-  .image-wrapper video,
-  .image-wrapper > .iframe-wrapper,
-  .image-box.in-view img,
-  .image-box.in-view video,
-  .image-box.in-view > .image-wrapper > .iframe-wrapper {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
 }
 
 </style>

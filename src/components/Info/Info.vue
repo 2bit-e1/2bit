@@ -47,6 +47,7 @@ watch(isInfoOpen, (isOpen) => {
     if (window.innerWidth <= 1024) projectStore.hideFooterData();
     scrollInstance.value?.destroy();
     scrollInstance.value = null;
+    scrollContainer.value?.style.removeProperty("pointer-events");
   }
 }, { flush: "post" });
 
@@ -94,6 +95,9 @@ onUnmounted(() => scrollInstance.value?.destroy());
             <VideoItem
               v-else-if="item.type === CONTENT_TYPES.video"
               :src="item.link"
+              :poster="item.poster"
+              :name="item.name"
+              :author="item.author"
               :isAppear="isInfoOpen"
               :initialDelay="getRevealDelay(ind)"
             />
@@ -134,6 +138,11 @@ onUnmounted(() => scrollInstance.value?.destroy());
 .info_open {
   opacity: 1;
   pointer-events: initial;
+}
+
+/* Locomotive sets inline pointer-events on its section, even after destroy(). */
+.info:not(.info_open) .text-container {
+  pointer-events: none !important;
 }
 
 .info-inner {
@@ -207,13 +216,6 @@ onUnmounted(() => scrollInstance.value?.destroy());
 }
 
 .info-image, .info-video {
-  opacity: 0;
-  transform: translate3d(0, 16px, 0) scale(1.025);
-  transition:
-    transform var(--motion-media-duration) var(--motion-ease-reveal),
-    opacity var(--motion-fade-duration) var(--motion-ease-out);
-  transition-delay: var(--reveal-delay, 0ms);
-
   position: relative;
   margin: 25px 0;
   width: 100%;
@@ -226,9 +228,11 @@ onUnmounted(() => scrollInstance.value?.destroy());
   padding-right: 10px;
 }
 
-.info-image_appear, .info-video_appear {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1);
+.info-image:deep(.media-reveal-content),
+.info-video:deep(.media-reveal-content) {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .info-video {
@@ -271,15 +275,6 @@ onUnmounted(() => scrollInstance.value?.destroy());
   margin-bottom: 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .info-image,
-  .info-video {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-
 @media (min-width: 1920px) {
   .text-container {
     grid-template-columns: repeat(12, var(--column-width));
@@ -293,7 +288,7 @@ onUnmounted(() => scrollInstance.value?.destroy());
     max-width: 575px;
     height: 25px;
   }
-  .info-video.info-video_appear {
+  .info_project .info-video.media-reveal_visible {
     margin-bottom: 150px;
   }
 }

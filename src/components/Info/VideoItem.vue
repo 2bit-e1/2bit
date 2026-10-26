@@ -1,30 +1,21 @@
 <script setup>
-import { useIntersectionObserver } from '@/utils/useIntersectionObserver'
-import { ref } from 'vue'
+import { vMediaReveal } from '@/utils/mediaReveal'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
 import Video from '@/components/Video.vue'
 
 const props = defineProps({
   src: String,
+  poster: String,
+  name: { type: String, default: 'Showreel' },
+  author: { type: String, default: '2bit ‘24' },
   isAppear: Boolean,
   initialDelay: { type: Number, default: 0 },
 })
 
 const mediaPopupStore = useMediaPopupStore()
 
-const elemRef = ref(null)
-const isIntersected = ref(false)
-
-const handleIntersect = (entries) => {
-  if (entries[0].isIntersecting || elemRef.value?.getBoundingClientRect().top < window.innerHeight) {
-    isIntersected.value = true
-  }
-}
-
-useIntersectionObserver(elemRef, handleIntersect)
-
 const handleVideoClick = () => {
-  mediaPopupStore.openPopup(props.src, 'Showreel', '2bit ‘24', 'video')
+  mediaPopupStore.openPopup(props.src, props.name, props.author, 'video')
 }
 
 </script>
@@ -32,13 +23,18 @@ const handleVideoClick = () => {
 <template>
   <div
     class="info-video"
-    :class="(isAppear && isIntersected) ? 'info-video_appear' : '' "
+    v-media-reveal="isAppear"
     :style="{ '--reveal-delay': `${initialDelay}ms` }"
-    ref="elemRef"
     tabindex="0"
+    role="button"
+    :aria-label="`Открыть: ${name}`"
     @click="handleVideoClick"
+    @keydown.enter.prevent="handleVideoClick"
+    @keydown.space.prevent="handleVideoClick"
   >
-    <Video :muted="true" playsinline isPlaying :videoSrc="src" loop/>
+    <div class="media-reveal-content">
+      <Video class="media-reveal-subject" :muted="true" playsinline isPlaying :videoSrc="src" :poster="poster" loop/>
+    </div>
   </div>
 </template>
 
