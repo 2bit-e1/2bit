@@ -1,7 +1,6 @@
 <script setup>
-import { useIntersectionObserver } from "@/utils/useIntersectionObserver";
-import { computed, onMounted, ref } from "vue";
-import { timeForLoadAllImages } from "./utils";
+import { vMediaReveal } from "@/utils/mediaReveal";
+import { computed } from "vue";
 
 const props = defineProps({
   ind: Number,
@@ -11,22 +10,8 @@ const props = defineProps({
   orientation: String,
 });
 
-const elemRef = ref(null);
-const isIntersected = ref(false);
-const appearDelayStep = 50;
-const appearDelay = ref(props.ind * appearDelayStep + "ms");
-
-const handleIntersect = (entries) => {
-  if (entries[0].isIntersecting) isIntersected.value = true;
-};
-
-useIntersectionObserver(elemRef, handleIntersect);
-
-onMounted(() => {
-  setTimeout(() => {
-    appearDelay.value = ((props.ind % 4) - 1) * appearDelayStep + "ms";
-  }, timeForLoadAllImages);
-});
+const columns = window.innerWidth <= 600 ? 2 : window.innerWidth <= 1024 ? 3 : 4;
+const appearDelay = `${(props.ind % columns) * 45}ms`;
 
 // === Определение типа медиа ===
 const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.src));
@@ -79,17 +64,13 @@ function toKinescopeEmbed(src) {
 </script>
 
 <template>
-  <button class="item-image-container">
+  <button class="item-image-container" v-media-reveal="!isHide" :style="{ '--reveal-delay': appearDelay }">
     <div
-      class="item-image"
-      :class="{
-        'item-image_intersected': isIntersected,
-        'item-image_hide': isHide,
-      }"
-      ref="elemRef"
+      class="item-image media-reveal-content"
     >
       <!-- Изображение -->
       <img
+        class="media-reveal-subject"
         v-if="!isVideo && !isVimeo && !isKinescope"
         :src="src"
         :alt="alt || ''"
@@ -98,6 +79,7 @@ function toKinescopeEmbed(src) {
 
       <!-- Видео -->
       <video
+        class="media-reveal-subject"
         v-else-if="isVideo"
         :src="src"
         autoplay
@@ -110,7 +92,7 @@ function toKinescopeEmbed(src) {
       <!-- Vimeo iframe -->
       <div
         v-else-if="isVimeo"
-        class="iframe-wrapper"
+        class="iframe-wrapper media-reveal-subject"
         :class="{ 'iframe-wrapper_portrait': orientation === 'portrait' }"
       >
         <iframe
@@ -126,7 +108,7 @@ function toKinescopeEmbed(src) {
       <!-- 🆕 Kinescope iframe -->
       <div
         v-else-if="isKinescope"
-        class="iframe-wrapper"
+        class="iframe-wrapper media-reveal-subject"
         :class="{ 'iframe-wrapper_portrait': orientation === 'portrait' }"
       >
         <iframe
@@ -158,12 +140,6 @@ function toKinescopeEmbed(src) {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  transition: clip-path 450ms v-bind(appearDelay) ease;
-}
-
-.item-image_intersected:not(.item-image_hide) {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
 .item-image img,

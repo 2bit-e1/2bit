@@ -20,42 +20,17 @@ let minPreloaderDurationTimeout = null;
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
 
-// Получаем количество колонок по ширине экрана
-const getColumnsCount = () => {
-  if (window.innerWidth <= 600) return 2;
-  if (window.innerWidth <= 1024) return 3;
-  return 4;
-};
-
-const columnCount = ref(getColumnsCount());
-
-const handleImageClick = (imageData) => {
+const handleImageClick = (imageData, index) => {
   emits(
     "openPopup",
     getImageSrc(imageData.name),
     imageData.description,
-    imageData.orientation
+    imageData.orientation,
+    index
   );
 };
 
-const handleParallax = (scrollY) => {
-  const items = scrollContainer.value.querySelectorAll(".list-item");
-
-  items.forEach((item, index) => {
-    const col = index % columnCount.value;
-    const middle = (columnCount.value - 1) / 1;
-    const delayFactor = (col - middle) * 3;
-    const offset = scrollY * delayFactor * 0.01;
-
-    item.style.transform = `translateY(${offset}px)`;
-  });
-};
-
-let scrollTimeout;
-
 onMounted(() => {
-  columnCount.value = getColumnsCount();
-
   // Показываем прелоудер, только если загрузка дольше 300 мс
   preloaderTimeout = setTimeout(() => {
     shouldShowPreloader.value = true;
@@ -73,17 +48,6 @@ onMounted(() => {
     tablet: { smooth: true },
   });
 
-  scrollInstance.value.on("scroll", (args) => {
-    clearTimeout(scrollTimeout);
-    handleParallax(args.scroll.y);
-
-    scrollTimeout = setTimeout(() => {
-      const items = scrollContainer.value.querySelectorAll(".list-item");
-      items.forEach((item) => {
-        item.style.transform = "";
-      });
-    }, 40);
-  });
 });
 
 onUnmounted(() => {
@@ -145,7 +109,7 @@ useWaitingImagesToLoad(
             :orientation="imageData.orientation"
             :timeForLoadAllImages="timeForLoadAllImages"
             @setImageRef="(ref) => (imagesRefs[ind] = ref)"
-            @click.stop="handleImageClick(imageData)"
+            @click.stop="handleImageClick(imageData, ind)"
           />
         </li>
       </ul>
@@ -173,7 +137,6 @@ useWaitingImagesToLoad(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: transform 0.4s ease-out;
 }
 
 @media (max-width: 1024px) {

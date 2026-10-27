@@ -1,4 +1,4 @@
-import { onBeforeUnmount, ref, watchEffect } from "vue"
+import { onBeforeUnmount, unref, watch } from "vue";
 
 export const useIntersectionObserver = (elem, callback, options) => {
   const {
@@ -7,31 +7,25 @@ export const useIntersectionObserver = (elem, callback, options) => {
     threshold = 0,
   } = options || {}
   
-  const cleanup = ref(null)
-  
-  watchEffect(
-    () => {
-      if (cleanup.value) cleanup.value()
-      
-      const observer = new IntersectionObserver(
-        callback,
-        {
-          root: rootRef?.value || null,
-          rootMargin,
-          threshold,
-        },
-      )
-      
-      observer.observe(elem.value)
-
-      cleanup.value = () => {
-        observer.disconnect()
+  const stop = watch(
+    () => [unref(elem), unref(rootRef)],
+    ([element, root], _, onCleanup) => {
+      if (!element) return;
+      if (typeof IntersectionObserver === "undefined") {
+        callback([{ target: element, isIntersecting: true }]);
+        return;
       }
-    },
-    { flush: 'post' },
-  )
 
-  onBeforeUnmount(() => {
-    if (cleanup.value) cleanup.value()
-  })
+      const observer = new IntersectionObserver(callback, {
+        root: root || null,
+        rootMargin,
+        threshold,
+      });
+      observer.observe(element);
+      onCleanup(() => observer.disconnect());
+    },
+    { flush: "post", immediate: true },
+  );
+
+  onBeforeUnmount(stop);
 }

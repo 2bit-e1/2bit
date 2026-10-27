@@ -1,29 +1,16 @@
 <script setup>
-import { useIntersectionObserver } from '@/utils/useIntersectionObserver'
-import { ref, watchEffect } from 'vue'
+import { vMediaReveal } from '@/utils/mediaReveal'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
 
 const props = defineProps({
   src: String,
   isAppear: Boolean,
-  initialDelay: String,
+  initialDelay: { type: Number, default: 0 },
   name: { type: String, default: 'Iframe project' },
   author: { type: String, default: '2bit' }
 })
 
 const mediaPopupStore = useMediaPopupStore()
-const appearDelay = ref(null)
-const elemRef = ref(null)
-const isIntersected = ref(false)
-
-const handleIntersect = (entries) => {
-  if (entries[0].isIntersecting || elemRef.value?.getBoundingClientRect().top < window.innerHeight) {
-    isIntersected.value = true
-  }
-}
-
-useIntersectionObserver(elemRef, handleIntersect)
-
 const handleIframeClick = (e) => {
   // prevent default just in case, then open popup
   e?.preventDefault?.()
@@ -37,24 +24,17 @@ const handleKey = (e) => {
   }
 }
 
-watchEffect(() => {
-  if (props.isAppear) {
-    setTimeout(() => {
-      appearDelay.value = '200ms'
-    }, 1000)
-  }
-})
 </script>
 
 <template>
   <div
     class="info-video"
-    :class="(isAppear && isIntersected) ? 'info-video_appear' : '' "
-    :style="{ 'animation-delay': (appearDelay == null ? initialDelay : appearDelay) }"
-    ref="elemRef"
+    v-media-reveal="isAppear"
+    :style="{ '--reveal-delay': `${initialDelay}ms` }"
     >
-    <div class="iframe-wrapper">
+    <div class="iframe-wrapper media-reveal-content">
       <iframe
+        class="media-reveal-subject"
         :src="src"
         frameborder="0"
         allow="autoplay; fullscreen; picture-in-picture"

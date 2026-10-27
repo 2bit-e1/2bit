@@ -8,6 +8,7 @@ import LinkArrowIcon from "@/assets/svgs/link-arrow.svg";
 
 const props = defineProps({
   isActive: Boolean,
+  presentation: { type: Object, required: true },
 });
 
 const isMobile = window.innerWidth <= 1024;
@@ -15,12 +16,12 @@ const isMobile = window.innerWidth <= 1024;
 const projectStore = useProjectStore();
 const isImagesCountVisible = computed(() => !projectStore.isInfoOpen);
 const isExternalLink = computed(() =>
-  projectStore.link?.startsWith("http")
+  props.presentation.link?.startsWith("http")
 );
-const projectName = computed(() => projectStore.name || "");
+const projectName = computed(() => props.presentation.name);
 const projectYear   = computed(() => {        // ← добавили вычисление
   // выводим две последние цифры, чтобы было ‘23, ‘28 и т.‑д.
-  const y = projectStore.year
+  const y = props.presentation.year
   return typeof y === "number" ? `‘${y.toString().padStart(2, "0")}` : ""
 })
 </script>
@@ -28,8 +29,11 @@ const projectYear   = computed(() => {        // ← добавили вычис
 <template>
   <div
     class="footer-item footer-item_project"
+    :data-project-key="presentation.key"
     :class="{
       'footer-item_active': isActive,
+      'footer-item_project_leaving': projectStore.isLeavingProject,
+      'footer-item_project_waiting': !projectStore.isGalleryReady && !projectStore.isLeavingProject,
     }"
     :aria-hidden="!isActive"
   >
@@ -52,8 +56,8 @@ const projectYear   = computed(() => {        // ← добавили вычис
 
      <component
       :is="isExternalLink ? 'a' : 'RouterLink'"
-      :href="isExternalLink ? projectStore.link : undefined"
-      :to="!isExternalLink ? projectStore.link : undefined"
+      :href="isExternalLink ? presentation.link : undefined"
+      :to="!isExternalLink ? presentation.link || '/' : undefined"
       class="hoverable project-item project-item_to-project"
       :class="`${isMobile ? 'hoverable-from-black' : 'hoverable-from-gray'} ${!isImagesCountVisible && isActive && 'project-item_to-project-active'}`"
       target="_blank"
@@ -70,9 +74,9 @@ const projectYear   = computed(() => {        // ← добавили вычис
     </component>
 
     <CounterItem
-      v-if="projectStore.images.length > 0"
-      :pagesCount="projectStore.images.length"
-      :currentPage="projectStore.footerData.currentImageInd + 1"
+      v-if="presentation.pagesCount > 0"
+      :pagesCount="presentation.pagesCount"
+      :currentPage="presentation.currentPage"
       :delayOrder="4 + projectName.split(' ').length"
       :isActive="isImagesCountVisible && isActive"
     />
@@ -106,7 +110,8 @@ const projectYear   = computed(() => {        // ← добавили вычис
         <ul class="project-list">
           <li
             class="project-list-item"
-            v-for="(role, ind) in projectStore.roles"
+            v-for="(role, ind) in presentation.roles"
+            :key="role"
           >
             <AppearWords
               :text="role"
@@ -128,6 +133,28 @@ const projectYear   = computed(() => {        // ← добавили вычис
   left: 0;
   width: 100%;
   z-index: 1000;
+}
+
+.footer-item_project_leaving:deep(.appear-word-inner),
+.footer-item_project_leaving:deep(.project-counter-stack) {
+  opacity: 0;
+  transform: translate3d(0, -105%, 0);
+  transition-duration: var(--motion-scene-text-exit-duration);
+  transition-timing-function: var(--motion-ease-reveal);
+  transition-delay: 0ms;
+}
+
+.footer-item_project_waiting:deep(.appear-word-inner),
+.footer-item_project_waiting:deep(.project-counter-stack) {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-item_project_leaving:deep(.appear-word-inner),
+  .footer-item_project_leaving:deep(.project-counter-stack) {
+    transform: none;
+    transition: none;
+  }
 }
 
 .project-item {

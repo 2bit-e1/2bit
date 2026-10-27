@@ -4,6 +4,8 @@ import { defineStore } from "pinia"
 export const useProjectStore = defineStore('project', {
   state: () => ({
     name: null,
+    slug: null,
+    navigationDirection: 1,
     shrink: null,
     content: null,
     link: null,
@@ -11,6 +13,8 @@ export const useProjectStore = defineStore('project', {
     roles: [],
     year: null, 
     isInfoOpen: false,
+    isGalleryReady: false,
+    isLeavingProject: false,
     footerData: {
       isVisible: window.innerWidth > 1024,
       currentImageInd: 0
@@ -29,6 +33,7 @@ export const useProjectStore = defineStore('project', {
 
     /** @type {name: string, shrink: boolean, content: string} */
     setProjectData(projectData) {
+      this.slug = projectData.slug
       this.name = projectData.name
       this.shrink = projectData.shrink
       this.content = projectData.content
@@ -40,6 +45,7 @@ export const useProjectStore = defineStore('project', {
 
     clearProjectData() {
       this.name = null
+      this.slug = null
       this.shrink = null
       this.link = null
       this.content = null
@@ -47,6 +53,8 @@ export const useProjectStore = defineStore('project', {
       this.roles = []
       this.year    = null
       this.isInfoOpen = false
+      this.isGalleryReady = false
+      this.isLeavingProject = false
     },
     showFooterData() {
       this.footerData.isVisible = true

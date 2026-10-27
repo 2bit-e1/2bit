@@ -29,7 +29,7 @@ const rightBtnClickHandler = useGetRightBtnClickHandler(pageNameRef);
 const leftBtnClickHandler = useGetLeftBtnClickHandler(pageNameRef);
 
 const isLeftBtnDisabled = computed(
-  () => props.pageName != PAGE_NAMES.project || projectStore.isInfoOpen
+  () => props.pageName != PAGE_NAMES.project || projectStore.isInfoOpen || projectStore.isLeavingProject || !projectStore.isGalleryReady
 );
 const leftBtnRole = computed(() => getLeftBtnRole(props.pageName));
 

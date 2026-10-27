@@ -3,6 +3,7 @@ import { computed, onUnmounted, watchEffect, ref } from "vue";
 import { useMediaPopupStore } from "@/stores/mediaPopup";
 import Video from "@/components/Video.vue";
 import AppearWord from "./Appear/AppearWord.vue";
+import { vMediaReveal } from "@/utils/mediaReveal";
 
 const mediaPopupStore = useMediaPopupStore();
 
@@ -64,17 +65,19 @@ function toggleSound() {
     class="video-popup"
     :class="{ 'video-popup_open': isPopupOpen }"
     :aria-hidden="!isPopupOpen"
+    v-media-reveal="isPopupOpen"
   >
-    <div class="video-container">
+    <div class="video-container media-reveal-content">
       <!-- Видео -->
       <Video
+        class="media-reveal-subject"
         v-if="mediaPopupStore.popupData.type === 'video'"
         :videoSrc="mediaPopupStore.popupData.src"
         :isPlaying="isPopupOpen"
       />
 
       <!-- Iframe (например Vimeo, YouTube) -->
-     <div v-else-if="mediaPopupStore.popupData.type === 'iframe'" class="iframe-wrapper">
+     <div v-else-if="mediaPopupStore.popupData.type === 'iframe'" class="iframe-wrapper media-reveal-subject">
         <iframe
           ref="iframeRef"
           :src="mediaPopupStore.popupData.src"
@@ -147,8 +150,7 @@ function toggleSound() {
   background-color: #0f0f0f;
   opacity: 0;
   pointer-events: none;
-  --opacity-delay: 150ms;
-  transition: opacity 300ms var(--opacity-delay) var(--timing-func-2);
+  transition: opacity var(--motion-exit-duration) ease-out;
   --video-popup-x-padding: 107px;
   padding: var(--header-height) var(--video-popup-x-padding) 70px;
 }
@@ -162,14 +164,8 @@ function toggleSound() {
 .video-container {
   overflow: hidden;
   height: 100%;
-  transition: clip-path 400ms ease;
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
   display: flex;
   align-items: center;
-}
-
-.video-popup_open .video-container {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }
 
 .video-container:deep(video) {

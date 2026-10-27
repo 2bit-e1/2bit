@@ -1,11 +1,12 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import ErrorMessage from "@/components/Project/ErrorMessage.vue";
 import Info from "@/components/Info/Info.vue";
 import Content from "@/components/Project/Content.vue";
 import { useProjectStore } from "@/stores/project";
 import allProjects from "@/data/projects/index.js";
+import { getMotionDuration } from "@/utils/motion";
 
 const props = defineProps({
   pageName: String,
@@ -13,13 +14,71 @@ const props = defineProps({
 
 const projectStore = useProjectStore();
 const route = useRoute();
+const router = useRouter();
 
-const slug = route.params.slug;
-const project = allProjects.find((project) => project.slug == slug);
+const projectIndex = computed(() => allProjects.findIndex(project => project.slug === route.params.slug));
+const project = computed(() => allProjects[projectIndex.value]);
+const nextProject = computed(() => project.value && allProjects[projectIndex.value + 1]);
+const previousProject = computed(() => project.value && allProjects[projectIndex.value - 1]);
+const entryIndex = ref(0);
+const entryDirection = ref(1);
+let isNavigating = false;
+let exitPromise;
+let exitTimer;
+let finishExit;
 
-projectStore.setProjectData(project);
+function resetProjectExit() {
+  clearTimeout(exitTimer);
+  finishExit?.();
+  finishExit = null;
+  exitPromise = null;
+  projectStore.isLeavingProject = false;
+}
 
-const isError = !project;
+async function leaveProject() {
+  if (!projectStore.isGalleryReady) return;
+  projectStore.isLeavingProject = true;
+  projectStore.closeProjectInfo();
+  if (!exitPromise) {
+    exitPromise = new Promise(resolve => {
+      finishExit = resolve;
+      exitTimer = setTimeout(resolve, getMotionDuration('--motion-scene-exit-duration', 640));
+    });
+  }
+  await exitPromise;
+}
+
+onBeforeRouteLeave(leaveProject);
+const stopAfterEach = router.afterEach((_to, _from, failure) => {
+  if (failure) resetProjectExit();
+});
+
+watch(project, (value, previous) => {
+  resetProjectExit();
+  const direction = previous && value && value.number < previous.number ? -1 : 1;
+  entryDirection.value = direction;
+  entryIndex.value = value && direction < 0 ? value.images.length - 1 : 0;
+  projectStore.navigationDirection = direction;
+  projectStore.isGalleryReady = !!previous && window.innerWidth > 1024;
+  projectStore.closeProjectInfo();
+  if (value) {
+    projectStore.setProjectData(value);
+    projectStore.setCurrentImage(entryIndex.value);
+  } else {
+    projectStore.clearProjectData();
+  }
+}, { immediate: true });
+
+async function navigateProject(direction) {
+  const target = direction > 0 ? nextProject.value : previousProject.value;
+  if (!target || isNavigating || projectStore.isInfoOpen) return;
+  isNavigating = true;
+  try {
+    await router.push(`/projects/${target.slug}`);
+  } finally {
+    isNavigating = false;
+  }
+}
 
 const documentKeyPressListener = (event) => {
   if (event.key === "Escape") {
@@ -32,6 +91,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  stopAfterEach();
+  resetProjectExit();
   projectStore.clearProjectData();
 
   document.removeEventListener("keydown", documentKeyPressListener);
@@ -39,10 +100,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ErrorMessage v-if="isError" />
+  <ErrorMessage v-if="!project" />
   <template v-else>
     <Info :pageName="pageName" :content="project.content" />
-    <Content :imagesSrc="project.images" />
+    <Content :projectKey="project.slug" :imagesSrc="project.images" :hasNextProject="!!nextProject"
+      :hasPreviousProject="!!previousProject" :entryIndex="entryIndex" :entryDirection="entryDirection"
+      :isLeaving="projectStore.isLeavingProject" @ready="projectStore.isGalleryReady = true"
+      @navigateProject="navigateProject" />
   </template>
 </template>
 

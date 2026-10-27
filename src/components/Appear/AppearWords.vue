@@ -13,7 +13,7 @@ const words = computed(() => props.text.split(" "));
 
 <template>
   <span class="appear-words">
-    <AppearWord v-for="(word, ind) in words" :word="word + ' '" :delayOrder="ind + delayOrder" :isAppear="isAppear" :key="word" />
+    <AppearWord v-for="(word, ind) in words" :word="word + ' '" :delayOrder="ind + delayOrder" :isAppear="isAppear" :key="ind" />
   </span>
 </template>
 

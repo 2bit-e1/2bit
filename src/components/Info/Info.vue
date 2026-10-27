@@ -1,97 +1,65 @@
 <script setup>
 import { useProjectStore } from "@/stores/project";
 import { CONTENT_TYPES, PAGE_NAMES } from "@/utils/constants";
-import { computed, onUnmounted, ref, watch, watchEffect } from "vue";
-import { appearDelayStep } from "./utils";
-import AppearBlocks from "./AppearBlocks.vue";
+import { computed, onUnmounted, ref, watch } from "vue";
+import RevealText from "@/components/Appear/RevealText.vue";
 import ImageItem from "./ImageItem.vue";
-import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
-import { useDisableScrollOnInfoOpen } from "../Project/hooks";
 import VideoItem from "./VideoItem.vue";
 import IframeItem from "./IframeItem.vue";
+import { getLocomotiveScrollInstance } from "@/utils/getLocomotiveScrollInstance";
+import { useDisableScrollOnInfoOpen } from "../Project/hooks";
 
 const props = defineProps({
   pageName: String,
   content: Array,
 });
 
-const contentBlocksDelay = ref({});
-const isAppearReady = ref(false);
-const scrollContainer = ref(null);
-const scrollInstance = ref(null);
-const lastScrollTop = ref(0);
-
 const projectStore = useProjectStore();
 const infoAreaRef = ref(null);
-
-const isSkipToggleFooterData = computed(
-  () => props.pageName != PAGE_NAMES.project || window.innerWidth > 1024
+const scrollContainer = ref(null);
+const scrollInstance = ref(null);
+const isInfoOpen = computed(() =>
+  projectStore.isInfoOpen || props.pageName === PAGE_NAMES.me
 );
-
-// === Учитываем iframe тоже ===
-props.content.forEach((contentItem, contentInd) => {
-  if (
-    contentItem.type == CONTENT_TYPES.image ||
-    contentItem.type == CONTENT_TYPES.video ||
-    contentItem.type == CONTENT_TYPES.iframe
-  ) {
-    contentBlocksDelay.value[contentInd] = 1 * appearDelayStep;
-  }
-});
+const getRevealDelay = (index) => Math.min(index, 3) * 65;
 
 function toVimeoEmbed(src) {
   if (!src) return src;
   const cleaned = String(src).split(/[?#]/)[0];
-  const m = cleaned.match(
+  const match = cleaned.match(
     /(?:player\.vimeo\.com\/video\/|vimeo\.com\/(?:.*\/)?)(\d+)/i
   );
-  if (!m) return src;
-  const id = m[1];
+  if (!match) return src;
   const params = new URLSearchParams({
     autoplay: "1",
     loop: "1",
     background: "1",
   });
-  return `https://player.vimeo.com/video/${id}?${params.toString()}`;
+  return `https://player.vimeo.com/video/${match[1]}?${params}`;
 }
 
-watchEffect(() => {
-  if (Object.values(contentBlocksDelay.value).length == props.content.length) {
-    isAppearReady.value = true;
+watch(isInfoOpen, (isOpen) => {
+  if (props.pageName === PAGE_NAMES.me) return;
+  if (isOpen) {
+    projectStore.showFooterData();
+    scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
+  } else {
+    if (window.innerWidth <= 1024) projectStore.hideFooterData();
+    scrollInstance.value?.destroy();
+    scrollInstance.value = null;
+    scrollContainer.value?.style.removeProperty("pointer-events");
   }
-});
-
-const isInfoOpen = computed(() => {
-  return projectStore.isInfoOpen || props.pageName == PAGE_NAMES.me;
-});
-
-watch(
-  isInfoOpen,
-  (isOpen) => {
-    if (props.pageName == PAGE_NAMES.me) return;
-
-    if (isOpen) {
-      projectStore.showFooterData();
-      scrollInstance.value = getLocomotiveScrollInstance(scrollContainer.value);
-    } else {
-      if (window.innerWidth <= 1024) projectStore.hideFooterData();
-      scrollInstance.value?.destroy();
-    }
-  },
-  { flush: "post" }
-);
+}, { flush: "post" });
 
 useDisableScrollOnInfoOpen();
 
-onUnmounted(() => {
-  scrollInstance.value?.destroy();
-});
+onUnmounted(() => scrollInstance.value?.destroy());
 </script>
 
 <template>
   <div
     class="info"
-    :aria-hidden="!(projectStore.isInfoOpen || pageName == PAGE_NAMES.me)"
+    :aria-hidden="!isInfoOpen"
     :class="{
       info_open: isInfoOpen,
       info_me: pageName == PAGE_NAMES.me,
@@ -100,103 +68,48 @@ onUnmounted(() => {
   >
     <div class="info-inner hide-scrollbar" ref="infoAreaRef">
       <div class="text-container" ref="scrollContainer">
-        <template v-if="isInfoOpen" v-for="(item, ind) in content">
-          <!-- Заголовки -->
-          <h3
-            class="info-text info-text_title"
-            v-if="item.type == CONTENT_TYPES.title"
-          >
-            {{ item.text }}
-            <AppearBlocks
-              @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-              :initialDelay="
-                Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return +key < ind ? acc + contentBlocksDelay[key] : acc;
-                }, 0)
-              "
-              :isAppearReady="isAppearReady && isInfoOpen"
+        <template v-if="isInfoOpen">
+          <template v-for="(item, ind) in content" :key="ind">
+            <h3
+              v-if="item.type === CONTENT_TYPES.title"
+              class="info-text info-text_title"
+            >
+              <RevealText :text="item.text" :delay="getRevealDelay(ind)" />
+            </h3>
+            <p v-else-if="item.type === CONTENT_TYPES.paragraph" class="info-text">
+              <RevealText :text="item.text" :delay="getRevealDelay(ind)" />
+            </p>
+            <p
+              v-else-if="item.type === CONTENT_TYPES.extraParagraph"
+              class="info-text info-text_extra"
+            >
+              <RevealText :text="item.text" :delay="getRevealDelay(ind)" />
+            </p>
+            <ImageItem
+              v-else-if="item.type === CONTENT_TYPES.image"
+              :pageName="pageName"
+              :src="item.link"
+              :isAppear="isInfoOpen"
+              :initialDelay="getRevealDelay(ind)"
             />
-          </h3>
-
-          <!-- Обычный параграф -->
-          <p class="info-text" v-if="item.type == CONTENT_TYPES.paragraph">
-            {{ item.text }}
-            <AppearBlocks
-              @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-              :initialDelay="
-                Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return +key < ind ? acc + contentBlocksDelay[key] : acc;
-                }, 0)
-              "
-              :isAppearReady="isAppearReady && isInfoOpen"
+            <VideoItem
+              v-else-if="item.type === CONTENT_TYPES.video"
+              :src="item.link"
+              :poster="item.poster"
+              :name="item.name"
+              :author="item.author"
+              :isAppear="isInfoOpen"
+              :initialDelay="getRevealDelay(ind)"
             />
-          </p>
-
-          <!-- Доп. параграф -->
-          <p
-            class="info-text info-text_extra"
-            v-if="item.type == CONTENT_TYPES.extraParagraph"
-          >
-            {{ item.text }}
-            <AppearBlocks
-              @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-              :initialDelay="
-                Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                  return +key < ind ? acc + contentBlocksDelay[key] : acc;
-                }, 0)
-              "
-              :isAppearReady="isAppearReady && isInfoOpen"
+            <IframeItem
+              v-else-if="item.type === CONTENT_TYPES.iframe"
+              :src="toVimeoEmbed(item.link)"
+              :isAppear="isInfoOpen"
+              :initialDelay="getRevealDelay(ind)"
+              :name="item.name || 'Iframe project'"
+              :author="item.author || '2bit'"
             />
-          </p>
-
-          <!-- Фото -->
-          <ImageItem
-            v-if="item.type == CONTENT_TYPES.image"
-            :pageName="pageName"
-            :src="item.link"
-            :isAppear="isAppearReady && isInfoOpen"
-            :initialDelay="
-              Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                return +key < ind ? acc + contentBlocksDelay[key] : acc;
-              }, 0) + 'ms'
-            "
-          />
-
-          <!-- Видео -->
-          <VideoItem
-            v-if="item.type == CONTENT_TYPES.video"
-            :src="item.link"
-            :isAppear="isAppearReady && isInfoOpen"
-            :initialDelay="
-              Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                return +key < ind ? acc + contentBlocksDelay[key] : acc;
-              }, 0) + 'ms'
-            "
-          />
-
-          <!-- Iframe (Vimeo) -->
-          <IframeItem
-            v-if="item.type == CONTENT_TYPES.iframe"
-            :src="toVimeoEmbed(item.link)"
-            :isAppear="isAppearReady && isInfoOpen"
-            :initialDelay="
-              Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                return +key < ind ? acc + contentBlocksDelay[key] : acc;
-              }, 0) + 'ms'
-            "
-            :name="item.name || 'Iframe project'"
-            :author="item.author || '2bit'"
-          />
-          <AppearBlocks
-            v-if="item.type == CONTENT_TYPES.iframe"
-            @setDelay="(delay) => (contentBlocksDelay[ind] = delay)"
-            :initialDelay="
-              Object.keys(contentBlocksDelay).reduce((acc, key) => {
-                return +key < ind ? acc + contentBlocksDelay[key] : acc;
-              }, 0)
-            "
-            :isAppearReady="isAppearReady && isInfoOpen"
-          />
+          </template>
         </template>
       </div>
     </div>
@@ -206,7 +119,7 @@ onUnmounted(() => {
 <style scoped>
 .info {
   opacity: 0;
-  transition: opacity 150ms;
+  transition: opacity var(--motion-exit-duration) ease-out;
   pointer-events: none;
   display: flex;  
   justify-content: center;
@@ -225,6 +138,11 @@ onUnmounted(() => {
 .info_open {
   opacity: 1;
   pointer-events: initial;
+}
+
+/* Locomotive sets inline pointer-events on its section, even after destroy(). */
+.info:not(.info_open) .text-container {
+  pointer-events: none !important;
 }
 
 .info-inner {
@@ -298,8 +216,6 @@ onUnmounted(() => {
 }
 
 .info-image, .info-video {
-  clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-
   position: relative;
   margin: 25px 0;
   width: 100%;
@@ -312,22 +228,15 @@ onUnmounted(() => {
   padding-right: 10px;
 }
 
-.info-image_appear, .info-video_appear {
-  animation: appear-image 300ms forwards ease;
+.info-image:deep(.media-reveal-content),
+.info-video:deep(.media-reveal-content) {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .info-video {
   cursor: pointer;
-}
-
-@keyframes appear-image {
-  0% {
-    clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
-  }
-
-  100% {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-  }
 }
 
 .info-image:deep(img), .info-video:deep(video) {
@@ -379,7 +288,7 @@ onUnmounted(() => {
     max-width: 575px;
     height: 25px;
   }
-  .info-video.info-video_appear {
+  .info_project .info-video.media-reveal_visible {
     margin-bottom: 150px;
   }
 }
