@@ -2,6 +2,11 @@
 import { vMediaReveal } from '@/utils/mediaReveal'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
 import Video from '@/components/Video.vue'
+import { ref } from 'vue'
+import MediaLoadingState from '@/components/MediaLoadingState.vue'
+import { mediaDimensions } from '@/data/mediaDimensions'
+const videoRef = ref(null)
+const mediaState = ref({ state: 'loading', ready: false, active: false })
 
 const props = defineProps({
   src: String,
@@ -23,7 +28,7 @@ const handleVideoClick = () => {
 <template>
   <div
     class="info-video"
-    v-media-reveal="isAppear"
+    v-media-reveal="isAppear && mediaState.ready"
     :style="{ '--reveal-delay': `${initialDelay}ms` }"
     tabindex="0"
     role="button"
@@ -33,8 +38,9 @@ const handleVideoClick = () => {
     @keydown.space.prevent="handleVideoClick"
   >
     <div class="media-reveal-content">
-      <Video class="media-reveal-subject" :muted="true" playsinline isPlaying :videoSrc="src" :poster="poster" loop/>
+      <Video ref="videoRef" class="media-reveal-subject" :style="{ aspectRatio: (mediaDimensions[src] || [16, 9]).join(' / ') }" :muted="true" playsinline :isPlaying="isAppear && !mediaPopupStore.popupData.isOpen" :videoSrc="src" loop @state-change="mediaState = $event" />
     </div>
+    <MediaLoadingState :visible="mediaState.active" :state="mediaState.state" @keydown.stop @retry="videoRef?.retry()" />
   </div>
 </template>
 

@@ -1,21 +1,21 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import ImagesListItem from "./ImageListItem.vue";
-import { useWaitingImagesToLoad } from "@/utils/useWaitingImagesToLoad";
-import { getImageSrc, timeForLoadAllImages } from "./utils";
+import { getImageSrc } from "./utils";
 import LocomotiveScroll from "locomotive-scroll";
 import { processImagesData } from "@/data/process/images";
 import Preloader from "@/components/Preloader.vue";
+import { createMediaWindow } from '@/utils/mediaWindow';
+import { useProcessStore } from '@/stores/process';
 
 const emits = defineEmits(["openPopup"]);
 
-const imagesRefs = ref([]);
+const processStore = useProcessStore();
+const mediaReady = ref({});
+const mediaStates = ref({});
+const loadingState = ref('loading');
 const isImagesLoaded = ref(false);
-const shouldShowPreloader = ref(false);
-const canHidePreloader = ref(false); // ← новое состояние
-
-let preloaderTimeout = null;
-let minPreloaderDurationTimeout = null;
+let mediaWindow;
 
 const scrollContainer = ref(null);
 const scrollInstance = ref(null);
@@ -31,63 +31,42 @@ const handleImageClick = (imageData, index) => {
 };
 
 onMounted(() => {
-  // Показываем прелоудер, только если загрузка дольше 300 мс
-  preloaderTimeout = setTimeout(() => {
-    shouldShowPreloader.value = true;
-
-    // Минимальная длительность прелоудера — 3 секунды
-    minPreloaderDurationTimeout = setTimeout(() => {
-      canHidePreloader.value = true;
-    }, 3000);
-  }, 300);
-
   scrollInstance.value = new LocomotiveScroll({
     el: scrollContainer.value,
     smooth: true,
     smartphone: { smooth: true },
     tablet: { smooth: true },
   });
+  scrollInstance.value.stop();
+  mediaWindow = createMediaWindow({
+    onInitialStateChange: state => { loadingState.value = state; },
+    onInitialReady: () => {
+      isImagesLoaded.value = true;
+      if (!processStore.popupData.isOpen) scrollInstance.value?.start();
+    },
+    onStateChange: (element, state, info) => {
+      mediaReady.value[element.dataset.mediaIndex] = info.ready;
+      mediaStates.value[element.dataset.mediaIndex] = { state, ...info };
+    },
+  });
+  mediaWindow.setFrames(scrollContainer.value.querySelectorAll('.list-item'));
+  mediaWindow.setSuspended(processStore.popupData.isOpen);
+});
 
+watch(() => processStore.popupData.isOpen, value => {
+  mediaWindow?.setSuspended(value);
+  if (value || !isImagesLoaded.value) scrollInstance.value?.stop();
+  else scrollInstance.value?.start();
 });
 
 onUnmounted(() => {
   scrollInstance.value?.destroy();
-  clearTimeout(preloaderTimeout);
-  clearTimeout(minPreloaderDurationTimeout);
+  mediaWindow?.destroy();
 });
-
-// Когда все изображения загружены
-useWaitingImagesToLoad(
-  imagesRefs,
-  () => {
-    const hideLoader = () => {
-      isImagesLoaded.value = true;
-    };
-
-    if (shouldShowPreloader.value) {
-      if (canHidePreloader.value) {
-        hideLoader();
-      } else {
-        const interval = setInterval(() => {
-          if (canHidePreloader.value) {
-            hideLoader();
-            clearInterval(interval);
-          }
-        }, 100);
-      }
-    } else {
-      hideLoader();
-    }
-
-    clearTimeout(preloaderTimeout);
-  },
-  timeForLoadAllImages
-);
 </script>
 
 <template>
-  <!-- Прелоудер покажется только если загрузка заняла больше 300мс -->
-  <Preloader v-if="!isImagesLoaded && shouldShowPreloader" />
+  <Preloader v-if="!isImagesLoaded" :state="loadingState" @retry="mediaWindow?.retry()" />
 
   <div
     class="images-list"
@@ -101,15 +80,17 @@ useWaitingImagesToLoad(
           class="list-item"
           v-for="(imageData, ind) in processImagesData"
           :key="ind"
+          :data-media-index="ind"
         >
           <ImagesListItem
             :src="getImageSrc(imageData.name)"
             :isHide="!isImagesLoaded"
+            :isReady="!!mediaReady[ind]"
+            :mediaState="mediaStates[ind]"
             :ind="ind"
             :orientation="imageData.orientation"
-            :timeForLoadAllImages="timeForLoadAllImages"
-            @setImageRef="(ref) => (imagesRefs[ind] = ref)"
             @click.stop="handleImageClick(imageData, ind)"
+            @retry="mediaWindow?.retry(scrollContainer.querySelectorAll('.list-item')[ind])"
           />
         </li>
       </ul>

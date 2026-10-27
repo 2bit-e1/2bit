@@ -1,14 +1,18 @@
 <script setup>
 import { vMediaReveal } from "@/utils/mediaReveal";
 import { computed } from "vue";
+import MediaLoadingState from '@/components/MediaLoadingState.vue';
 
 const props = defineProps({
   ind: Number,
   src: String,
   alt: String,
   isHide: Boolean,
+  isReady: Boolean,
+  mediaState: Object,
   orientation: String,
 });
+defineEmits(['retry']);
 
 const columns = window.innerWidth <= 600 ? 2 : window.innerWidth <= 1024 ? 3 : 4;
 const appearDelay = `${(props.ind % columns) * 45}ms`;
@@ -64,7 +68,8 @@ function toKinescopeEmbed(src) {
 </script>
 
 <template>
-  <button class="item-image-container" v-media-reveal="!isHide" :style="{ '--reveal-delay': appearDelay }">
+  <div class="item-shell">
+  <button class="item-image-container" v-media-reveal="!isHide && isReady" :style="{ '--reveal-delay': appearDelay }">
     <div
       class="item-image media-reveal-content"
     >
@@ -72,21 +77,18 @@ function toKinescopeEmbed(src) {
       <img
         class="media-reveal-subject"
         v-if="!isVideo && !isVimeo && !isKinescope"
-        :src="src"
+        :data-media-src="src"
         :alt="alt || ''"
-        :ref="(ref) => $emit('setImageRef', ref)"
       />
 
       <!-- Видео -->
       <video
         class="media-reveal-subject"
         v-else-if="isVideo"
-        :src="src"
-        autoplay
+        :data-media-src="src"
         muted
         loop
         playsinline
-        :ref="(ref) => $emit('setImageRef', ref)"
       />
 
       <!-- Vimeo iframe -->
@@ -96,11 +98,10 @@ function toKinescopeEmbed(src) {
         :class="{ 'iframe-wrapper_portrait': orientation === 'portrait' }"
       >
         <iframe
-          :src="toVimeoEmbed(src)"
+          :data-media-src="toVimeoEmbed(src)"
           frameborder="0"
           allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen
-          loading="lazy"
         />
         <div class="iframe-overlay"></div>
       </div>
@@ -112,19 +113,21 @@ function toKinescopeEmbed(src) {
         :class="{ 'iframe-wrapper_portrait': orientation === 'portrait' }"
       >
         <iframe
-          :src="toKinescopeEmbed(src)"
+          :data-media-src="toKinescopeEmbed(src)"
           frameborder="0"
           allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen
-          loading="lazy"
         />
         <div class="iframe-overlay"></div>
       </div>
     </div>
   </button>
+  <MediaLoadingState v-if="!isHide" :state="mediaState?.state || 'loading'" :visible="!!mediaState?.active" @retry="$emit('retry')" />
+  </div>
 </template>
 
 <style>
+.item-shell { position: relative; width: 100%; height: 100%; }
 .item-image-container {
   width: 100%;
   height: 100%;

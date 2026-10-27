@@ -2,7 +2,9 @@
 import { computed, ref, shallowRef, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import { useProjectStore } from "@/stores/project";
 import Preloader from "@/components/Preloader.vue";
+import MediaLoadingState from '@/components/MediaLoadingState.vue';
 import { getMotionDuration } from "@/utils/motion";
+import { createMediaWindow } from '@/utils/mediaWindow';
 
 const projectStore = useProjectStore();
 const props = defineProps({
@@ -23,18 +25,24 @@ function makeFrame(index) {
 const activeIndex = ref(props.entryIndex || 0);
 const currentFrame = shallowRef(makeFrame(activeIndex.value));
 const previousFrame = shallowRef(null);
+const pendingFrame = shallowRef(null);
+const frameStates = ref({});
+const loadingState = ref('loading');
+const targetFrame = computed(() => pendingFrame.value || currentFrame.value);
 const direction = ref(props.entryDirection || 1);
 const frames = computed(() => {
   const result = props.imagesSrc.map((_src, index) => makeFrame(index));
   // Keep only the outgoing media node across a project boundary, not its gallery.
   if (previousFrame.value && previousFrame.value.projectKey !== props.projectKey) result.push(previousFrame.value);
-  return result;
+  if (currentFrame.value.projectKey !== props.projectKey) result.push(currentFrame.value);
+  return [...new Map(result.map(frame => [frame.key, frame])).values()];
 });
 const scrollerRef = ref(null);
 let isThrottled = false;
 let scrollUnlockTimer;
 let revealFrame;
 let isDisposed = false;
+let mediaWindow;
 
 const isMuted = ref(true);                 // состояние mute (true = выключено)
 const currentIsIframeWithSound = computed(() => ["vimeo", "kinescope"].includes(getMediaType(currentFrame.value.src)));
@@ -43,7 +51,6 @@ const iframeEls = new Map();
 
 const shouldShowFirstImage = ref(false);
 const isLoading = ref(true);
-const showPreloader = ref(false);
 
 let touchStartY = 0;
 let touchEndY = 0;
@@ -150,6 +157,7 @@ function muteCurrentFrame() {
 
 function changeSlide(dir) {
   if (!canNavigate() || isThrottled) return;
+  if (pendingFrame.value) return;
   const nextIndex = activeIndex.value + dir;
   if ((nextIndex === props.imagesSrc.length && props.hasNextProject) ||
       (nextIndex < 0 && props.hasPreviousProject)) {
@@ -160,11 +168,35 @@ function changeSlide(dir) {
   if (nextIndex < 0 || nextIndex >= props.imagesSrc.length) return;
   muteCurrentFrame();
   direction.value = dir;
+  prepareFrame(makeFrame(nextIndex));
+}
+
+function commitPending() {
+  if (!pendingFrame.value) return;
   previousFrame.value = currentFrame.value;
-  activeIndex.value = nextIndex;
-  currentFrame.value = makeFrame(nextIndex);
-  projectStore.setCurrentImage(nextIndex);
+  currentFrame.value = pendingFrame.value;
+  activeIndex.value = currentFrame.value.index;
+  pendingFrame.value = null;
+  projectStore.isPreparingMedia = false;
+  emit('ready', activeIndex.value);
   lockTransition();
+}
+
+function prepareFrame(frame) {
+  if (frame.key === currentFrame.value.key) {
+    pendingFrame.value = null;
+    projectStore.isPreparingMedia = false;
+    emit('ready', currentFrame.value.index);
+    return;
+  }
+  pendingFrame.value = frame;
+  projectStore.isPreparingMedia = true;
+  if (frameStates.value[frame.key]?.ready) commitPending();
+}
+
+function retryTarget() {
+  const element = [...scrollerRef.value.children].find(element => element.dataset.mediaKey === targetFrame.value.key);
+  if (element) mediaWindow?.retry(element);
 }
 
 function handleFrameExit(event, key) {
@@ -212,20 +244,23 @@ function addScrollListeners() {
   scrollerRef.value.addEventListener("touchend", handleTouchEnd, { passive: true });
 }
 
-watch(() => projectStore.isInfoOpen, resetScrollLock, { flush: "sync" });
+watch(() => projectStore.isInfoOpen, value => {
+  resetScrollLock();
+  mediaWindow?.setSuspended(value);
+}, { flush: "sync" });
+
+watch([frames, currentFrame, previousFrame, pendingFrame], () => {
+  if (scrollerRef.value) mediaWindow?.setFrames(scrollerRef.value.children);
+}, { flush: 'post' });
 
 // ---------------------------
 // Следим за изменением активного слайда
 // ---------------------------
 watch(() => props.projectKey, () => {
   muteCurrentFrame();
-  previousFrame.value = shouldShowFirstImage.value ? currentFrame.value : null;
   direction.value = props.entryDirection || 1;
-  activeIndex.value = props.entryIndex || 0;
-  currentFrame.value = makeFrame(activeIndex.value);
-  projectStore.setCurrentImage(activeIndex.value);
-  lockTransition();
-  if (!isLoading.value) emit('ready');
+  resetScrollLock();
+  prepareFrame(makeFrame(props.entryIndex || 0));
 });
 
 watch(currentFrame, frame => {
@@ -260,40 +295,6 @@ function toggleSound() {
 }
 
 // ---------------------------
-// Прелоадер
-// ---------------------------
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function preloadInitialMedia(srcArray) {
-  const preloadLimit = 3;
-
-  return Promise.all(
-    srcArray.slice(0, preloadLimit).map((src) => {
-      return new Promise((resolve) => {
-        const type = getMediaType(src);
-        if (type === "video") {
-          const video = document.createElement("video");
-          video.muted = true;
-          video.playsInline = true;
-          video.preload = "metadata";
-          video.src = src;
-          video.onloadedmetadata = resolve;
-          video.onerror = resolve;
-          video.load();
-        } else if (type === "image") {
-          const img = new Image();
-          img.src = src;
-          img.onload = resolve;
-          img.onerror = resolve;
-        } else resolve();
-      });
-    })
-  );
-}
-
-// ---------------------------
 // Lifecycle
 // ---------------------------
 onMounted(async () => {
@@ -302,27 +303,33 @@ onMounted(async () => {
   await nextTick();
   projectStore.setCurrentImage(activeIndex.value);
 
-  const delay = setTimeout(() => {
-    showPreloader.value = true;
-  }, 300);
-
-  await Promise.race([preloadInitialMedia(props.imagesSrc), wait(2500)]);
-  clearTimeout(delay);
-  if (isDisposed) return;
-
-  isLoading.value = false;
-
-  await nextTick();
-  revealFrame = requestAnimationFrame(() => {
-    if (isDisposed) return;
-    shouldShowFirstImage.value = true;
-    emit('ready');
-    addScrollListeners();
+  mediaWindow = createMediaWindow({
+    mode: 'slides',
+    onInitialStateChange: state => loadingState.value = state,
+    onStateChange: (element, state, info) => {
+      const key = element.dataset.mediaKey;
+      frameStates.value[key] = { state, ...info };
+      if (pendingFrame.value?.key === key && info.ready) commitPending();
+    },
+    onInitialReady: () => {
+      if (isDisposed) return;
+      isLoading.value = false;
+      revealFrame = requestAnimationFrame(() => {
+        if (isDisposed) return;
+        shouldShowFirstImage.value = true;
+        emit('ready', currentFrame.value.index);
+        addScrollListeners();
+      });
+    },
   });
+  mediaWindow.setFrames(scrollerRef.value.children);
+  mediaWindow.setSuspended(projectStore.isInfoOpen);
 });
 
 onBeforeUnmount(() => {
   isDisposed = true;
+  projectStore.isPreparingMedia = false;
+  mediaWindow?.destroy();
   resetScrollLock();
   cancelAnimationFrame(revealFrame);
   window.removeEventListener("wheel", handleScroll);
@@ -340,16 +347,20 @@ onBeforeUnmount(() => {
 <template>
   <div class="project-gallery" :class="{ 'project-gallery_leaving': isLeaving }">
     <Transition name="preloader-fade">
-      <Preloader v-if="isLoading && showPreloader" />
+      <Preloader v-if="isLoading" :state="loadingState" @retry="mediaWindow?.retry()" />
     </Transition>
 
-    <div v-if="!isLoading" class="scroller-vertical" ref="scrollerRef">
+    <div class="scroller-vertical" ref="scrollerRef">
       <div
         v-for="frame in frames"
         :key="frame.key"
         class="image-box media-reveal"
         :data-project-key="frame.projectKey"
         :data-frame-index="frame.index"
+        :data-media-key="frame.key"
+        :data-media-active="frame.key === targetFrame.key"
+        :data-media-outgoing="frame.key === previousFrame?.key || (!!pendingFrame && frame.key === currentFrame.key)"
+        :data-media-retain="frame.key === currentFrame.key || frame.key === previousFrame?.key || (frame.projectKey === props.projectKey && Math.abs(frame.index - targetFrame.index) <= 1)"
         :data-reveal-direction="direction === -1 ? 'up' : 'down'"
         @animationend="handleFrameExit($event, frame.key)"
         :class="{
@@ -360,15 +371,15 @@ onBeforeUnmount(() => {
       >
         <div class="image-wrapper media-reveal-content">
           <div class="media media-reveal-subject">
-            <img v-if="getMediaType(frame.src) === 'image'" :src="frame.src" />
-            <video v-else-if="getMediaType(frame.src) === 'video'" :src="frame.src" autoplay muted loop playsinline preload="metadata" />
+            <img v-if="getMediaType(frame.src) === 'image'" :data-media-src="frame.src" />
+            <video v-else-if="getMediaType(frame.src) === 'video'" :data-media-src="frame.src" muted loop playsinline />
             <div
               v-else-if="['vimeo', 'kinescope'].includes(getMediaType(frame.src))"
               class="iframe-wrapper"
             >
               <iframe
                 :ref="el => setIframe(el, frame.key)"
-                :src="toEmbedUrl(frame.src)"
+                :data-media-src="toEmbedUrl(frame.src)"
                 frameborder="0"
                 allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                 allowfullscreen
@@ -380,6 +391,8 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </div>
+
+    <MediaLoadingState v-if="!isLoading" :visible="!projectStore.isInfoOpen && !isLeaving" :state="frameStates[targetFrame.key]?.state || 'loading'" @retry="retryTarget" />
 
     <!-- mute -->
     <button

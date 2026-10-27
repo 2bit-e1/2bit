@@ -27,7 +27,6 @@ export default {
     "/2.3.jpg",
     "/2.4.jpg",
     "/2.5.jpg",
-    "/2.6.mp4",
     "/2.7.jpg",
     "/2.8.webp",
     "/2.9.jpg.webp",

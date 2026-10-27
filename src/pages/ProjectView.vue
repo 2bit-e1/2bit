@@ -59,15 +59,25 @@ watch(project, (value, previous) => {
   entryDirection.value = direction;
   entryIndex.value = value && direction < 0 ? value.images.length - 1 : 0;
   projectStore.navigationDirection = direction;
-  projectStore.isGalleryReady = !!previous && window.innerWidth > 1024;
+  const keepPresentation = !!previous && window.innerWidth > 1024 && projectStore.isGalleryReady;
+  projectStore.isGalleryReady = keepPresentation;
   projectStore.closeProjectInfo();
   if (value) {
-    projectStore.setProjectData(value);
-    projectStore.setCurrentImage(entryIndex.value);
+    if (!keepPresentation) {
+      projectStore.setProjectData(value);
+      projectStore.setCurrentImage(entryIndex.value);
+    }
   } else {
     projectStore.clearProjectData();
   }
 }, { immediate: true });
+
+function handleGalleryReady(index) {
+  if (!project.value) return;
+  if (projectStore.slug !== project.value.slug) projectStore.setProjectData(project.value);
+  projectStore.setCurrentImage(Number.isInteger(index) ? index : entryIndex.value);
+  projectStore.isGalleryReady = true;
+}
 
 async function navigateProject(direction) {
   const target = direction > 0 ? nextProject.value : previousProject.value;
@@ -105,7 +115,7 @@ onUnmounted(() => {
     <Info :pageName="pageName" :content="project.content" />
     <Content :projectKey="project.slug" :imagesSrc="project.images" :hasNextProject="!!nextProject"
       :hasPreviousProject="!!previousProject" :entryIndex="entryIndex" :entryDirection="entryDirection"
-      :isLeaving="projectStore.isLeavingProject" @ready="projectStore.isGalleryReady = true"
+      :isLeaving="projectStore.isLeavingProject" @ready="handleGalleryReady"
       @navigateProject="navigateProject" />
   </template>
 </template>

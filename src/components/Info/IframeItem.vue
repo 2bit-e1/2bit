@@ -1,6 +1,9 @@
 <script setup>
 import { vMediaReveal } from '@/utils/mediaReveal'
 import { useMediaPopupStore } from '@/stores/mediaPopup'
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { createMediaWindow } from '@/utils/mediaWindow'
+import MediaLoadingState from '@/components/MediaLoadingState.vue'
 
 const props = defineProps({
   src: String,
@@ -11,6 +14,18 @@ const props = defineProps({
 })
 
 const mediaPopupStore = useMediaPopupStore()
+const frameRef = ref(null)
+const isReady = ref(false)
+const mediaState = ref({ state: 'loading', active: false })
+let mediaWindow
+onMounted(() => {
+  mediaWindow = createMediaWindow({ onStateChange: (_element, state, info) => { isReady.value = info.ready; mediaState.value = { state, ...info } } })
+  mediaWindow.setFrames([frameRef.value])
+  mediaWindow.setSuspended(mediaPopupStore.popupData.isOpen)
+})
+watch(() => mediaPopupStore.popupData.isOpen, value => mediaWindow?.setSuspended(value))
+watch(() => props.src, () => mediaWindow?.setFrames([frameRef.value]), { flush: 'post' })
+onBeforeUnmount(() => mediaWindow?.destroy())
 const handleIframeClick = (e) => {
   // prevent default just in case, then open popup
   e?.preventDefault?.()
@@ -28,18 +43,18 @@ const handleKey = (e) => {
 
 <template>
   <div
+    ref="frameRef"
     class="info-video"
-    v-media-reveal="isAppear"
+    v-media-reveal="isAppear && isReady"
     :style="{ '--reveal-delay': `${initialDelay}ms` }"
     >
     <div class="iframe-wrapper media-reveal-content">
       <iframe
         class="media-reveal-subject"
-        :src="src"
+        :data-media-src="src"
         frameborder="0"
         allow="autoplay; fullscreen; picture-in-picture"
         allowfullscreen
-        loading="lazy"
       />
       <!-- Полностью прозрачная кнопка-оверлей, ловит клик/тач и клавиши -->
       <button
@@ -52,6 +67,7 @@ const handleKey = (e) => {
        
       </button>
     </div>
+    <MediaLoadingState :visible="mediaState.active" :state="mediaState.state" @retry="mediaWindow?.retry(frameRef)" />
   </div>
 </template>
 

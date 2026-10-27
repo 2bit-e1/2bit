@@ -1,25 +1,18 @@
 <template>
   <div class="preloader">
-    <video
-      autoplay
-      loop
-      muted
-      playsinline
-      preload="auto"
-      class="preloader-video"
-    >
-      <source src="@/assets/preloadanim.mp4" type="video/mp4" />
-      Your browser does not support the video tag.
-    </video>
+    <MediaLoadingState :state="state" large @retry="$emit('retry')" />
   </div>
 </template>
 
 <script setup>
-// ничего не нужно подключать
+import MediaLoadingState from './MediaLoadingState.vue';
+defineProps({ state: { type: String, default: 'loading' } });
+defineEmits(['retry']);
 </script>
 
 <style scoped>
 .preloader {
+  touch-action: none;
   position: fixed;
   inset: 0;
   background-color: black;
@@ -29,9 +22,4 @@
   z-index: 9999;
 }
 
-.preloader-video {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-}
 </style>

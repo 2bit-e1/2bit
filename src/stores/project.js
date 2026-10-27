@@ -14,6 +14,7 @@ export const useProjectStore = defineStore('project', {
     year: null, 
     isInfoOpen: false,
     isGalleryReady: false,
+    isPreparingMedia: false,
     isLeavingProject: false,
     footerData: {
       isVisible: window.innerWidth > 1024,
@@ -54,6 +55,7 @@ export const useProjectStore = defineStore('project', {
       this.year    = null
       this.isInfoOpen = false
       this.isGalleryReady = false
+      this.isPreparingMedia = false
       this.isLeavingProject = false
     },
     showFooterData() {
