@@ -3,7 +3,9 @@ import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import Preloader from "@/components/Preloader.vue";
 import { observeMediaReveal } from "@/utils/mediaReveal";
 import { useProjectStore } from "@/stores/project";
-import { videoAspectRatios } from "@/data/projects/videoAspectRatios";
+import { mediaDimensions } from '@/data/mediaDimensions';
+import { createMediaWindow } from '@/utils/mediaWindow';
+import MediaLoadingState from '@/components/MediaLoadingState.vue';
 
 const { imagesSrc, hasNextProject, hasPreviousProject, entryIndex, entryDirection } = defineProps({
   imagesSrc: Array,
@@ -17,10 +19,11 @@ const emit = defineEmits(["navigateProject", "ready"]);
 const projectStore = useProjectStore();
 
 const scrollerRef = ref(null);
-const mediaReveals = [];
-const lazyObserver = ref(null);
+const mediaReveals = new Map();
+let mediaWindow;
 const isLoading = ref(true);
-const showPreloader = ref(false);
+const loadingState = ref('loading');
+const frameStates = ref({});
 let isDisposed = false;
 let isNavigating = false;
 let navigationTimer;
@@ -41,6 +44,7 @@ function stopEntryAnchor() {
 
 watch(() => projectStore.isInfoOpen, isOpen => {
   if (isOpen) stopEntryAnchor();
+  mediaWindow?.setSuspended(isOpen);
 });
 
 function atGalleryStart() {
@@ -112,15 +116,6 @@ function isVideo(src) {
   return /\.(mp4|webm|ogg)$/i.test(src);
 }
 
-function isEager(index) {
-  return index < 5 || index === entryIndex;
-}
-
-function updateVideoRatio(event) {
-  const video = event.target;
-  if (video.videoWidth && video.videoHeight) video.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
-}
-
 function isVimeo(src) {
   return /vimeo\.com/i.test(src);
 }
@@ -144,64 +139,7 @@ function toVimeoEmbed(src) {
   return `https://player.vimeo.com/video/${id}?${params.toString()}`;
 }
 
-function handleVimeoLoad(event) {
-  event.target.contentWindow?.postMessage(
-    JSON.stringify({ method: "play" }),
-    "https://player.vimeo.com"
-  );
-}
-
-
-function preloadAllMedia(srcArray) {
-  const preloadLimit = 3;
-  return Promise.all(
-    srcArray.slice(0, preloadLimit).map(src => {
-      return new Promise(resolve => {
-        if (isVideo(src)) {
-          const video = document.createElement("video");
-          video.muted = true;
-          video.autoplay = false;
-          video.playsInline = true;
-          video.preload = "metadata";
-          const finish = () => {
-            clearTimeout(timeout);
-            video.onloadedmetadata = video.onerror = null;
-            video.removeAttribute('src');
-            video.load();
-            resolve();
-          };
-          const timeout = setTimeout(finish, 2500);
-          video.onloadedmetadata = video.onerror = finish;
-          // A body-mounted metadata probe expands the mobile viewport to the video's native width.
-          video.src = src;
-          video.load();
-        } else if (!isVimeo(src)) {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = resolve;
-          img.src = src;
-        } else {
-          resolve(); // Vimeo iframe не прелоадим
-        }
-      });
-    })
-  );
-}
-
 onMounted(async () => {
-  const delay = setTimeout(() => {
-    showPreloader.value = true;
-  }, 300);
-
-  await Promise.race([
-    preloadAllMedia(entryDirection === -1 ? [imagesSrc[entryIndex]] : imagesSrc),
-    new Promise(resolve => setTimeout(resolve, 2500)),
-  ]);
-  clearTimeout(delay);
-  if (isDisposed) return;
-
-  isLoading.value = false;
-
   await nextTick();
   if (!scrollerRef.value) return;
   if (entryDirection === -1) {
@@ -212,43 +150,32 @@ onMounted(async () => {
     window.addEventListener('resize', restoreEntryEnd);
     window.visualViewport?.addEventListener('resize', restoreEntryEnd);
   }
-  emit('ready');
   window.addEventListener("wheel", handleEndWheel, { passive: false });
   window.addEventListener("touchstart", handleEndTouchStart, { passive: true });
   window.addEventListener("touchend", handleEndTouchEnd, { passive: true });
 
   scrollerRef.value.querySelectorAll(".image-box").forEach((el, index) => {
-    const reveal = observeMediaReveal(el, true, entryDirection === -1 && index === entryIndex ? 'up' : undefined);
-    mediaReveals.push(reveal);
+    const reveal = observeMediaReveal(el, false, entryDirection === -1 && index === entryIndex ? 'up' : undefined);
+    mediaReveals.set(el, reveal);
   });
   revealDirectionTimer = setTimeout(() => mediaReveals.forEach(reveal => reveal.setDirection(undefined)), 1200);
 
-  // Lazy load видео
-  lazyObserver.value = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const videoEl = entry.target.querySelector("video[data-src]");
-        if (videoEl && !videoEl.src) {
-          videoEl.src = videoEl.dataset.src;
-        }
-        lazyObserver.value.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
-
-  scrollerRef.value.querySelectorAll(".image-box.lazy-video").forEach(el => {
-    lazyObserver.value.observe(el);
+  mediaWindow = createMediaWindow({
+    reserveRatio: true,
+    onInitialStateChange: state => { loadingState.value = state; },
+    onStateChange: (element, state, info) => {
+      frameStates.value[element.dataset.frameIndex] = { state, ...info };
+      mediaReveals.get(element)?.setEnabled(!isLoading.value && info.ready);
+    },
+    onInitialReady: () => {
+      if (isDisposed) return;
+      isLoading.value = false;
+      mediaReveals.forEach((reveal, element) => reveal.setEnabled(element.dataset.mediaReady === 'true'));
+      emit('ready', entryIndex || 0);
+    },
   });
-
-  // Принудительный запуск Vimeo после загрузки iframe
-  document.querySelectorAll(".image-wrapper iframe").forEach(iframe => {
-    iframe.addEventListener("load", () => {
-      iframe.contentWindow?.postMessage(
-        JSON.stringify({ method: "play" }),
-        "https://player.vimeo.com"
-      );
-    });
-  });
+  mediaWindow.setFrames(scrollerRef.value.children);
+  mediaWindow.setSuspended(projectStore.isInfoOpen);
 });
 
 onBeforeUnmount(() => {
@@ -260,52 +187,38 @@ onBeforeUnmount(() => {
   window.removeEventListener("touchstart", handleEndTouchStart);
   window.removeEventListener("touchend", handleEndTouchEnd);
   mediaReveals.forEach(reveal => reveal.disconnect());
-  lazyObserver.value?.disconnect();
+  mediaWindow?.destroy();
 });
 </script>
 
 <template>
   <div class="project-gallery" :class="{ 'project-gallery_leaving': isLeaving }">
     <Transition name="preloader-fade">
-      <Preloader v-if="isLoading && showPreloader" />
+      <Preloader v-if="isLoading" :state="loadingState" @retry="mediaWindow?.retry()" />
     </Transition>
 
-    <div v-if="!isLoading" class="scroller-vertical" ref="scrollerRef">
+    <div class="scroller-vertical" ref="scrollerRef">
       <div
         v-for="(src, ind) in imagesSrc"
         :key="ind"
         class="image-box media-reveal"
         :data-frame-index="ind"
-        :class="{ 'lazy-video': isVideo(src) && !isEager(ind) }"
       >
         <div class="image-wrapper media-reveal-content">
           <!-- Картинки -->
           <img
             class="media-reveal-subject"
             v-if="!isVideo(src) && !isVimeo(src)"
-            :src="src"
-            :loading="isEager(ind) ? 'eager' : 'lazy'"
+            :data-media-src="src"
+            :style="{ aspectRatio: (mediaDimensions[src] || [16, 9]).join(' / ') }"
           />
 
           <!-- Видео -->
           <video
             class="media-reveal-subject"
-            v-else-if="isVideo(src) && isEager(ind)"
-            :style="{ aspectRatio: videoAspectRatios[src] || '16 / 9' }"
-            :src="src"
-            @loadedmetadata="updateVideoRatio"
-            autoplay
-            muted
-            loop
-            playsinline
-          />
-          <video
-            class="media-reveal-subject"
-            v-else-if="isVideo(src) && !isEager(ind)"
-            :style="{ aspectRatio: videoAspectRatios[src] || '16 / 9' }"
-            :data-src="src"
-            @loadedmetadata="updateVideoRatio"
-            autoplay
+            v-else-if="isVideo(src)"
+            :style="{ aspectRatio: (mediaDimensions[src] || [16, 9]).join(' / ') }"
+            :data-media-src="src"
             muted
             loop
             playsinline
@@ -315,12 +228,11 @@ onBeforeUnmount(() => {
         <div v-else-if="isVimeo(src)" class="iframe-wrapper media-reveal-subject">
           <iframe
             :id="`vimeo-${ind}`"
-            :src="toVimeoEmbed(src)"
+            :data-media-src="toVimeoEmbed(src)"
             frameborder="0"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             allowfullscreen
             referrerpolicy="strict-origin-when-cross-origin"
-            @load="handleVimeoLoad"
           />
           <div class="iframe-gesture-surface" aria-hidden="true" />
           <button
@@ -332,8 +244,9 @@ onBeforeUnmount(() => {
             {{ vimeoMuted[`vimeo-${ind}`] === false ? "🔊" : "🔇" }}
           </button>
         </div>
-
         </div>
+        <MediaLoadingState v-if="!isLoading" :visible="!!frameStates[ind]?.active" :state="frameStates[ind]?.state || 'loading'"
+          @retry="mediaWindow?.retry(scrollerRef.children[ind])" />
       </div>
     </div>
   </div>
@@ -390,6 +303,7 @@ onBeforeUnmount(() => {
 }
 
 .image-box {
+  position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -420,6 +334,10 @@ onBeforeUnmount(() => {
 }
 
 .image-wrapper video {
+  height: auto;
+}
+
+.image-wrapper img {
   height: auto;
 }
 

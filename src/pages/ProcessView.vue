@@ -4,13 +4,14 @@ import ImagesList from '@/components/Process/ImagesList.vue';
 import { useProcessStore } from '@/stores/process';
 import { processImagesData } from '@/data/process/images';
 import { getImageSrc } from '@/components/Process/utils';
-import { computed } from 'vue';
+import { computed, onUnmounted } from 'vue';
 
 const props = defineProps({
   pageName: String,
 })
 
 const processStore = useProcessStore();
+onUnmounted(() => processStore.closePopup());
 const popupIndex = computed(() => {
   const info = processStore.popupData.imageInfo;
   return Number.isInteger(info?.index) ? info.index :

@@ -1,8 +1,12 @@
 <script setup>
-import { computed, nextTick, onUnmounted, watchEffect, ref, watch } from 'vue';
+import { computed, nextTick, onUnmounted, watchEffect, ref, shallowRef, watch } from 'vue';
 import RevealText from '../Appear/RevealText.vue';
 import { useDisableScroll } from '@/utils/useDisableScroll';
 import { getMotionDuration } from '@/utils/motion';
+import Video from '@/components/Video.vue';
+import ManagedIframe from '@/components/ManagedIframe.vue';
+import ManagedImage from '@/components/ManagedImage.vue';
+import MediaLoadingState from '@/components/MediaLoadingState.vue';
 
 const props = defineProps({
   imageSrc: String,
@@ -18,9 +22,46 @@ const emits = defineEmits(['closePopup', 'navigate']);
 const isPopupOpen = computed(() => props.isOpen);
 
 // === Определение типа медиа ===
-const isVideo = computed(() => /\.(mp4|webm|ogg)$/i.test(props.imageSrc));
-const isVimeo = computed(() => /vimeo\.com/i.test(props.imageSrc));
-const isKinescope = computed(() => /kinescope\.io/i.test(props.imageSrc));
+const isVideo = src => /\.(mp4|webm|ogg)$/i.test(src);
+const isVimeo = src => /vimeo\.com/i.test(src);
+const isKinescope = src => /kinescope\.io/i.test(src);
+const displayed = shallowRef(null);
+const pending = shallowRef(null);
+const previous = shallowRef(null);
+const mediaStates = ref({});
+const mediaRefs = new Map();
+let exitTimer;
+const renderedFrames = computed(() => [previous.value, displayed.value, pending.value].filter(Boolean));
+const targetFrame = computed(() => pending.value || displayed.value);
+function setMediaRef(frame, component) {
+  if (component) mediaRefs.set(frame.src, component);
+  else mediaRefs.delete(frame.src);
+}
+function mediaState(frame, info) {
+  mediaStates.value[frame.src] = info;
+  if (pending.value?.src !== frame.src || !info.ready || !props.isOpen) return;
+  previous.value = displayed.value;
+  displayed.value = pending.value;
+  pending.value = null;
+  iframeRef.value = mediaRefs.get(displayed.value.src);
+  clearTimeout(exitTimer);
+  navigationLocked = true;
+  exitTimer = setTimeout(() => {
+    previous.value = null;
+    navigationLocked = false;
+  }, getMotionDuration('--motion-subject-duration', 1200));
+}
+watch(() => [props.isOpen, props.imageSrc], () => {
+  if (!props.isOpen) {
+    clearTimeout(exitTimer);
+    displayed.value = pending.value = previous.value = null;
+    mediaStates.value = {};
+    return;
+  }
+  if (props.imageSrc && displayed.value?.src !== props.imageSrc) {
+    pending.value = { src: props.imageSrc, description: props.imageDescription, orientation: props.imageOrientation };
+  }
+}, { immediate: true });
 
 /**
  * Универсальный embed-конструктор для Vimeo и Kinescope
@@ -76,18 +117,17 @@ function resetNavigation() {
 }
 
 function navigate(direction) {
-  if (!props.isOpen || navigationLocked || (direction > 0 ? !props.hasNext : !props.hasPrevious)) return;
+  if (!props.isOpen || pending.value || navigationLocked || (direction > 0 ? !props.hasNext : !props.hasPrevious)) return;
   navigationLocked = true;
   navigationDirection.value = direction > 0 ? 'down' : 'up';
   muteCurrentMedia();
   emits('navigate', direction);
-  unlockTimer = setTimeout(() => navigationLocked = false, getMotionDuration('--motion-subject-duration', 1200));
 }
 
 function muteCurrentMedia() {
-  const win = iframeRef.value?.contentWindow;
-  if (isVimeo.value) win?.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
-  else if (isKinescope.value) win?.postMessage(JSON.stringify({ event: 'setVolume', data: 0 }), '*');
+  const win = iframeRef.value;
+  if (isVimeo(displayed.value?.src)) win?.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
+  else if (isKinescope(displayed.value?.src)) win?.postMessage(JSON.stringify({ event: 'setVolume', data: 0 }), '*');
   isMuted.value = true;
 }
 
@@ -99,7 +139,7 @@ function handleWheel(event) {
 }
 
 function handlePointerDown(event) {
-  if (!props.isOpen || event.target.closest('.sound-btn')) return;
+  if (!props.isOpen || event.target.closest('button, .media-loading-state')) return;
   gesture = {
     id: event.pointerId, x: event.clientX, y: event.clientY,
     touch: event.pointerType === 'touch' || event.pointerType === 'pen',
@@ -123,12 +163,12 @@ function handlePointerUp(event) {
 
 function toggleSound() {
   if (!iframeRef.value) return;
-  const win = iframeRef.value.contentWindow;
+  const win = iframeRef.value;
   if (!win) return;
 
-  if (isVimeo.value) {
+  if (isVimeo(displayed.value?.src)) {
     win.postMessage(JSON.stringify({ method: 'setVolume', value: isMuted.value ? 1 : 0 }), '*');
-  } else if (isKinescope.value) {
+  } else if (isKinescope(displayed.value?.src)) {
     win.postMessage(JSON.stringify({ event: 'setVolume', data: isMuted.value ? 1 : 0 }), '*');
   }
 
@@ -162,10 +202,10 @@ watch(() => props.isOpen, async (newVal) => {
   }
 
   if (!newVal && iframeRef.value) {
-    const win = iframeRef.value.contentWindow;
-    if (isVimeo.value) {
+    const win = iframeRef.value;
+    if (isVimeo(displayed.value?.src)) {
       win?.postMessage(JSON.stringify({ method: 'setVolume', value: 0 }), '*');
-    } else if (isKinescope.value) {
+    } else if (isKinescope(displayed.value?.src)) {
       win?.postMessage(JSON.stringify({ event: 'setVolume', data: 0 }), '*');
     }
     isMuted.value = true;
@@ -177,6 +217,7 @@ watch(() => props.imageSrc, () => { isMuted.value = true; });
 useDisableScroll(isPopupOpen);
 
 onUnmounted(() => {
+  clearTimeout(exitTimer);
   resetNavigation();
   window.removeEventListener('keydown', keydownHandler);
   document.body.style.overflow = '';
@@ -197,27 +238,31 @@ onUnmounted(() => {
       @pointercancel="gesture = null"
     >
       <div class="popup-stage">
-      <Transition name="process-frame" :duration="getMotionDuration('--motion-subject-duration', 1200)" @before-leave="el => el.setAttribute('aria-hidden', 'true')">
-      <div :key="imageSrc" class="image-popup-inner media-reveal"
-        :class="{ 'media-reveal_visible': isOpen }" :data-reveal-direction="navigationDirection">
+      <div v-for="frame in renderedFrames" :key="frame.src" class="image-popup-inner media-reveal"
+        :class="{ 'media-reveal_visible': frame === displayed, 'process-frame-leave-active': frame === previous }" :data-reveal-direction="navigationDirection"
+        :aria-hidden="frame !== displayed">
         <div class="image-container media-reveal-content">
           <!-- Перехватчик кликов по медиа -->
           <div class="media-backdrop" />
 
           <!-- Изображение -->
-          <img
-            v-if="!isVideo && !isVimeo && !isKinescope"
+          <ManagedImage
+            v-if="!isVideo(frame.src) && !isVimeo(frame.src) && !isKinescope(frame.src)"
+            :ref="component => setMediaRef(frame, component)"
             class="image media-reveal-subject"
-            :src="imageSrc"
+            :src="frame.src"
+            @state-change="info => mediaState(frame, info)"
             alt=""
           />
 
           <!-- Видео-файл -->
-          <video
-            v-else-if="isVideo"
+          <Video
+            v-else-if="isVideo(frame.src)"
+            :ref="component => setMediaRef(frame, component)"
             class="image media-reveal-subject"
-            :src="imageSrc"
-            autoplay
+            :videoSrc="frame.src"
+            :isPlaying="isOpen && frame === (pending || displayed)"
+            @state-change="info => mediaState(frame, info)"
             muted
             loop
             playsinline
@@ -225,14 +270,16 @@ onUnmounted(() => {
 
           <!-- Vimeo / Kinescope -->
           <div
-            v-else-if="isVimeo || isKinescope"
+            v-else-if="isVimeo(frame.src) || isKinescope(frame.src)"
             class="iframe-wrapper media-reveal-subject"
-            :class="{ 'iframe-wrapper_portrait': imageOrientation === 'portrait' }"
+            :class="{ 'iframe-wrapper_portrait': frame.orientation === 'portrait' }"
           >
-            <iframe
-              ref="iframeRef"
+            <ManagedIframe
+              :ref="component => setMediaRef(frame, component)"
               class="iframe"
-              :src="toEmbed(imageSrc)"
+              :src="toEmbed(frame.src)"
+              :isActive="isOpen"
+              @state-change="info => mediaState(frame, info)"
               frameborder="0"
               allow="autoplay; fullscreen; picture-in-picture"
               allowfullscreen
@@ -246,13 +293,14 @@ onUnmounted(() => {
 
         <p class="description">
           <RevealText
-            :text="imageDescription || ''"
+            :text="frame.description || ''"
             :delay="100"
-            :isAppear="isOpen"
+            :isAppear="isOpen && frame === displayed"
           />
         </p>
       </div>
-      </Transition>
+      <MediaLoadingState :visible="isOpen" :state="mediaStates[targetFrame?.src]?.state || 'loading'"
+        @retry="mediaRefs.get(targetFrame?.src)?.retry()" />
       </div>
     </div>
   </Teleport>
@@ -321,13 +369,15 @@ onUnmounted(() => {
 }
 
 .image-popup-inner {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 2;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+.image-popup-inner[aria-hidden="true"] { pointer-events: none; }
 
 .popup-stage {
   position: relative;

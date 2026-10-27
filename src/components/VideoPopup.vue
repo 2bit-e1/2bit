@@ -1,19 +1,24 @@
 <script setup>
-import { computed, onUnmounted, watchEffect, ref } from "vue";
+import { computed, onUnmounted, watchEffect, ref, watch } from "vue";
 import { useMediaPopupStore } from "@/stores/mediaPopup";
 import Video from "@/components/Video.vue";
 import AppearWord from "./Appear/AppearWord.vue";
 import { vMediaReveal } from "@/utils/mediaReveal";
+import ManagedIframe from '@/components/ManagedIframe.vue';
+import MediaLoadingState from '@/components/MediaLoadingState.vue';
+const videoRef = ref(null);
+const mediaState = ref({state: 'loading', ready: false});
 
 const mediaPopupStore = useMediaPopupStore();
 
 // === Состояние открытия ===
 const isPopupOpen = computed(() => mediaPopupStore.popupData.isOpen);
+watch(() => [isPopupOpen.value, mediaPopupStore.popupData.src], () => { mediaState.value = {state: 'loading', ready: false}; });
 
 // === Закрытие по Escape ===
 const keydownHandler = (event) => {
   if (event.key === "Escape") {
-    mediaPopupStore.popupData.isOpen = false;
+    mediaPopupStore.closePopup();
   }
 };
 
@@ -21,7 +26,7 @@ const keydownHandler = (event) => {
 const clickHandler = (event) => {
   // проверяем, что кликнули именно на фон, а не на содержимое
   if (event.target.classList.contains("video-popup")) {
-    mediaPopupStore.popupData.isOpen = false;
+    mediaPopupStore.closePopup();
   }
 };
 
@@ -39,6 +44,7 @@ watchEffect(() => {
 });
 
 onUnmounted(() => {
+  mediaPopupStore.closePopup();
   window.removeEventListener("keydown", keydownHandler);
   window.removeEventListener("click", clickHandler);
   document.body.style.overflow = "";
@@ -51,7 +57,7 @@ function toggleSound() {
   if (!iframeRef.value) return;
   const action = isMuted.value ? 'setVolume' : 'setVolume';
   const value = isMuted.value ? 1 : 0;
-  iframeRef.value.contentWindow?.postMessage(
+  iframeRef.value.postMessage(
     JSON.stringify({ method: action, value }),
     '*'
   );
@@ -65,26 +71,28 @@ function toggleSound() {
     class="video-popup"
     :class="{ 'video-popup_open': isPopupOpen }"
     :aria-hidden="!isPopupOpen"
-    v-media-reveal="isPopupOpen"
+    v-media-reveal="isPopupOpen && mediaState.ready"
   >
     <div class="video-container media-reveal-content">
       <!-- Видео -->
       <Video
+        ref="videoRef"
+        @state-change="mediaState = $event"
         class="media-reveal-subject"
-        v-if="mediaPopupStore.popupData.type === 'video'"
+        v-if="isPopupOpen && mediaPopupStore.popupData.type === 'video'"
         :videoSrc="mediaPopupStore.popupData.src"
         :isPlaying="isPopupOpen"
       />
 
       <!-- Iframe (например Vimeo, YouTube) -->
-     <div v-else-if="mediaPopupStore.popupData.type === 'iframe'" class="iframe-wrapper media-reveal-subject">
-        <iframe
+     <div v-else-if="isPopupOpen && mediaPopupStore.popupData.type === 'iframe'" class="iframe-wrapper media-reveal-subject">
+        <ManagedIframe
+          @state-change="mediaState = $event"
           ref="iframeRef"
           :src="mediaPopupStore.popupData.src"
           frameborder="0"
           allow="autoplay; fullscreen; picture-in-picture"
           allowfullscreen
-          loading="lazy"
           class="video-iframe"
         />
         <!-- Кнопка звука -->
@@ -93,6 +101,8 @@ function toggleSound() {
         </button>
       </div>
     </div>
+
+    <MediaLoadingState :visible="isPopupOpen" :state="mediaState.state" @retry="(mediaPopupStore.popupData.type === 'video' ? videoRef : iframeRef)?.retry()" />
 
     <h3 class="description">
       <AppearWord

@@ -1,3 +1,1 @@
-export const timeForLoadAllImages = 1500
-
-export const getImageSrc = (name) => `/images/process/${name}`
+export const getImageSrc = (name) => /^https?:\/\//i.test(name) ? name : `/images/process/${name}`

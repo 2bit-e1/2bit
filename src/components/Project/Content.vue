@@ -19,10 +19,10 @@ const isDesktop = window.innerWidth > 1024
 <template>
   <DesktopContent v-if="isDesktop" :projectKey="projectKey" :imagesSrc="imagesSrc" :hasNextProject="hasNextProject"
     :hasPreviousProject="hasPreviousProject" :entryIndex="entryIndex" :entryDirection="entryDirection"
-    :isLeaving="isLeaving" @ready="emit('ready')" @navigateProject="emit('navigateProject', $event)" />
+    :isLeaving="isLeaving" @ready="emit('ready', $event)" @navigateProject="emit('navigateProject', $event)" />
   <MobileContent v-else :key="projectKey" :imagesSrc="imagesSrc" :hasNextProject="hasNextProject"
     :hasPreviousProject="hasPreviousProject" :entryIndex="entryIndex" :entryDirection="entryDirection"
-    :isLeaving="isLeaving" @ready="emit('ready')" @navigateProject="emit('navigateProject', $event)" />
+    :isLeaving="isLeaving" @ready="emit('ready', $event)" @navigateProject="emit('navigateProject', $event)" />
 </template>
 
 <style scoped>

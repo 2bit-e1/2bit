@@ -40,9 +40,10 @@ function scheduleMeasure() {
 }
 
 onMounted(async () => {
-  await document.fonts?.ready;
+  await nextTick();
   if (isDisposed) return;
   measureLines();
+  document.fonts?.ready.then(() => { if (!isDisposed) scheduleMeasure(); });
   if (typeof ResizeObserver !== "undefined") {
     resizeObserver = new ResizeObserver(scheduleMeasure);
     resizeObserver.observe(root.value.parentElement || root.value);
