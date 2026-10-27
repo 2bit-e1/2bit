@@ -49,6 +49,16 @@
         </video>
       </div>
     </div>
+    <script>
+      // The bio page must not stay behind the boot overlay while the app downloads.
+      if (/^\/me\/?$/.test(window.location.pathname)) {
+        window.setTimeout(() => {
+          const preloader = document.querySelector('.boot-preloader');
+          preloader?.querySelector('video')?.pause();
+          preloader?.remove();
+        }, 5000);
+      }
+    </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

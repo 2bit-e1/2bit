@@ -9,22 +9,17 @@ const props = defineProps({
 });
 defineEmits(['retry']);
 const videoRef = ref(null);
-const slow = ref(false);
 const busy = computed(() => ['idle', 'loading', 'buffering'].includes(props.state));
 const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-let timer;
 
 function syncPlayback() {
   const video = videoRef.value;
   if (!video) return;
-  if (props.visible && busy.value && !document.hidden && !motion.matches) video.play()?.catch(() => {});
+  if (props.large && props.visible && busy.value && !document.hidden && !motion.matches) video.play()?.catch(() => {});
   else video.pause();
 }
-watch([() => props.visible, busy], async () => {
+watch([() => props.visible, () => props.large, busy], async () => {
   syncPlayback();
-  clearTimeout(timer);
-  slow.value = false;
-  if (props.visible && busy.value) timer = setTimeout(() => { slow.value = true; }, 5000);
   await nextTick();
   syncPlayback();
 }, { immediate: true });
@@ -33,7 +28,6 @@ onMounted(() => {
   motion.addEventListener('change', syncPlayback);
 });
 onBeforeUnmount(() => {
-  clearTimeout(timer);
   document.removeEventListener('visibilitychange', syncPlayback);
   motion.removeEventListener('change', syncPlayback);
   videoRef.value?.pause();
@@ -41,12 +35,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="visible && state !== 'ready'" class="media-loading-state" :class="{ 'media-loading-state_large': large }"
+  <div v-if="visible && state !== 'ready' && (large || !busy)" class="media-loading-state" :class="{ 'media-loading-state_large': large }"
     role="status" aria-live="polite" :aria-busy="busy" aria-label="Загрузка медиа" @pointerdown.stop @pointerup.stop @click.stop>
-    <video v-if="busy" ref="videoRef" :src="animation" muted loop playsinline preload="auto" aria-hidden="true" @loadeddata="syncPlayback" />
+    <video v-if="large && busy" ref="videoRef" :src="animation" muted loop playsinline preload="auto" aria-hidden="true" @loadeddata="syncPlayback" />
     <p v-if="state === 'error'">Не удалось загрузить медиа</p>
     <p v-else-if="state === 'blocked'">Видео готово к запуску</p>
-    <p v-else-if="slow">Загружаем медиа</p>
     <button v-if="state === 'error' || state === 'blocked'" type="button" :aria-label="state === 'blocked' ? 'Воспроизвести видео' : 'Повторить загрузку'"
       @click.stop="$emit('retry')">{{ state === 'blocked' ? 'Воспроизвести' : 'Повторить' }}</button>
   </div>
