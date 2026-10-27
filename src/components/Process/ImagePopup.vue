@@ -238,7 +238,7 @@ onUnmounted(() => {
       @pointercancel="gesture = null"
     >
       <div class="popup-stage">
-      <div v-for="frame in renderedFrames" :key="frame.src" class="image-popup-inner media-reveal"
+      <div v-for="frame in renderedFrames" :key="frame.src" class="image-popup-inner media-reveal" data-media-frame
         :class="{ 'media-reveal_visible': frame === displayed, 'process-frame-leave-active': frame === previous }" :data-reveal-direction="navigationDirection"
         :aria-hidden="frame !== displayed">
         <div class="image-container media-reveal-content">

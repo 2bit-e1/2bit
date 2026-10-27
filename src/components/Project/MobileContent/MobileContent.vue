@@ -7,15 +7,13 @@ import { mediaDimensions } from '@/data/mediaDimensions';
 import { createMediaWindow } from '@/utils/mediaWindow';
 import MediaLoadingState from '@/components/MediaLoadingState.vue';
 
-const { imagesSrc, hasNextProject, hasPreviousProject, entryIndex, entryDirection } = defineProps({
+const { imagesSrc, entryIndex, entryDirection } = defineProps({
   imagesSrc: Array,
-  hasNextProject: Boolean,
-  hasPreviousProject: Boolean,
   entryIndex: Number,
   entryDirection: Number,
   isLeaving: Boolean,
 });
-const emit = defineEmits(["navigateProject", "ready"]);
+const emit = defineEmits(["ready"]);
 const projectStore = useProjectStore();
 
 const scrollerRef = ref(null);
@@ -25,10 +23,6 @@ const isLoading = ref(true);
 const loadingState = ref('loading');
 const frameStates = ref({});
 let isDisposed = false;
-let isNavigating = false;
-let navigationTimer;
-let lastWheelTime = -Infinity;
-let touchStart = null;
 let entryAnchorObserver;
 let revealDirectionTimer;
 
@@ -46,52 +40,6 @@ watch(() => projectStore.isInfoOpen, isOpen => {
   if (isOpen) stopEntryAnchor();
   mediaWindow?.setSuspended(isOpen);
 });
-
-function atGalleryStart() {
-  const firstFrame = scrollerRef.value?.firstElementChild;
-  return firstFrame?.getBoundingClientRect().height > 0 && document.scrollingElement?.scrollTop <= 2;
-}
-
-function atGalleryEnd() {
-  const lastFrame = scrollerRef.value?.lastElementChild;
-  const page = document.scrollingElement;
-  return lastFrame?.getBoundingClientRect().height > 0 && page &&
-    page.scrollHeight - page.clientHeight - page.scrollTop <= 2;
-}
-
-function advanceProject(direction) {
-  const atBoundary = direction > 0 ? hasNextProject && atGalleryEnd() : hasPreviousProject && atGalleryStart();
-  if (isDisposed || isLoading.value || isNavigating || projectStore.isInfoOpen || projectStore.isLeavingProject || !atBoundary) return false;
-  isNavigating = true;
-  navigationTimer = setTimeout(() => isNavigating = false, 1000);
-  emit("navigateProject", direction);
-  return true;
-}
-
-function handleEndWheel(event) {
-  if (event.ctrlKey) return;
-  stopEntryAnchor();
-  const now = performance.now();
-  const newGesture = now - lastWheelTime > 220;
-  lastWheelTime = now;
-  if (newGesture && Math.abs(event.deltaY) > 20 && advanceProject(event.deltaY > 0 ? 1 : -1)) event.preventDefault();
-}
-
-function handleEndTouchStart(event) {
-  const touch = event.touches[0];
-  stopEntryAnchor();
-  touchStart = { x: touch.clientX, y: touch.clientY, atEnd: atGalleryEnd(), atStart: atGalleryStart() };
-}
-
-function handleEndTouchEnd(event) {
-  const touch = event.changedTouches[0];
-  if (touchStart && touch) {
-    const delta = touchStart.y - touch.clientY;
-    if (Math.abs(delta) > 50 && Math.abs(delta) > Math.abs(touchStart.x - touch.clientX) &&
-        (delta > 0 ? touchStart.atEnd : touchStart.atStart)) advanceProject(delta > 0 ? 1 : -1);
-  }
-  touchStart = null;
-}
 
 const vimeoMuted = ref({}); // храню состояние по id
 
@@ -150,9 +98,8 @@ onMounted(async () => {
     window.addEventListener('resize', restoreEntryEnd);
     window.visualViewport?.addEventListener('resize', restoreEntryEnd);
   }
-  window.addEventListener("wheel", handleEndWheel, { passive: false });
-  window.addEventListener("touchstart", handleEndTouchStart, { passive: true });
-  window.addEventListener("touchend", handleEndTouchEnd, { passive: true });
+  window.addEventListener('wheel', stopEntryAnchor, { passive: true });
+  window.addEventListener('touchstart', stopEntryAnchor, { passive: true });
 
   scrollerRef.value.querySelectorAll(".image-box").forEach((el, index) => {
     const reveal = observeMediaReveal(el, false, entryDirection === -1 && index === entryIndex ? 'up' : undefined);
@@ -180,12 +127,10 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   isDisposed = true;
-  clearTimeout(navigationTimer);
   clearTimeout(revealDirectionTimer);
   stopEntryAnchor();
-  window.removeEventListener("wheel", handleEndWheel);
-  window.removeEventListener("touchstart", handleEndTouchStart);
-  window.removeEventListener("touchend", handleEndTouchEnd);
+  window.removeEventListener('wheel', stopEntryAnchor);
+  window.removeEventListener('touchstart', stopEntryAnchor);
   mediaReveals.forEach(reveal => reveal.disconnect());
   mediaWindow?.destroy();
 });

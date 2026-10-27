@@ -11,17 +11,18 @@ const emit = defineEmits(['stateChange']);
 const videoElem = ref(null);
 const isVideoLoaded = ref(false);
 let mediaWindow;
-defineExpose({ retry: () => mediaWindow?.retry(videoElem.value) });
+const mediaFrame = () => videoElem.value?.closest('[data-media-frame]') || videoElem.value;
+defineExpose({ retry: () => mediaWindow?.retry(mediaFrame()) });
 
 onMounted(() => {
   mediaWindow = createMediaWindow({ onStateChange: (_element, state, info) => emit('stateChange', { state, ...info }) });
   mediaWindow.setSuspended(!props.isPlaying);
-  mediaWindow.setFrames([videoElem.value]);
+  mediaWindow.setFrames([mediaFrame()]);
 });
 watch(() => props.isPlaying, value => mediaWindow?.setSuspended(!value));
 watch(() => props.videoSrc, () => {
   isVideoLoaded.value = false;
-  mediaWindow?.setFrames([videoElem.value]);
+  mediaWindow?.setFrames([mediaFrame()]);
 }, { flush: 'post' });
 onBeforeUnmount(() => mediaWindow?.destroy());
 </script>

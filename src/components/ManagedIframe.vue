@@ -9,20 +9,21 @@ const props = defineProps({
 const emit = defineEmits(['stateChange']);
 const frameRef = ref(null);
 let mediaWindow;
+const mediaFrame = () => frameRef.value?.closest('[data-media-frame]') || frameRef.value;
 
 // Expose a command, not a cross-origin WindowProxy that Vue would try to unwrap.
 defineExpose({
   postMessage: (message, origin) => frameRef.value?.contentWindow?.postMessage(message, origin),
-  retry: () => mediaWindow?.retry(frameRef.value),
+  retry: () => mediaWindow?.retry(mediaFrame()),
 });
 
 onMounted(() => {
   mediaWindow = createMediaWindow({ onStateChange: (_element, state, info) => emit('stateChange', { state, ...info }) });
   mediaWindow.setSuspended(!props.isActive);
-  mediaWindow.setFrames([frameRef.value]);
+  mediaWindow.setFrames([mediaFrame()]);
 });
 watch(() => props.isActive, value => mediaWindow?.setSuspended(!value));
-watch(() => props.src, () => mediaWindow?.setFrames([frameRef.value]), { flush: 'post' });
+watch(() => props.src, () => mediaWindow?.setFrames([mediaFrame()]), { flush: 'post' });
 onBeforeUnmount(() => mediaWindow?.destroy());
 </script>
 

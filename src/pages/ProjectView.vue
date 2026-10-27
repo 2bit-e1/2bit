@@ -80,6 +80,7 @@ function handleGalleryReady(index) {
 }
 
 async function navigateProject(direction) {
+  if (window.innerWidth <= 1024) return;
   const target = direction > 0 ? nextProject.value : previousProject.value;
   if (!target || isNavigating || projectStore.isInfoOpen) return;
   isNavigating = true;
